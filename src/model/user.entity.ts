@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SkillLevel } from '../utils/enums/skill-level';
+import { SkillLevel } from '../api/utils/enums/skill-level';
 
 @Entity('users')
 export class User {

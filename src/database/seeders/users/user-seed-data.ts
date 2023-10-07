@@ -1,5 +1,5 @@
 import UserSignupDto from '../../../api/auth/dto/user-signup-dto';
-import { SkillLevel } from '../../../utils/enums/skill-level';
+import { SkillLevel } from '../../../api/utils/enums/skill-level';
 
 export const userSeedData: UserSignupDto[] = [
   {
