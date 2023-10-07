@@ -33,10 +33,9 @@ describe('UserService', () => {
     it('Getting a user that does not exist should return false', async () => {
       jest.spyOn(userRepo, 'findOne').mockResolvedValueOnce(null);
 
-      const result =
-        await userService.checkIfUserAlreadyExists('test@example.com');
+      const result = await userService.getByUsername('test@example.com');
 
-      expect(result).toBe(false);
+      expect(result).toBe(null);
     });
 
     it('Getting a user that does exist should return true', async () => {
@@ -44,10 +43,9 @@ describe('UserService', () => {
         .spyOn(userRepo, 'findOne')
         .mockResolvedValueOnce({ username: 'test' } as User);
 
-      const result =
-        await userService.checkIfUserAlreadyExists('test@example.com');
+      const result = await userService.getByUsername('test@example.com');
 
-      expect(result).toBe(true);
+      expect(result).toStrictEqual({ username: 'test' });
     });
   });
 });

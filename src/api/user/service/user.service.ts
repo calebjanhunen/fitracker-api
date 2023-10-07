@@ -12,13 +12,13 @@ export class UserService {
     this.usersRepository = usersRepository;
   }
 
-  async checkIfUserAlreadyExists(username: string): Promise<boolean> {
+  async getByUsername(username: string): Promise<User | null> {
     try {
       const user = await this.usersRepository.findOne({
         where: { username },
       });
 
-      return !!user;
+      return user;
     } catch (error) {
       throw error;
     }
