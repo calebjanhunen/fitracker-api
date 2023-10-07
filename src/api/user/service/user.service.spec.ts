@@ -1,18 +1,53 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { User } from '../../../model/user.entity';
 import { UserService } from './user.service';
 
 describe('UserService', () => {
-  let service: UserService;
+  let userService: UserService;
+  let userRepo: Repository<User>;
+
+  const userRepoToken = getRepositoryToken(User);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
+      providers: [
+        UserService,
+        {
+          provide: userRepoToken,
+          useClass: Repository,
+        },
+      ],
     }).compile();
 
-    service = module.get<UserService>(UserService);
+    userService = module.get<UserService>(UserService);
+    userRepo = module.get<Repository<User>>(userRepoToken);
+  });
+  it('should be defined', () => {
+    expect(userService).toBeDefined();
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('test findByUsername()', () => {
+    it('Getting a user that does not exist should return false', async () => {
+      jest.spyOn(userRepo, 'findOne').mockResolvedValueOnce(null);
+
+      const result =
+        await userService.checkIfUserAlreadyExists('test@example.com');
+
+      expect(result).toBe(false);
+    });
+
+    it('Getting a user that does exist should return true', async () => {
+      jest
+        .spyOn(userRepo, 'findOne')
+        .mockResolvedValueOnce({ username: 'test' } as User);
+
+      const result =
+        await userService.checkIfUserAlreadyExists('test@example.com');
+
+      expect(result).toBe(true);
+    });
   });
 });

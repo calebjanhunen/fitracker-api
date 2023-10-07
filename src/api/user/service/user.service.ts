@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from '../../../model/user.entity';
-import UserSignupDto from '../../auth/dto/user-signup-dto';
 
 @Injectable()
 export class UserService {
@@ -13,12 +12,13 @@ export class UserService {
     this.usersRepository = usersRepository;
   }
 
-  async create(user: UserSignupDto): Promise<User> {
+  async checkIfUserAlreadyExists(username: string): Promise<boolean> {
     try {
-      const newUser = this.usersRepository.create(user);
-      await this.usersRepository.save(newUser);
+      const user = await this.usersRepository.findOne({
+        where: { username },
+      });
 
-      return newUser;
+      return !!user;
     } catch (error) {
       throw error;
     }
