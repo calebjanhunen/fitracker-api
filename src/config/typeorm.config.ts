@@ -11,7 +11,7 @@ export const typeormConfig: TypeOrmModuleOptions = {
   username: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
-  entities: [__dirname + '/../model/*.entity.ts'],
+  entities: [__dirname + '/../model/*.entity.{ts,js}'],
   migrationsTableName: 'migrations',
   migrations: [__dirname + '/../database/migrations/*.ts'],
   namingStrategy: new SnakeNamingStrategy(),
