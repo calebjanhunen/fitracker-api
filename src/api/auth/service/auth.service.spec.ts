@@ -1,5 +1,5 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { JwtModule, JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from 'src/api/user/service/user.service';
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
