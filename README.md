@@ -22,8 +22,13 @@ $ npm run start:prod
 ## Test
 
 ```bash
-# unit tests
+# Unit tests - run all tests
 $ npm run test
+
+# Unit tests - run specific file
+$ npm run test "filename"
+# Example:
+$ npm run test auth.controller
 
 # e2e tests
 $ npm run test:e2e

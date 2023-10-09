@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { generateHashPassword } from 'src/api/utils/helpers/password-helper';
 import { User } from 'src/model/user.entity';
 import { userSeedData } from './user-seed-data';
 
@@ -17,7 +18,8 @@ export class UserSeederService {
     try {
       let numUsersInserted = 0;
       for (const user of userSeedData) {
-        await this.usersRepository.insert(user);
+        const hashedPwd = await generateHashPassword(user.password);
+        await this.usersRepository.insert({ ...user, password: hashedPwd });
         numUsersInserted++;
       }
 

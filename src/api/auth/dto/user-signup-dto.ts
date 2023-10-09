@@ -1,4 +1,4 @@
-import { SkillLevel } from 'src/utils/enums/skill-level';
+import { SkillLevel } from 'src/api/utils/enums/skill-level';
 
 export default class UserSignupDto {
   username: string;
