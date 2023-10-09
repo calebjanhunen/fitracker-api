@@ -1,5 +1,10 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
-import { NotFoundError } from 'rxjs';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import { UserLoginDto } from '../dto/user-signin.dto';
 import { AuthService } from '../service/auth.service';
 
@@ -18,22 +23,7 @@ export class AuthController {
       const accessToken = await this.authService.signIn(username, password);
       return { accessToken };
     } catch (error) {
-      if (error instanceof NotFoundError) {
-        return {
-          message: 'User not found',
-          status: 404,
-        };
-      }
-      if (error instanceof UnauthorizedException) {
-        return {
-          message: 'Invalid login credentials',
-          status: 401,
-        };
-      }
-      return {
-        message: error.message,
-        status: 500,
-      };
+      throw new HttpException('Login failed', HttpStatus.CONFLICT);
     }
   }
 }
