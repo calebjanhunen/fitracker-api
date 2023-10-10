@@ -18,6 +18,12 @@ export class Exercise extends BaseEntity {
   difficultyLevel: ExerciseDifficultyLevel;
 
   @Column({
+    type: 'varchar',
+    length: '255',
+  })
+  equipment: string;
+
+  @Column({
     type: 'text',
     array: true,
   })
@@ -33,8 +39,9 @@ export class Exercise extends BaseEntity {
     type: 'varchar',
     length: '255',
     nullable: true,
+    array: true,
   })
-  secondaryMuscle: string;
+  secondaryMuscles: string[];
 
   @Column({
     type: 'boolean',
@@ -42,7 +49,7 @@ export class Exercise extends BaseEntity {
   })
   isCustom: boolean;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn()
-  user: User | undefined;
+  user: User | null;
 }
