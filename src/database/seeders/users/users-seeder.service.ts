@@ -14,16 +14,22 @@ export class UserSeederService {
     this.usersRepository = usersRepository;
   }
 
-  async create(): Promise<number | undefined> {
+  async create(): Promise<string[]> {
+    const createdUserIds: string[] = [];
     try {
-      let numUsersInserted = 0;
       for (const user of userSeedData) {
         const hashedPwd = await generateHashPassword(user.password);
-        await this.usersRepository.insert({ ...user, password: hashedPwd });
-        numUsersInserted++;
+
+        const createdUser = await this.usersRepository
+          .createQueryBuilder()
+          .insert()
+          .values({ ...user, password: hashedPwd })
+          .returning('id')
+          .execute();
+        createdUserIds.push(createdUser.generatedMaps[0].id);
       }
 
-      return numUsersInserted;
+      return createdUserIds;
     } catch (error) {
       throw error;
     }

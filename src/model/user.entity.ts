@@ -1,3 +1,4 @@
+import { IUser } from 'src/interfaces';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +9,7 @@ import {
 import { SkillLevel } from '../api/utils/enums/skill-level';
 
 @Entity('users')
-export class User {
+export class User implements IUser {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

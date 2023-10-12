@@ -18,7 +18,6 @@ export const typeormConfig: TypeOrmModuleOptions = {
   synchronize: true, // TODO: remove after initial database setup
   // autoLoadEntities: true,
 };
-console.log(__dirname);
 
 // For nestjs connection
 export default typeormConfig;

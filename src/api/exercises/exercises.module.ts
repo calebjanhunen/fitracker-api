@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
-import ExercisesController from './exercises.controller';
-import ExercisesService from './exercises.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Exercise } from 'src/model';
+import { UserModule } from '../user/user.module';
+import ExercisesController from './controller/exercises.controller';
+import ExercisesService from './services/exercises.service';
 
 @Module({
-  imports: [],
+  imports: [TypeOrmModule.forFeature([Exercise]), UserModule],
   controllers: [ExercisesController],
   providers: [ExercisesService],
 })

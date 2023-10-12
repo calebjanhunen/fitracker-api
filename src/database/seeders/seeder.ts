@@ -20,14 +20,15 @@ export class Seeder {
       console.log('Inserting users...');
       await this.sleep(1000); // simulate longer insert (makes console logs look better)
       await this.userSeederService.deleteAllUsers();
-      const numUsersInserted = await this.userSeederService.create();
-      console.log(`Inserted ${numUsersInserted} users into database \n`);
+      const createdUserIds = await this.userSeederService.create();
+      console.log(`Inserted ${createdUserIds.length} users into database \n`);
       await this.sleep(1000); // simulate longer insert (makes console logs look better)
 
       console.log('Inserting exercises...');
       await this.sleep(1000); // simulate longer insert (makes console logs look better)
       await this.exerciseSeederService.deleteAllExercises();
-      const numExercisesInserted = await this.exerciseSeederService.create();
+      const numExercisesInserted =
+        await this.exerciseSeederService.create(createdUserIds);
       console.log(
         `Inserted ${numExercisesInserted} exercises into database \n`,
       );

@@ -1,7 +1,8 @@
 import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { Exercise, User } from 'src/model';
 
-export const exerciseSeedData: Exercise[] = [
+// Not user created (isCustom = false)
+export const defaultExercisesSeedData: Exercise[] = [
   {
     id: crypto.randomUUID(),
     createdAt: new Date(),
@@ -46,7 +47,7 @@ export function createUserCreatedExercise(user: User): Exercise {
     id: crypto.randomUUID(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    name: 'Test Exercise',
+    name: `Test Exercise: ${user.firstName}`,
     difficultyLevel: ExerciseDifficultyLevel.beginner,
     equipment: 'dumbbells',
     instructions: ['Step 1.', 'Step 2.', 'Step 3', 'Step 4'],
