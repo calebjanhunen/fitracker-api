@@ -10,4 +10,12 @@ export const userSeedData: UserSignupDto[] = [
     email: 'caleb@example.com',
     skillLevel: SkillLevel.intermediate,
   },
+  {
+    username: 'test_user',
+    password: '123',
+    firstName: 'Test',
+    lastName: 'User',
+    email: 'testuser@example.com',
+    skillLevel: SkillLevel.beginner,
+  },
 ];

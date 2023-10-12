@@ -15,7 +15,6 @@ export default class ExercisesService {
   async getDefaultAndUserCreatedExercises(user: User): Promise<IExercise[]> {
     const defaultExercises = await this.getDefaultExercises();
     const userCreatedExercises = await this.getUserCreatedExercises(user);
-    console.log(userCreatedExercises);
 
     const allExercises = [...defaultExercises, ...userCreatedExercises];
 
