@@ -1,10 +1,11 @@
 import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
+import { IExercise } from 'src/interfaces';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
 
 @Entity('exercises')
-export class Exercise extends BaseEntity {
+export class Exercise extends BaseEntity implements IExercise {
   @Column({
     type: 'varchar',
     length: '255',
