@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IExercise } from 'src/interfaces';
 import { Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
 
@@ -11,7 +12,19 @@ export default class ExercisesService {
     this.exerciseRepo = exerciseRepo;
   }
 
-  async getDefaultExercises(): Promise<Exercise[]> {
+  async getDefaultAndUserCreatedExercises(user: User): Promise<IExercise[]> {
+    const defaultExercises = await this.getDefaultExercises();
+    const userCreatedExercises = await this.getUserCreatedExercises(user);
+    console.log(userCreatedExercises);
+
+    const allExercises = [...defaultExercises, ...userCreatedExercises];
+
+    // Sort alphabetically
+    allExercises.sort((a, b) => a.name.localeCompare(b.name));
+    return allExercises;
+  }
+
+  async getDefaultExercises(): Promise<IExercise[]> {
     return await this.exerciseRepo.find({
       where: {
         isCustom: false,
@@ -19,11 +32,7 @@ export default class ExercisesService {
     });
   }
 
-  async getUserCreatedWorkouts(user: User): Promise<Exercise[]> {
-    return await this.exerciseRepo.find({
-      where: {
-        user: user,
-      },
-    });
+  async getUserCreatedExercises(user: User): Promise<IExercise[]> {
+    return await this.exerciseRepo.findBy({ user: { id: user.id } });
   }
 }

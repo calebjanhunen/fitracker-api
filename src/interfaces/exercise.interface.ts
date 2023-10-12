@@ -2,6 +2,9 @@ import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty
 import { IUser } from './user.interface';
 
 export interface IExercise {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
   name: string;
   difficultyLevel: ExerciseDifficultyLevel;
   equipment: string;

@@ -6,7 +6,7 @@ import { User } from '../../../model/user.entity';
 
 @Injectable()
 export class UserService {
-  private usersRepository;
+  private usersRepository: Repository<User>;
 
   constructor(@InjectRepository(User) usersRepository: Repository<User>) {
     this.usersRepository = usersRepository;
@@ -22,5 +22,9 @@ export class UserService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getById(userId: string): Promise<User> {
+    return await this.usersRepository.findOneByOrFail({ id: userId });
   }
 }
