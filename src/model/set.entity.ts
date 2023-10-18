@@ -21,9 +21,12 @@ export class Set extends BaseEntity implements ISet {
   })
   rpe: number;
 
-  @ManyToOne(() => Workout)
+  @ManyToOne(() => Workout, (workout) => workout.sets, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   workout: IWorkout;
 
-  @ManyToOne(() => Exercise)
+  @ManyToOne(() => Exercise, { nullable: false, onDelete: 'CASCADE' })
   exercise: IExercise;
 }
