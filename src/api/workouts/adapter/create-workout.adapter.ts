@@ -1,15 +1,15 @@
 import { Exercise, Set, User, Workout } from 'src/model';
-import { CreateWorkoutDto } from '../dto/create-workout.dto';
+import { CreateWorkoutRequest } from '../request/create-workout.request';
 
 export class CreateWorkoutAdapter {
   /**
    *
-   * @param CreateWorkoutDto workoutDto
+   * @param CreateWorkoutRequest workoutDto
    * @param String userId
    * @returns Workout
    */
   public fromDtoToEntity(
-    workoutDto: CreateWorkoutDto,
+    workoutDto: CreateWorkoutRequest,
     userId: string,
   ): Workout {
     const workoutModel = new Workout();

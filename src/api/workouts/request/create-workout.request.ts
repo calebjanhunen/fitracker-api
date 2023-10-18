@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateWorkoutDto {
+export class CreateWorkoutRequest {
   @IsString()
   public name: string;
 

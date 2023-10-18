@@ -16,11 +16,13 @@ export class WorkoutsService {
     this.setRepo = setRepo;
   }
 
-  async createWorkout(workout: Workout): Promise<void> {
+  async createWorkout(workout: Workout): Promise<string> {
     const createdWorkout = await this.workoutRepo.save(workout);
     for (let i = 0; i < workout.sets.length; i++) {
       workout.sets[i].workout = createdWorkout;
     }
     await this.setRepo.save(workout.sets);
+
+    return createdWorkout.id;
   }
 }

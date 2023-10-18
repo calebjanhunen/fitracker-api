@@ -1,7 +1,15 @@
-import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { CreateWorkoutAdapter } from '../adapter/create-workout.adapter';
-import { CreateWorkoutDto } from '../dto/create-workout.dto';
+import { CreateWorkoutRequest } from '../request/create-workout.request';
+import { CreateWorkoutResponse } from '../response/create-workout.response';
 import { WorkoutsService } from '../service/workouts.service';
 
 @Controller('workouts')
@@ -20,16 +28,17 @@ export class WorkoutsController {
 
   @Post()
   async create(
-    @Body() createWorkoutDto: CreateWorkoutDto,
+    @Body() createWorkoutDto: CreateWorkoutRequest,
     @Headers('user-id') userId: string,
-  ) {
+  ): Promise<CreateWorkoutResponse> {
     const workoutModel = this.createWorkoutAdapter.fromDtoToEntity(
       createWorkoutDto,
       userId,
     );
 
-    // return workoutModel;
+    const createdWorkoutId =
+      await this.workoutsService.createWorkout(workoutModel);
 
-    return await this.workoutsService.createWorkout(workoutModel);
+    return { id: createdWorkoutId };
   }
 }
