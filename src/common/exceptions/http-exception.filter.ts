@@ -15,15 +15,18 @@ interface IErrorResponse {
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const context = host.switchToHttp();
-    const response = context.getResponse();
-    const request = context.getRequest();
+    const res = context.getResponse();
+    const req = context.getRequest();
+
     const status = exception.getStatus();
+    const message = exception['response']['message'];
+    console.log(message);
 
     const errorResponse: IErrorResponse = {
       statusCode: status,
-      message: exception.message,
-      path: request.url,
+      message: message,
+      path: req.url,
     };
-    response.status(status).json({ error: errorResponse });
+    res.status(status).json({ error: errorResponse });
   }
 }

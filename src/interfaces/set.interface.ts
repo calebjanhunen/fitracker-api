@@ -6,6 +6,6 @@ export interface ISet extends Base {
   weight: number;
   reps: number;
   rpe: number;
-  workout: IWorkout;
   exercise: IExercise;
+  workout: IWorkout;
 }

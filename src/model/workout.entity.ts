@@ -1,21 +1,28 @@
-import { IExercise, IUser, IWorkout } from 'src/interfaces';
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Exercise } from './exercise.entity';
+import { Set } from './set.entity';
 import { User } from './user.entity';
 
 @Entity('workouts')
-export class Workout extends BaseEntity implements IWorkout {
+export class Workout extends BaseEntity {
   @Column({
     type: 'varchar',
     length: 255,
   })
   name: string;
 
-  @ManyToOne(() => User)
-  user: IUser;
+  @ManyToOne(() => User, { nullable: false })
+  user: User;
 
-  @ManyToMany(() => Exercise, { onDelete: 'SET NULL' })
+  @ManyToMany(() => Exercise, { onDelete: 'CASCADE' })
   @JoinTable({
     name: 'workout_exercises',
     joinColumn: {
@@ -25,5 +32,8 @@ export class Workout extends BaseEntity implements IWorkout {
       name: 'exercise_id',
     },
   })
-  exercises: IExercise[];
+  exercises: Exercise[];
+
+  @OneToMany(() => Set, (set) => set.workout)
+  sets: Set[];
 }
