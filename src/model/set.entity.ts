@@ -25,8 +25,8 @@ export class Set extends BaseEntity implements ISet {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  workout: IWorkout;
+  workout: Workout;
 
   @ManyToOne(() => Exercise, { nullable: false, onDelete: 'CASCADE' })
-  exercise: IExercise;
+  exercise: Exercise;
 }
