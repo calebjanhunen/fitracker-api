@@ -27,8 +27,8 @@ export class WorkoutsController {
 
   constructor(
     workoutsService: WorkoutsService,
-    createWorkoutAdapter: CreateWorkoutAdapter,
     userService: UserService,
+    createWorkoutAdapter: CreateWorkoutAdapter,
     workoutResponseAdapter: WorkoutResponseAdapter,
   ) {
     this.workoutsService = workoutsService;

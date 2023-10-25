@@ -24,7 +24,6 @@ export class WorkoutResponseAdapter {
           sets.push({ weight: set.weight, reps: set.reps, rpe: set.rpe });
         }
       }
-      console.log(sets);
       return { ...exercise, sets };
     });
     return response;
