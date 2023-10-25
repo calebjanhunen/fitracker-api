@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Set, Workout } from 'src/model';
+import { Set, User, Workout } from 'src/model';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -24,5 +24,37 @@ export class WorkoutsService {
     await this.setRepo.save(workout.sets);
 
     return createdWorkout.id;
+  }
+
+  async getWorkouts(user: User): Promise<Workout[]> {
+    // Get workout with exercises in workout
+    const workouts = await this.workoutRepo.find({
+      where: { user: { id: user.id } },
+      select: {
+        exercises: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: { exercises: true },
+    });
+
+    // Get sets
+    for (let i = 0; i < workouts.length; i++) {
+      const sets = await this.setRepo.find({
+        where: {
+          workout: { id: workouts[i].id },
+        },
+        select: {
+          exercise: {
+            id: true,
+          },
+        },
+        relations: { exercise: true },
+      });
+      workouts[i].sets = sets;
+    }
+
+    return workouts;
   }
 }
