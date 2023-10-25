@@ -36,7 +36,7 @@ export class WorkoutsService {
    *
    * @throws {EntityNotFoundError}
    */
-  async getWorkoutById(workoutId: string, userId: string): Promise<Workout> {
+  async getById(workoutId: string, userId: string): Promise<Workout> {
     const workout = await this.workoutRepo.findOneOrFail({
       where: { id: workoutId, user: { id: userId } },
       relations: {
