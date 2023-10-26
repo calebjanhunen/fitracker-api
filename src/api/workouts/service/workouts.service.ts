@@ -41,7 +41,9 @@ export class WorkoutsService {
       where: { id: workoutId, user: { id: userId } },
       relations: {
         exercises: true,
-        sets: true,
+        sets: {
+          exercise: true,
+        },
       },
     });
 

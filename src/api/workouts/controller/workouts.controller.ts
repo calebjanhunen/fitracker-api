@@ -4,20 +4,24 @@ import {
   Get,
   Headers,
   NotFoundException,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from 'src/api/user/service/user.service';
+import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { User } from 'src/model';
+import { User, Workout } from 'src/model';
 import { CreateWorkoutAdapter } from '../adapter/create-workout.adapter';
 import { WorkoutResponseAdapter } from '../adapter/workout-response.adapter';
 import { CreateWorkoutRequest } from '../request/create-workout.request';
+import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { CreateWorkoutResponse } from '../response/create-workout.response';
 import { WorkoutResponse } from '../response/workout.response';
 import { WorkoutsService } from '../service/workouts.service';
+import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 
-@Controller('workouts')
+@Controller('api/workouts')
 @UseGuards(AuthGuard)
 export class WorkoutsController {
   private workoutsService: WorkoutsService;
@@ -73,5 +77,29 @@ export class WorkoutsController {
     });
 
     return workoutsResponse;
+  }
+
+  @Get(':id')
+  async getSingleWorkout(
+    @Headers('user-id') userId: string,
+    @Param() { id }: GetSingleWorkoutParams,
+  ): Promise<WorkoutResponse> {
+    let workout: Workout;
+
+    try {
+      await this.userService.getById(userId);
+    } catch (err) {
+      throw new UserNotFoundException();
+    }
+
+    try {
+      workout = await this.workoutsService.getById(id, userId);
+    } catch (err) {
+      throw new CouldNotFindWorkoutException();
+    }
+
+    const workoutResponse =
+      this.workoutResponseAdapter.fromEntityToResponse(workout);
+    return workoutResponse;
   }
 }

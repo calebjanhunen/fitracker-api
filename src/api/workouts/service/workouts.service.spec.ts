@@ -104,10 +104,7 @@ describe('WorkoutsService', () => {
         .spyOn(mockWorkoutRepo, 'findOneOrFail')
         .mockResolvedValue(mockWorkout1);
 
-      const result = await workoutsService.getWorkoutById(
-        'workout-id',
-        'user-id',
-      );
+      const result = await workoutsService.getById('workout-id', 'user-id');
 
       expect(result).toStrictEqual(mockWorkout1);
     });
@@ -118,8 +115,7 @@ describe('WorkoutsService', () => {
         .mockRejectedValue(new EntityNotFoundError(Workout, '?'));
 
       expect(
-        async () =>
-          await workoutsService.getWorkoutById('workout-id', 'user-id'),
+        async () => await workoutsService.getById('workout-id', 'user-id'),
       ).rejects.toThrow(EntityNotFoundError);
     });
   });
