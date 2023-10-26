@@ -19,6 +19,7 @@ import { GetSingleWorkoutParams } from '../request/get-single-workout-params.req
 import { CreateWorkoutResponse } from '../response/create-workout.response';
 import { WorkoutResponse } from '../response/workout.response';
 import { WorkoutsService } from '../service/workouts.service';
+import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
 import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 
 @Controller('api/workouts')
@@ -45,16 +46,28 @@ export class WorkoutsController {
   async create(
     @Body() createWorkoutDto: CreateWorkoutRequest,
     @Headers('user-id') userId: string,
-  ): Promise<CreateWorkoutResponse> {
+  ): Promise<WorkoutResponse> {
+    let createdWorkout: Workout;
     const workoutModel = this.createWorkoutAdapter.fromDtoToEntity(
       createWorkoutDto,
       userId,
     );
 
-    const createdWorkoutId =
-      await this.workoutsService.createWorkout(workoutModel);
+    try {
+      const createdWorkoutId =
+        await this.workoutsService.createWorkout(workoutModel);
+      createdWorkout = await this.workoutsService.getById(
+        createdWorkoutId,
+        userId,
+      );
+    } catch (err) {
+      throw new CouldNotCreateWorkoutException();
+    }
 
-    return { id: createdWorkoutId };
+    const workoutResponse =
+      this.workoutResponseAdapter.fromEntityToResponse(createdWorkout);
+
+    return workoutResponse;
   }
 
   @Get()
