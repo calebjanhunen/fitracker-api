@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Exercise, Set, User, Workout } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { WorkoutsService } from './workouts.service';
 
 describe('WorkoutsService', () => {
@@ -11,15 +11,25 @@ describe('WorkoutsService', () => {
   const workoutRepoToken = getRepositoryToken(Workout);
   const setRepoToken = getRepositoryToken(Set);
 
-  const mockWorkout: Workout = {
-    id: crypto.randomUUID(),
-    name: 'Mock Workout',
+  const mockWorkout1: Workout = {
+    id: 'workout-id-1',
+    name: 'Workout 1',
     createdAt: new Date(),
     updatedAt: new Date(),
     user: new User(),
     exercises: [new Exercise(), new Exercise()],
     sets: [new Set(), new Set()],
   };
+  const mockWorkout2: Workout = {
+    id: 'workout-id-2',
+    name: 'Workout 2',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    user: new User(),
+    exercises: [new Exercise(), new Exercise()],
+    sets: [new Set(), new Set()],
+  };
+  const mockWorkouts: Workout[] = [mockWorkout1, mockWorkout2];
   const mockUser: User = { ...new User(), id: 'test-user-id' };
 
   beforeEach(async () => {
@@ -49,50 +59,27 @@ describe('WorkoutsService', () => {
 
   describe('test createWorkout()', () => {
     it('should successfully create the workout', async () => {
-      jest.spyOn(mockWorkoutRepo, 'save').mockResolvedValue(mockWorkout);
-      jest.spyOn(mockSetRepo, 'save').mockResolvedValue(mockWorkout.sets[0]);
+      jest.spyOn(mockWorkoutRepo, 'save').mockResolvedValue(mockWorkout1);
+      jest.spyOn(mockSetRepo, 'save').mockResolvedValue(mockWorkout1.sets[0]);
 
-      const result = await workoutsService.createWorkout(mockWorkout);
+      const result = await workoutsService.createWorkout(mockWorkout1);
 
-      expect(result).toBe(mockWorkout.id);
-      expect(mockWorkoutRepo.save).toHaveBeenCalledWith(mockWorkout);
-      expect(mockSetRepo.save).toHaveBeenCalledWith(mockWorkout.sets);
+      expect(result).toBe(mockWorkout1.id);
+      expect(mockWorkoutRepo.save).toHaveBeenCalledWith(mockWorkout1);
+      expect(mockSetRepo.save).toHaveBeenCalledWith(mockWorkout1.sets);
     });
   });
 
   describe('test getWorkouts()', () => {
-    const mockReturnedWorkoutFromFindCall: Workout[] = [
-      {
-        id: 'workout-id-1',
-        name: 'Mock Workout 1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        user: new User(),
-        exercises: [new Exercise(), new Exercise()],
-        sets: [],
-      },
-      {
-        id: 'workout-id-2',
-        name: 'Mock Workout 2',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        user: new User(),
-        exercises: [new Exercise(), new Exercise()],
-        sets: [],
-      },
-    ];
-
     it('should successfully return a list of workouts', async () => {
-      jest
-        .spyOn(mockWorkoutRepo, 'find')
-        .mockResolvedValue(mockReturnedWorkoutFromFindCall);
+      jest.spyOn(mockWorkoutRepo, 'find').mockResolvedValue(mockWorkouts);
 
       jest.spyOn(mockSetRepo, 'find').mockResolvedValueOnce([new Set()]);
       jest.spyOn(mockSetRepo, 'find').mockResolvedValueOnce([new Set()]);
 
       const result = await workoutsService.getWorkouts(mockUser);
 
-      expect(result).toStrictEqual(mockReturnedWorkoutFromFindCall);
+      expect(result).toStrictEqual(mockWorkouts);
       expect(mockWorkoutRepo.find).toHaveBeenCalledWith({
         where: { user: { id: mockUser.id } },
         select: { exercises: { id: true, name: true } },
@@ -108,6 +95,28 @@ describe('WorkoutsService', () => {
         select: { exercise: { id: true } },
         relations: { exercise: true },
       });
+    });
+  });
+
+  describe('test getWorkoutById()', () => {
+    it('should successfully return a workout', async () => {
+      jest
+        .spyOn(mockWorkoutRepo, 'findOneOrFail')
+        .mockResolvedValue(mockWorkout1);
+
+      const result = await workoutsService.getById('workout-id', 'user-id');
+
+      expect(result).toStrictEqual(mockWorkout1);
+    });
+
+    it('should throw EntityNotFoundError if workout does not exist', async () => {
+      jest
+        .spyOn(mockWorkoutRepo, 'findOneOrFail')
+        .mockRejectedValue(new EntityNotFoundError(Workout, '?'));
+
+      expect(
+        async () => await workoutsService.getById('workout-id', 'user-id'),
+      ).rejects.toThrow(EntityNotFoundError);
     });
   });
 });

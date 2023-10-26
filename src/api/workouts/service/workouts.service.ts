@@ -26,6 +26,30 @@ export class WorkoutsService {
     return createdWorkout.id;
   }
 
+  /**
+   * Gets a workout by its id.
+   *
+   * @param {string} workoutId The id of the workout.
+   * @param {string} userId    The id of the user.
+   *
+   * @return {Workout}
+   *
+   * @throws {EntityNotFoundError}
+   */
+  async getById(workoutId: string, userId: string): Promise<Workout> {
+    const workout = await this.workoutRepo.findOneOrFail({
+      where: { id: workoutId, user: { id: userId } },
+      relations: {
+        exercises: true,
+        sets: {
+          exercise: true,
+        },
+      },
+    });
+
+    return workout;
+  }
+
   async getWorkouts(user: User): Promise<Workout[]> {
     // Get workout with exercises in workout
     const workouts = await this.workoutRepo.find({
