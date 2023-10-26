@@ -22,17 +22,19 @@ export class CreateWorkoutAdapter {
     user.id = userId;
     workoutModel.user = user;
 
-    for (const exercise of workoutDto.exercises) {
-      const newExercise = new Exercise();
-      newExercise.id = exercise.id;
-      workoutModel.exercises.push(newExercise);
-      for (const set of exercise.sets) {
-        const newSet = new Set();
-        newSet.reps = set.reps;
-        newSet.weight = set.weight;
-        newSet.rpe = set.rpe;
-        newSet.exercise = newExercise;
-        workoutModel.sets.push(newSet);
+    if (Array.isArray(workoutDto.exercises)) {
+      for (const exercise of workoutDto.exercises) {
+        const newExercise = new Exercise();
+        newExercise.id = exercise.id;
+        workoutModel.exercises.push(newExercise);
+        for (const set of exercise.sets) {
+          const newSet = new Set();
+          newSet.reps = set.reps;
+          newSet.weight = set.weight;
+          newSet.rpe = set.rpe;
+          newSet.exercise = newExercise;
+          workoutModel.sets.push(newSet);
+        }
       }
     }
 
