@@ -5,10 +5,13 @@ import { UserService } from 'src/api/user/service/user.service';
 import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Exercise, Set, User, Workout } from 'src/model';
+import { EntityNotFoundError } from 'typeorm';
 import { CreateWorkoutAdapter } from '../adapter/create-workout.adapter';
 import { WorkoutResponseAdapter } from '../adapter/workout-response.adapter';
+import { CreateWorkoutRequest } from '../request/create-workout.request';
 import { WorkoutResponse } from '../response/workout.response';
 import { WorkoutsService } from '../service/workouts.service';
+import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
 import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 import { WorkoutsController } from './workouts.controller';
 
@@ -58,6 +61,7 @@ describe('WorkoutsController', () => {
         {
           provide: WorkoutsService,
           useValue: {
+            createWorkout: jest.fn(),
             getWorkouts: jest.fn(),
             getById: jest.fn(),
           },
@@ -84,6 +88,54 @@ describe('WorkoutsController', () => {
     expect(mockWorkoutsService).toBeDefined();
     expect(mockUserService).toBeDefined();
     expect(mockWorkoutResponseAdapter).toBeDefined();
+  });
+
+  describe('test createWorkout()', () => {
+    it('should return workout when it successfully creates workout', async () => {
+      jest
+        .spyOn(mockWorkoutsService, 'createWorkout')
+        .mockResolvedValue('created-workout-id');
+      jest
+        .spyOn(mockWorkoutsService, 'getById')
+        .mockResolvedValue(testWorkoutModel);
+      jest
+        .spyOn(mockWorkoutResponseAdapter, 'fromEntityToResponse')
+        .mockReturnValue(testWorkoutResponse);
+
+      const response = await workoutsController.create(
+        new CreateWorkoutRequest(),
+        'test-user',
+      );
+
+      expect(response).toStrictEqual(testWorkoutResponse);
+    });
+    it('should throw CouldNotCreateWorkoutException if workout creation fails', () => {
+      jest.spyOn(mockWorkoutsService, 'createWorkout').mockRejectedValue(Error);
+
+      expect(
+        async () =>
+          await workoutsController.create(
+            new CreateWorkoutRequest(),
+            'test-user',
+          ),
+      ).rejects.toThrow(CouldNotCreateWorkoutException);
+    });
+    it('should throw CouldNotCreateWorkoutException if workout could not be found', () => {
+      jest
+        .spyOn(mockWorkoutsService, 'createWorkout')
+        .mockResolvedValue('created-workout-id');
+      jest
+        .spyOn(mockWorkoutsService, 'getById')
+        .mockRejectedValue(EntityNotFoundError);
+
+      expect(
+        async () =>
+          await workoutsController.create(
+            new CreateWorkoutRequest(),
+            'test-user',
+          ),
+      ).rejects.toThrow(CouldNotCreateWorkoutException);
+    });
   });
 
   describe('test getWorkouts()', () => {
