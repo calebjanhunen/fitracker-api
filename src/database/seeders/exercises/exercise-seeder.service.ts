@@ -1,19 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from 'src/api/user/service/user.service';
-import { IExercise } from 'src/interfaces';
-import { Exercise } from 'src/model';
+import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
+import { Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
-import {
-  createUserCreatedExercise,
-  defaultExercisesSeedData,
-} from './exercise-seed-data';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const jsonExerciseData = require('./exercise-seed-data.json');
+
+interface IExerciseSeedData {
+  name: string;
+  difficultyLevel: string;
+  equipment: string;
+  primaryMuscle: string;
+  secondaryMuscles: string[];
+  isCustom: boolean;
+  user: User | null;
+  instructions: string[];
+}
 
 @Injectable()
 export class ExerciseSeederService {
   private exerciseRepo;
   private userService;
-  private NUM_OF_USER_CREATED_WORKOUTS_TO_INSERT = 1;
+  private NUM_OF_USER_CREATED_EXERCISES_TO_INSERT = 1;
 
   constructor(
     @InjectRepository(Exercise) exerciseRepo: Repository<Exercise>,
@@ -23,20 +33,27 @@ export class ExerciseSeederService {
     this.userService = userService;
   }
 
+  /**
+   * Inserts default exercises and user created exercises into the db
+   * @param {string[]} userIds
+   * @returns {Promise<number | undefined>} number of exercises inserted
+   */
   async create(userIds: string[]): Promise<number | undefined> {
     try {
-      let allExercises: IExercise[] = [];
+      let allExercises: Exercise[] = [];
 
-      //Generate user created workouts for seed users
-      const userCreatedExercises: IExercise[] =
-        await this.generateUserCreatedExercises(userIds);
+      const defaultExercises =
+        this.fromJsonSeedDataToExerciseEntities(jsonExerciseData);
 
-      // Combine user created exercises and default exercises from defaultExercisesSeedData
-      allExercises = [...defaultExercisesSeedData, ...userCreatedExercises];
+      const userCreatedExercises =
+        await this.generateUserCreatedExerciseEntities(userIds);
+
+      // Combine default exercises and user created exercises
+      allExercises = [...defaultExercises, ...userCreatedExercises];
 
       let numExercisesInserted = 0;
       for (const exercise of allExercises) {
-        await this.exerciseRepo.insert(exercise);
+        await this.exerciseRepo.save(exercise);
         numExercisesInserted++;
       }
 
@@ -58,25 +75,86 @@ export class ExerciseSeederService {
     }
   }
 
-  private async generateUserCreatedExercises(
+  /**
+   * Converts default exercise json data to array of exercise entities
+   * @param {IExerciseSeedData[]} exerciseSeedData
+   * @returns {Exercise[]} array of exercise entities
+   */
+  private fromJsonSeedDataToExerciseEntities(
+    exerciseSeedData: IExerciseSeedData[],
+  ): Exercise[] {
+    const exercises: Exercise[] = [];
+    for (const seedExercise of exerciseSeedData) {
+      const defaultExercise =
+        this.createDefaultExerciseFromSeedData(seedExercise);
+      exercises.push(defaultExercise);
+    }
+
+    return exercises;
+  }
+
+  /**
+   * Generates NUM_OF_USER_CREATED_EXERCISES_TO_INSERT number of user created exercises for each user
+   * @param {string[]} userIds
+   * @returns {Promise<Exercise[]>} array of exercise entities
+   */
+  private async generateUserCreatedExerciseEntities(
     userIds: string[],
-  ): Promise<IExercise[]> {
-    const userCreatedExercises: IExercise[] = [];
+  ): Promise<Exercise[]> {
+    const userCreatedExercises: Exercise[] = [];
 
     // Loop through each seed user
     for (const userId of userIds) {
-      // Insert NUM_OF_USER_CREATED_WORKOUTS_TO_INSERT number of exercises for each seed user
-      for (let i = 0; i < this.NUM_OF_USER_CREATED_WORKOUTS_TO_INSERT; i++) {
+      // Insert NUM_OF_USER_CREATED_EXERCISES_TO_INSERT number of exercises for each seed user
+      for (let i = 0; i < this.NUM_OF_USER_CREATED_EXERCISES_TO_INSERT; i++) {
         const testUser = await this.userService.getById(userId);
         if (!testUser) {
           continue;
         }
 
-        const exercise = createUserCreatedExercise(testUser);
+        const exercise = this.createUserCreatedExerciseFromUser(testUser);
         userCreatedExercises.push(exercise);
       }
     }
 
     return userCreatedExercises;
+  }
+
+  /**
+   * Creates a user created exercise.
+   * @param {User} user
+   * @returns {IExerciseSeedData}
+   */
+  private createUserCreatedExerciseFromUser(user: User): Exercise {
+    const exercise = new Exercise();
+    exercise.name = `Test Exercise: ${user.firstName}`;
+    exercise.difficultyLevel = ExerciseDifficultyLevel.beginner;
+    exercise.equipment = 'dumbbells';
+    exercise.instructions = ['Step 1.', 'Step 2.', 'Step 3', 'Step 4'];
+    exercise.primaryMuscle = 'bicep';
+    exercise.secondaryMuscles = ['forearm'];
+    exercise.isCustom = true;
+    exercise.user = user;
+    return exercise;
+  }
+
+  /**
+   * Creates an exercise entity from a seed exercise
+   * @param {IExerciseSeedData} seedExercise
+   * @returns {Exercise}
+   */
+  private createDefaultExerciseFromSeedData(
+    seedExercise: IExerciseSeedData,
+  ): Exercise {
+    const exercise = new Exercise();
+    exercise.name = seedExercise.name;
+    exercise.difficultyLevel = ExerciseDifficultyLevel.beginner;
+    exercise.equipment = seedExercise.equipment;
+    exercise.instructions = seedExercise.instructions;
+    exercise.primaryMuscle = seedExercise.primaryMuscle;
+    exercise.secondaryMuscles = seedExercise.secondaryMuscles;
+    exercise.isCustom = seedExercise.isCustom;
+    exercise.user = null;
+    return exercise;
   }
 }
