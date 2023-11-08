@@ -4,10 +4,14 @@ import {
   Get,
   Headers,
   NotFoundException,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { IExercise, IUser } from 'src/interfaces';
+import { PaginationParams } from 'src/common/requests/pagination-params.request';
+import { ListResponse } from 'src/common/responses/list.response';
+import { IUser } from 'src/interfaces';
+import { CollectionModel, Exercise } from 'src/model';
 import { UserService } from '../../user/service/user.service';
 import ExercisesService from '../services/exercises.service';
 
@@ -25,9 +29,10 @@ export default class ExercisesController {
   @Get()
   async getAllExercises(
     @Headers('user-id') userId: string,
-  ): Promise<IExercise[]> {
+    @Query() { page, limit }: PaginationParams,
+  ): Promise<ListResponse<Exercise>> {
+    const response = new ListResponse<Exercise>();
     let user: IUser;
-    let allExercises: IExercise[];
 
     try {
       user = await this.userService.getById(userId);
@@ -35,13 +40,21 @@ export default class ExercisesController {
       throw new NotFoundException();
     }
 
+    let exercisesCollectionModel: CollectionModel<Exercise>;
     try {
-      allExercises =
-        await this.exercisesService.getDefaultAndUserCreatedExercises(user);
+      exercisesCollectionModel =
+        await this.exercisesService.getDefaultAndUserCreatedExercises(
+          user,
+          page,
+          limit,
+        );
     } catch (error) {
       throw new ConflictException();
     }
 
-    return allExercises;
+    response.resources = exercisesCollectionModel.listObjects;
+    response.totalRecords = exercisesCollectionModel.totalCount;
+
+    return response;
   }
 }

@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
-import { Exercise } from 'src/model';
+import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
 import ExercisesService from './exercises.service';
 
@@ -9,19 +8,9 @@ describe('ExerciseService', () => {
   let mockExerciseService: ExercisesService;
   let mockExerciseRepo: Repository<Exercise>;
   const testExercises: Exercise[] = [
-    {
-      id: crypto.randomUUID(),
-      name: 'test-exercise',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      difficultyLevel: ExerciseDifficultyLevel.beginner,
-      equipment: 'barbell',
-      instructions: ['step1'],
-      primaryMuscle: 'test',
-      secondaryMuscles: ['test1'],
-      isCustom: false,
-      user: null,
-    },
+    generateDefaultExercise(1),
+    generateDefaultExercise(2),
+    generateDefaultExercise(3),
   ];
 
   const exerciseRepoToken = getRepositoryToken(Exercise);
@@ -45,13 +34,30 @@ describe('ExerciseService', () => {
     expect(mockExerciseRepo).toBeDefined();
   });
 
-  describe('test getDefaultExercises()', () => {
-    it('should return array of exercises on success', async () => {
-      jest.spyOn(mockExerciseRepo, 'find').mockResolvedValueOnce(testExercises);
+  describe('test getDefaultAndUserCreatedExercises()', () => {
+    it('should return a collection model of exercises', async () => {
+      jest
+        .spyOn(mockExerciseRepo, 'findAndCount')
+        .mockResolvedValueOnce([testExercises, testExercises.length]);
 
-      const result = await mockExerciseService.getDefaultExercises();
+      const result =
+        await mockExerciseService.getDefaultAndUserCreatedExercises(
+          new User(),
+          1,
+          3,
+        );
 
-      expect(result).toStrictEqual(testExercises);
+      const returnVal = new CollectionModel<Exercise>();
+      returnVal.listObjects = testExercises;
+      returnVal.totalCount = testExercises.length;
+      expect(result).toStrictEqual(returnVal);
     });
   });
 });
+
+function generateDefaultExercise(id: number): Exercise {
+  const exercise = new Exercise();
+  exercise.id = `exericse-${id}`;
+  exercise.name = `Exercise ${id}`;
+  return exercise;
+}
