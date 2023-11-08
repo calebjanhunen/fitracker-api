@@ -13,25 +13,9 @@ export default class ExercisesService {
   }
 
   async getDefaultAndUserCreatedExercises(user: User): Promise<IExercise[]> {
-    const defaultExercises = await this.getDefaultExercises();
-    const userCreatedExercises = await this.getUserCreatedExercises(user);
-
-    const allExercises = [...defaultExercises, ...userCreatedExercises];
-
-    // Sort alphabetically
-    allExercises.sort((a, b) => a.name.localeCompare(b.name));
-    return allExercises;
-  }
-
-  async getDefaultExercises(): Promise<IExercise[]> {
-    return await this.exerciseRepo.find({
-      where: {
-        isCustom: false,
-      },
+    const [exercises] = await this.exerciseRepo.findAndCount({
+      where: [{ isCustom: false }, { user: { id: user.id } }],
     });
-  }
-
-  async getUserCreatedExercises(user: User): Promise<IExercise[]> {
-    return await this.exerciseRepo.findBy({ user: { id: user.id } });
+    return exercises;
   }
 }
