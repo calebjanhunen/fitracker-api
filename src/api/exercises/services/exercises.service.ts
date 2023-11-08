@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IExercise } from 'src/interfaces';
-import { Exercise, User } from 'src/model';
+import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -12,10 +11,22 @@ export default class ExercisesService {
     this.exerciseRepo = exerciseRepo;
   }
 
-  async getDefaultAndUserCreatedExercises(user: User): Promise<IExercise[]> {
-    const [exercises] = await this.exerciseRepo.findAndCount({
+  async getDefaultAndUserCreatedExercises(
+    user: User,
+    page: number,
+    limit: number,
+  ): Promise<CollectionModel<Exercise>> {
+    const exerciseCollectionModel = new CollectionModel<Exercise>();
+
+    const [exercises, totalCount] = await this.exerciseRepo.findAndCount({
       where: [{ isCustom: false }, { user: { id: user.id } }],
+      take: limit,
+      skip: limit * (page - 1),
     });
-    return exercises;
+
+    exerciseCollectionModel.listObjects = exercises;
+    exerciseCollectionModel.totalCount = totalCount;
+
+    return exerciseCollectionModel;
   }
 }
