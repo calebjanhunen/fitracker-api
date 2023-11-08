@@ -11,6 +11,14 @@ export default class ExercisesService {
     this.exerciseRepo = exerciseRepo;
   }
 
+  /**
+   * Gets the default exercises and user created exercises form the database
+   *
+   * @param {User} user
+   * @param {number} page
+   * @param {number} limit
+   * @returns {CollectionModel<Exercise>}
+   */
   async getDefaultAndUserCreatedExercises(
     user: User,
     page: number,

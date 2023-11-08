@@ -10,6 +10,7 @@ import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { IExercise, IUser } from 'src/interfaces';
+import { CollectionModel, Exercise } from 'src/model';
 import ExercisesService from '../services/exercises.service';
 import ExercisesController from './exercises.controller';
 
@@ -20,20 +21,10 @@ describe('ExerciseController', () => {
     getById: jest.fn(),
   };
 
-  const testExercises: IExercise[] = [
-    {
-      id: crypto.randomUUID(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      name: 'Test Exercise',
-      difficultyLevel: ExerciseDifficultyLevel.beginner,
-      equipment: 'dumbbells',
-      instructions: ['Step 1.', 'Step 2.', 'Step 3', 'Step 4'],
-      primaryMuscle: 'bicep',
-      secondaryMuscles: ['forearm'],
-      isCustom: true,
-      user: null,
-    },
+  const testExercises: Exercise[] = [
+    generateDefaultExercise(1),
+    generateDefaultExercise(2),
+    generateDefaultExercise(3),
   ];
 
   const testUser: IUser = {
@@ -79,21 +70,30 @@ describe('ExerciseController', () => {
 
   describe('test getAllExercises()', () => {
     it('should return list of exercises on success', async () => {
+      const exerciseCollectionModel = new CollectionModel<Exercise>();
+      exerciseCollectionModel.listObjects = testExercises;
+      exerciseCollectionModel.totalCount = testExercises.length;
       jest
         .spyOn(mockExerciseService, 'getDefaultAndUserCreatedExercises')
-        .mockResolvedValueOnce(testExercises);
+        .mockResolvedValueOnce(exerciseCollectionModel);
       jest.spyOn(mockUserService, 'getById').mockResolvedValueOnce(testUser);
 
-      const result = await mockExerciseController.getAllExercises('test-uuid');
+      const result = await mockExerciseController.getAllExercises('test-uuid', {
+        page: 1,
+        limit: 1,
+      });
 
       expect(
         mockExerciseService.getDefaultAndUserCreatedExercises,
       ).toBeCalled();
       expect(
         mockExerciseService.getDefaultAndUserCreatedExercises,
-      ).toBeCalledWith(testUser);
+      ).toBeCalledWith(testUser, 1, 1);
 
-      expect(result).toStrictEqual(testExercises);
+      expect(result).toEqual({
+        resources: testExercises,
+        totalRecords: testExercises.length,
+      });
     });
 
     it('should throw NotFoundException if user is not found', () => {
@@ -104,7 +104,11 @@ describe('ExerciseController', () => {
       expect(mockUserService.getById).rejects.toThrow(ImATeapotException);
 
       expect(
-        async () => await mockExerciseController.getAllExercises('test-uuid'),
+        async () =>
+          await mockExerciseController.getAllExercises('test-uuid', {
+            page: 1,
+            limit: 1,
+          }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -119,8 +123,19 @@ describe('ExerciseController', () => {
       ).rejects.toThrowError(ImATeapotException);
 
       expect(
-        async () => await mockExerciseController.getAllExercises('test-uuid'),
+        async () =>
+          await mockExerciseController.getAllExercises('test-uuid', {
+            page: 1,
+            limit: 1,
+          }),
       ).rejects.toThrow(ConflictException);
     });
   });
 });
+
+function generateDefaultExercise(id: number): Exercise {
+  const exercise = new Exercise();
+  exercise.id = `exericse-${id}`;
+  exercise.name = `Exercise ${id}`;
+  return exercise;
+}
