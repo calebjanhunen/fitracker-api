@@ -6,16 +6,19 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from 'src/api/user/service/user.service';
-import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
+import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { IExercise, IUser } from 'src/interfaces';
-import { CollectionModel, Exercise } from 'src/model';
+import { IUser } from 'src/interfaces';
+import { CollectionModel, Exercise, User } from 'src/model';
+import { EntityNotFoundError } from 'typeorm';
+import { CreateExerciseRequest } from '../request/create-exercise.request';
+import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
 import ExercisesController from './exercises.controller';
 
 describe('ExerciseController', () => {
-  let mockExerciseController: ExercisesController;
+  let exercisesController: ExercisesController;
   let mockExerciseService: ExercisesService;
   const mockUserService = {
     getById: jest.fn(),
@@ -49,6 +52,7 @@ describe('ExerciseController', () => {
           provide: ExercisesService,
           useValue: {
             getDefaultAndUserCreatedExercises: jest.fn(),
+            createCustomExercise: jest.fn(),
           },
         },
         {
@@ -58,13 +62,12 @@ describe('ExerciseController', () => {
       ],
     }).compile();
 
-    mockExerciseController =
-      module.get<ExercisesController>(ExercisesController);
+    exercisesController = module.get<ExercisesController>(ExercisesController);
     mockExerciseService = module.get<ExercisesService>(ExercisesService);
   });
 
   it('should be defined', () => {
-    expect(mockExerciseController).toBeDefined();
+    expect(exercisesController).toBeDefined();
     expect(mockExerciseService).toBeDefined();
   });
 
@@ -78,7 +81,7 @@ describe('ExerciseController', () => {
         .mockResolvedValueOnce(exerciseCollectionModel);
       jest.spyOn(mockUserService, 'getById').mockResolvedValueOnce(testUser);
 
-      const result = await mockExerciseController.getExercises('test-uuid', {
+      const result = await exercisesController.getExercises('test-uuid', {
         page: 1,
         limit: 1,
       });
@@ -106,7 +109,7 @@ describe('ExerciseController', () => {
 
       expect(
         async () =>
-          await mockExerciseController.getExercises('test-uuid', {
+          await exercisesController.getExercises('test-uuid', {
             page: 1,
             limit: 1,
           }),
@@ -125,11 +128,36 @@ describe('ExerciseController', () => {
 
       expect(
         async () =>
-          await mockExerciseController.getExercises('test-uuid', {
+          await exercisesController.getExercises('test-uuid', {
             page: 1,
             limit: 1,
           }),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('test createExercise()', () => {
+    it('should return exercise on success', async () => {
+      const testCustomExercise = generateUserCreatedExercise();
+      const request = new CreateExerciseRequest();
+
+      jest
+        .spyOn(mockExerciseService, 'createCustomExercise')
+        .mockResolvedValue(testCustomExercise);
+
+      const result = await exercisesController.createExercise('123', request);
+
+      expect(result).toBeInstanceOf(ExerciseResponse);
+    });
+    it('should throw UserNotFoundException if user is not found', () => {
+      jest
+        .spyOn(mockUserService, 'getById')
+        .mockRejectedValue(EntityNotFoundError);
+      const request = new CreateExerciseRequest();
+
+      expect(
+        async () => await exercisesController.createExercise('123', request),
+      ).rejects.toThrow(UserNotFoundException);
     });
   });
 });
@@ -138,5 +166,15 @@ function generateDefaultExercise(id: number): Exercise {
   const exercise = new Exercise();
   exercise.id = `exericse-${id}`;
   exercise.name = `Exercise ${id}`;
+  return exercise;
+}
+
+function generateUserCreatedExercise(): Exercise {
+  const exercise = new Exercise();
+  exercise.id = '1234';
+  exercise.name = 'Custom Exercise';
+  exercise.isCustom = true;
+  exercise.user = new User();
+
   return exercise;
 }

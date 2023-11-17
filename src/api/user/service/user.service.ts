@@ -24,6 +24,14 @@ export class UserService {
     }
   }
 
+  /**
+   * Gets user by id
+   *
+   * @param {string} userId
+   * @returns {User}
+   *
+   * @throws {EntityNotFoundError}
+   */
   async getById(userId: string): Promise<User> {
     return await this.usersRepository.findOneByOrFail({ id: userId });
   }
