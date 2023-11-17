@@ -78,7 +78,7 @@ describe('ExerciseController', () => {
         .mockResolvedValueOnce(exerciseCollectionModel);
       jest.spyOn(mockUserService, 'getById').mockResolvedValueOnce(testUser);
 
-      const result = await mockExerciseController.getAllExercises('test-uuid', {
+      const result = await mockExerciseController.getExercises('test-uuid', {
         page: 1,
         limit: 1,
       });
@@ -105,7 +105,7 @@ describe('ExerciseController', () => {
 
       expect(
         async () =>
-          await mockExerciseController.getAllExercises('test-uuid', {
+          await mockExerciseController.getExercises('test-uuid', {
             page: 1,
             limit: 1,
           }),
@@ -124,7 +124,7 @@ describe('ExerciseController', () => {
 
       expect(
         async () =>
-          await mockExerciseController.getAllExercises('test-uuid', {
+          await mockExerciseController.getExercises('test-uuid', {
             page: 1,
             limit: 1,
           }),
