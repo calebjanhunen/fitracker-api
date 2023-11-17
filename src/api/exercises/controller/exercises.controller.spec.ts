@@ -93,6 +93,7 @@ describe('ExerciseController', () => {
       expect(result).toEqual({
         resources: testExercises,
         totalRecords: testExercises.length,
+        hasMore: false,
       });
     });
 
