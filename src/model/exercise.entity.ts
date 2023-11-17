@@ -1,6 +1,6 @@
 import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { IExercise } from 'src/interfaces';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
 
@@ -50,7 +50,7 @@ export class Exercise extends BaseEntity implements IExercise {
   })
   isCustom: boolean;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE', nullable: true })
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn()
   user: User | null;
 }
