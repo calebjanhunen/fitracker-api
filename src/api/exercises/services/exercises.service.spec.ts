@@ -39,17 +39,21 @@ describe('ExerciseService', () => {
       jest
         .spyOn(mockExerciseRepo, 'findAndCount')
         .mockResolvedValueOnce([testExercises, testExercises.length]);
+      const page = 1;
+      const limit = 3;
 
       const result =
         await mockExerciseService.getDefaultAndUserCreatedExercises(
           new User(),
-          1,
-          3,
+          page,
+          limit,
         );
 
       const returnVal = new CollectionModel<Exercise>();
       returnVal.listObjects = testExercises;
       returnVal.totalCount = testExercises.length;
+      returnVal.limit = limit;
+      returnVal.offset = limit * (page - 1);
       expect(result).toStrictEqual(returnVal);
     });
   });

@@ -25,15 +25,21 @@ export default class ExercisesService {
     limit: number,
   ): Promise<CollectionModel<Exercise>> {
     const exerciseCollectionModel = new CollectionModel<Exercise>();
+    const offset = limit * (page - 1);
 
     const [exercises, totalCount] = await this.exerciseRepo.findAndCount({
       where: [{ isCustom: false }, { user: { id: user.id } }],
       take: limit,
-      skip: limit * (page - 1),
+      skip: offset,
+      order: {
+        name: 'ASC',
+      },
     });
 
     exerciseCollectionModel.listObjects = exercises;
     exerciseCollectionModel.totalCount = totalCount;
+    exerciseCollectionModel.limit = limit;
+    exerciseCollectionModel.offset = offset;
 
     return exerciseCollectionModel;
   }

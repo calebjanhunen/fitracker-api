@@ -27,7 +27,7 @@ export default class ExercisesController {
   }
 
   @Get()
-  async getAllExercises(
+  async getExercises(
     @Headers('user-id') userId: string,
     @Query() { page, limit }: PaginationParams,
   ): Promise<ListResponse<Exercise>> {
@@ -54,6 +54,7 @@ export default class ExercisesController {
 
     response.resources = exercisesCollectionModel.listObjects;
     response.totalRecords = exercisesCollectionModel.totalCount;
+    response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
   }
