@@ -43,4 +43,14 @@ export default class ExercisesService {
 
     return exerciseCollectionModel;
   }
+
+  /**
+   * Creates a custom exercise
+   * @param {Exercise} exercise
+   * @returns {Exercise}
+   */
+  async createCustomExercise(exercise: Exercise): Promise<Exercise> {
+    const createdExercise = await this.exerciseRepo.save(exercise);
+    return createdExercise;
+  }
 }

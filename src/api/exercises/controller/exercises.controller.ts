@@ -1,18 +1,23 @@
 import {
+  Body,
   ConflictException,
   Controller,
   Get,
   Headers,
   NotFoundException,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { IUser } from 'src/interfaces';
-import { CollectionModel, Exercise } from 'src/model';
+import { CollectionModel, Exercise, User } from 'src/model';
 import { UserService } from '../../user/service/user.service';
+import { CreateExerciseRequest } from '../request/create-exercise.request';
+import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
 
 @Controller('api/exercises')
@@ -57,5 +62,32 @@ export default class ExercisesController {
     response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
+  }
+
+  @Post()
+  async createExercise(
+    @Headers('user-id') userId: string,
+    @Body() createExerciseRequest: CreateExerciseRequest,
+  ): Promise<ExerciseResponse> {
+    let user: User;
+    let exerciseResponse = new ExerciseResponse();
+
+    try {
+      user = await this.userService.getById(userId);
+    } catch (error) {
+      throw new UserNotFoundException();
+    }
+
+    const exerciseEntity = createExerciseRequest.fromRequestToEntity(
+      createExerciseRequest,
+      user,
+    );
+
+    const createdExercise =
+      await this.exercisesService.createCustomExercise(exerciseEntity);
+
+    exerciseResponse = exerciseResponse.fromEntityToResponse(createdExercise);
+
+    return exerciseResponse;
   }
 }

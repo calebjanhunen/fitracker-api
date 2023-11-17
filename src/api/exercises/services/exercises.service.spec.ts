@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
-  let mockExerciseService: ExercisesService;
+  let exercisesService: ExercisesService;
   let mockExerciseRepo: Repository<Exercise>;
   const testExercises: Exercise[] = [
     generateDefaultExercise(1),
@@ -26,11 +26,11 @@ describe('ExerciseService', () => {
       ],
     }).compile();
 
-    mockExerciseService = module.get<ExercisesService>(ExercisesService);
+    exercisesService = module.get<ExercisesService>(ExercisesService);
     mockExerciseRepo = module.get<Repository<Exercise>>(exerciseRepoToken);
   });
   it('should be defined', () => {
-    expect(mockExerciseService).toBeDefined();
+    expect(exercisesService).toBeDefined();
     expect(mockExerciseRepo).toBeDefined();
   });
 
@@ -42,12 +42,11 @@ describe('ExerciseService', () => {
       const page = 1;
       const limit = 3;
 
-      const result =
-        await mockExerciseService.getDefaultAndUserCreatedExercises(
-          new User(),
-          page,
-          limit,
-        );
+      const result = await exercisesService.getDefaultAndUserCreatedExercises(
+        new User(),
+        page,
+        limit,
+      );
 
       const returnVal = new CollectionModel<Exercise>();
       returnVal.listObjects = testExercises;
@@ -57,11 +56,32 @@ describe('ExerciseService', () => {
       expect(result).toStrictEqual(returnVal);
     });
   });
+
+  describe('test createExercise()', () => {
+    it('should return the created exercise on success', async () => {
+      const testExercise = generateUserCreatedExercise();
+      jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(testExercise);
+
+      const result = await exercisesService.createCustomExercise(testExercise);
+
+      expect(result).toBeInstanceOf(Exercise);
+    });
+  });
 });
 
 function generateDefaultExercise(id: number): Exercise {
   const exercise = new Exercise();
   exercise.id = `exericse-${id}`;
   exercise.name = `Exercise ${id}`;
+  return exercise;
+}
+
+function generateUserCreatedExercise(): Exercise {
+  const exercise = new Exercise();
+  exercise.id = '1234';
+  exercise.name = 'Custom Exercise';
+  exercise.isCustom = true;
+  exercise.user = new User();
+
   return exercise;
 }
