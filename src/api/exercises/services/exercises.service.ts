@@ -53,4 +53,16 @@ export default class ExercisesService {
     const createdExercise = await this.exerciseRepo.save(exercise);
     return createdExercise;
   }
+
+  /**
+   * Gets an exercise by its id
+   * @param {string} id
+   * @returns {Exercise}
+   *
+   * @throws {EntityNotFoundError}
+   */
+  async getById(id: string): Promise<Exercise> {
+    const exercise = await this.exerciseRepo.findOneByOrFail({ id });
+    return exercise;
+  }
 }

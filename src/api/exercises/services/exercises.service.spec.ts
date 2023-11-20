@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
@@ -65,6 +65,28 @@ describe('ExerciseService', () => {
       const result = await exercisesService.createCustomExercise(testExercise);
 
       expect(result).toBeInstanceOf(Exercise);
+    });
+  });
+
+  describe('test getById()', () => {
+    it('should return an exercise on success', async () => {
+      const testExercise = generateDefaultExercise(1);
+      jest
+        .spyOn(mockExerciseRepo, 'findOneByOrFail')
+        .mockResolvedValue(testExercise);
+
+      const result = await exercisesService.getById(`exercise-${1}`);
+      expect(result).toBeInstanceOf(Exercise);
+      expect(result).toEqual(testExercise);
+    });
+    it('should throw EntityNotFoundError if exercise not found', async () => {
+      jest
+        .spyOn(mockExerciseRepo, 'findOneByOrFail')
+        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
+
+      expect(async () => await exercisesService.getById('123')).rejects.toThrow(
+        EntityNotFoundError,
+      );
     });
   });
 });
