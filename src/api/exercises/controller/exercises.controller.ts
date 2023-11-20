@@ -5,12 +5,14 @@ import {
   Get,
   Headers,
   NotFoundException,
+  Param,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { GetByIdParam } from 'src/common/requests/get-by-id.params';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { IUser } from 'src/interfaces';
@@ -19,6 +21,7 @@ import { UserService } from '../../user/service/user.service';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Controller('api/exercises')
 @UseGuards(AuthGuard)
@@ -62,6 +65,22 @@ export default class ExercisesController {
     response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
+  }
+
+  @Get(':id')
+  async getExercise(@Param() { id }: GetByIdParam): Promise<ExerciseResponse> {
+    let exercise: Exercise;
+    let exerciseResponse = new ExerciseResponse();
+
+    try {
+      exercise = await this.exercisesService.getById(id);
+    } catch (error) {
+      throw new ExerciseNotFoundException();
+    }
+
+    exerciseResponse = exerciseResponse.fromEntityToResponse(exercise);
+
+    return exerciseResponse;
   }
 
   @Post()

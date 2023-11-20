@@ -15,6 +15,7 @@ import { EntityNotFoundError } from 'typeorm';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 import ExercisesController from './exercises.controller';
 
 describe('ExerciseController', () => {
@@ -53,6 +54,7 @@ describe('ExerciseController', () => {
           useValue: {
             getDefaultAndUserCreatedExercises: jest.fn(),
             createCustomExercise: jest.fn(),
+            getById: jest.fn(),
           },
         },
         {
@@ -158,6 +160,29 @@ describe('ExerciseController', () => {
       expect(
         async () => await exercisesController.createExercise('123', request),
       ).rejects.toThrow(UserNotFoundException);
+    });
+  });
+
+  describe('test getExercise()', () => {
+    it('should return exercise on success', async () => {
+      const testExercise = generateDefaultExercise(1);
+      jest
+        .spyOn(mockExerciseService, 'getById')
+        .mockResolvedValue(testExercise);
+
+      const result = await exercisesController.getExercise({ id: '123' });
+
+      expect(result).toBeInstanceOf(ExerciseResponse);
+      expect(result).toEqual(testExercise);
+    });
+    it('should throw ExerciseNotFoundException if exercise is not found', () => {
+      jest
+        .spyOn(mockExerciseService, 'getById')
+        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
+
+      expect(
+        async () => await exercisesController.getExercise({ id: '123' }),
+      ).rejects.toThrow(ExerciseNotFoundException);
     });
   });
 });
