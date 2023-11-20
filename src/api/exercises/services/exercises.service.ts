@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
 
@@ -57,12 +58,32 @@ export default class ExercisesService {
   /**
    * Gets an exercise by its id
    * @param {string} id
+   * @param {User} user
    * @returns {Exercise}
    *
    * @throws {EntityNotFoundError}
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
-  async getById(id: string): Promise<Exercise> {
+  async getById(id: string, user: User): Promise<Exercise> {
     const exercise = await this.exerciseRepo.findOneByOrFail({ id });
+    this.assertExerciseUserMatchesUserInRequest(exercise, user);
+
     return exercise;
+  }
+
+  /**
+   * Asserts if user the exercise belongs to is the same as the user in the request
+   * @param {Exercise} exercise
+   * @param {User} user
+   *
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   */
+  private assertExerciseUserMatchesUserInRequest(
+    exercise: Exercise,
+    user: User,
+  ): void {
+    if (exercise.user && exercise.user.id !== user.id) {
+      throw new ExerciseUserDoesNotMatchUserInRequestError();
+    }
   }
 }
