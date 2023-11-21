@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  ForbiddenException,
   Get,
   Headers,
   NotFoundException,
@@ -10,6 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { GetByIdParam } from 'src/common/requests/get-by-id.params';
@@ -68,13 +70,26 @@ export default class ExercisesController {
   }
 
   @Get(':id')
-  async getExercise(@Param() { id }: GetByIdParam): Promise<ExerciseResponse> {
-    let exercise: Exercise;
+  async getExercise(
+    @Headers('user-id') userId: string,
+    @Param() { id }: GetByIdParam,
+  ): Promise<ExerciseResponse> {
     let exerciseResponse = new ExerciseResponse();
 
+    let user: User;
     try {
-      exercise = await this.exercisesService.getById(id);
+      user = await this.userService.getById(userId);
     } catch (error) {
+      throw new UserNotFoundException();
+    }
+
+    let exercise: Exercise;
+    try {
+      exercise = await this.exercisesService.getById(id, user);
+    } catch (error) {
+      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+        throw new ForbiddenException();
+
       throw new ExerciseNotFoundException();
     }
 
