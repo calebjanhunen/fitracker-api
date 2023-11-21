@@ -121,12 +121,13 @@ describe('ExerciseService', () => {
     });
   });
 
-  describe('test deleteOne()', () => {
+  describe('test deleteById()', () => {
     it('should successfully delete the exercise', async () => {
       const testExercise = generateDefaultExercise(1);
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
       jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
 
-      await exercisesService.deleteOne(testExercise, new User());
+      await exercisesService.deleteById(testExercise.id, new User());
 
       expect(mockExerciseRepo.remove).toHaveBeenCalled();
       expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
@@ -135,9 +136,10 @@ describe('ExerciseService', () => {
       const user = new User();
       user.id = '123';
       const testExercise = generateUserCreatedExercise(user.id);
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
       jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
 
-      await exercisesService.deleteOne(testExercise, user);
+      await exercisesService.deleteById(testExercise.id, user);
 
       expect(mockExerciseRepo.remove).toHaveBeenCalled();
       expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
@@ -146,10 +148,12 @@ describe('ExerciseService', () => {
       const user = new User();
       user.id = '123';
       const testExercise = generateUserCreatedExercise('not-the-same-id');
-      jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
+      jest
+        .spyOn(exercisesService, 'getById')
+        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
 
       expect(
-        async () => await exercisesService.deleteOne(testExercise, user),
+        async () => await exercisesService.deleteById(testExercise.id, user),
       ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
     });
   });

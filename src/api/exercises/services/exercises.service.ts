@@ -77,13 +77,14 @@ export default class ExercisesService {
 
   /**
    * Deletes an exercise from the db
-   * @param {Exercise} exercise
+   * @param {string} id
    * @param {User} user
    *
+   * @throws {EntityNotFoundError}
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
-  public async deleteOne(exercise: Exercise, user: User): Promise<void> {
-    this.assertExerciseUserMatchesUserInRequest(exercise, user);
+  public async deleteById(id: string, user: User): Promise<void> {
+    const exercise = await this.getById(id, user);
     await this.exerciseRepo.remove(exercise);
   }
 
