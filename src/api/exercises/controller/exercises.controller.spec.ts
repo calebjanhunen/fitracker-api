@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   ImATeapotException,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from 'src/api/user/service/user.service';
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
+import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { IUser } from 'src/interfaces';
@@ -15,6 +17,7 @@ import { EntityNotFoundError } from 'typeorm';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 import ExercisesController from './exercises.controller';
 
 describe('ExerciseController', () => {
@@ -53,6 +56,7 @@ describe('ExerciseController', () => {
           useValue: {
             getDefaultAndUserCreatedExercises: jest.fn(),
             createCustomExercise: jest.fn(),
+            getById: jest.fn(),
           },
         },
         {
@@ -158,6 +162,46 @@ describe('ExerciseController', () => {
       expect(
         async () => await exercisesController.createExercise('123', request),
       ).rejects.toThrow(UserNotFoundException);
+    });
+  });
+
+  describe('test getExercise()', () => {
+    it('should return exercise on success', async () => {
+      const testExercise = generateDefaultExercise(1);
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(new User());
+      jest
+        .spyOn(mockExerciseService, 'getById')
+        .mockResolvedValue(testExercise);
+
+      const result = await exercisesController.getExercise(
+        'user-id',
+        'exercise-id',
+      );
+
+      expect(result).toBeInstanceOf(ExerciseResponse);
+      expect(result).toEqual(testExercise);
+    });
+    it('should throw ExerciseNotFoundException if exercise is not found', () => {
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(new User());
+      jest
+        .spyOn(mockExerciseService, 'getById')
+        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
+
+      expect(
+        async () =>
+          await exercisesController.getExercise('user-id', 'exercise-id'),
+      ).rejects.toThrow(ExerciseNotFoundException);
+    });
+    it('should throw ForbiddenException if requesting an exercise that does not belong to that user', () => {
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(new User());
+      jest
+        .spyOn(mockExerciseService, 'getById')
+        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+
+      expect(
+        async () =>
+          await exercisesController.getExercise('user-id', 'exercise-id'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

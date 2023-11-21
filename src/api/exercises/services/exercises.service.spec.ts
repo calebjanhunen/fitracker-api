@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
@@ -67,6 +68,58 @@ describe('ExerciseService', () => {
       expect(result).toBeInstanceOf(Exercise);
     });
   });
+
+  describe('test getById()', () => {
+    it('should return an exercise when requesting a default exercise', async () => {
+      const testExercise = generateDefaultExercise(1);
+
+      jest
+        .spyOn(mockExerciseRepo, 'findOneOrFail')
+        .mockResolvedValue(testExercise);
+
+      const result = await exercisesService.getById(
+        `exercise-${1}`,
+        new User(),
+      );
+      expect(result).toBeInstanceOf(Exercise);
+      expect(result).toEqual(testExercise);
+    });
+    it('should return an exercise when requesting a user created exercise', async () => {
+      const user = new User();
+      user.id = 'test-user-id';
+
+      const exercise = generateUserCreatedExercise(user.id);
+
+      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
+
+      const result = await exercisesService.getById('exercise-id', user);
+
+      expect(result).toBeInstanceOf(Exercise);
+      expect(result).toEqual(exercise);
+      expect(result.user?.id).toEqual(user.id);
+    });
+    it('should throw EntityNotFoundError if exercise not found', async () => {
+      jest
+        .spyOn(mockExerciseRepo, 'findOneOrFail')
+        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
+
+      expect(
+        async () => await exercisesService.getById('123', new User()),
+      ).rejects.toThrow(EntityNotFoundError);
+    });
+    it('should throw ExerciseUserDoesNotMatchUserInRequestError if exercise user does not match user in request', () => {
+      const user = new User();
+      user.id = 'test-user-id';
+
+      const exercise = generateUserCreatedExercise('not-the-same-id');
+
+      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
+
+      expect(
+        async () => await exercisesService.getById('exercise-id', user),
+      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+    });
+  });
 });
 
 function generateDefaultExercise(id: number): Exercise {
@@ -76,12 +129,13 @@ function generateDefaultExercise(id: number): Exercise {
   return exercise;
 }
 
-function generateUserCreatedExercise(): Exercise {
+function generateUserCreatedExercise(userId?: string): Exercise {
   const exercise = new Exercise();
   exercise.id = '1234';
   exercise.name = 'Custom Exercise';
   exercise.isCustom = true;
   exercise.user = new User();
+  exercise.user.id = userId || 'test-user-id';
 
   return exercise;
 }

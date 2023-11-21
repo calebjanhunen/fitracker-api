@@ -2,13 +2,16 @@ import {
   Body,
   ConflictException,
   Controller,
+  ForbiddenException,
   Get,
   Headers,
   NotFoundException,
+  Param,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
@@ -19,6 +22,7 @@ import { UserService } from '../../user/service/user.service';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Controller('api/exercises')
 @UseGuards(AuthGuard)
@@ -62,6 +66,35 @@ export default class ExercisesController {
     response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
+  }
+
+  @Get(':id')
+  async getExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<ExerciseResponse> {
+    let exerciseResponse = new ExerciseResponse();
+
+    let user: User;
+    try {
+      user = await this.userService.getById(userId);
+    } catch (error) {
+      throw new UserNotFoundException();
+    }
+
+    let exercise: Exercise;
+    try {
+      exercise = await this.exercisesService.getById(id, user);
+    } catch (error) {
+      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+        throw new ForbiddenException();
+
+      throw new ExerciseNotFoundException();
+    }
+
+    exerciseResponse = exerciseResponse.fromEntityToResponse(exercise);
+
+    return exerciseResponse;
   }
 
   @Post()
