@@ -74,7 +74,7 @@ describe('ExerciseService', () => {
       const testExercise = generateDefaultExercise(1);
 
       jest
-        .spyOn(mockExerciseRepo, 'findOneByOrFail')
+        .spyOn(mockExerciseRepo, 'findOneOrFail')
         .mockResolvedValue(testExercise);
 
       const result = await exercisesService.getById(
@@ -90,9 +90,7 @@ describe('ExerciseService', () => {
 
       const exercise = generateUserCreatedExercise(user.id);
 
-      jest
-        .spyOn(mockExerciseRepo, 'findOneByOrFail')
-        .mockResolvedValue(exercise);
+      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
 
       const result = await exercisesService.getById('exercise-id', user);
 
@@ -102,7 +100,7 @@ describe('ExerciseService', () => {
     });
     it('should throw EntityNotFoundError if exercise not found', async () => {
       jest
-        .spyOn(mockExerciseRepo, 'findOneByOrFail')
+        .spyOn(mockExerciseRepo, 'findOneOrFail')
         .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
 
       expect(
@@ -115,9 +113,7 @@ describe('ExerciseService', () => {
 
       const exercise = generateUserCreatedExercise('not-the-same-id');
 
-      jest
-        .spyOn(mockExerciseRepo, 'findOneByOrFail')
-        .mockResolvedValue(exercise);
+      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
 
       expect(
         async () => await exercisesService.getById('exercise-id', user),

@@ -65,7 +65,11 @@ export default class ExercisesService {
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
   async getById(id: string, user: User): Promise<Exercise> {
-    const exercise = await this.exerciseRepo.findOneByOrFail({ id });
+    const exercise = await this.exerciseRepo.findOneOrFail({
+      where: { id },
+      relations: { user: true },
+    });
+
     this.assertExerciseUserMatchesUserInRequest(exercise, user);
 
     return exercise;
