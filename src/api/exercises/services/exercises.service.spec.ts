@@ -120,6 +120,39 @@ describe('ExerciseService', () => {
       ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
     });
   });
+
+  describe('test deleteOne()', () => {
+    it('should successfully delete the exercise', async () => {
+      const testExercise = generateDefaultExercise(1);
+      jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
+
+      await exercisesService.deleteOne(testExercise, new User());
+
+      expect(mockExerciseRepo.remove).toHaveBeenCalled();
+      expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
+    });
+    it('should successfully delete a custom exercise if the user the exercise belongs to matches user in request', async () => {
+      const user = new User();
+      user.id = '123';
+      const testExercise = generateUserCreatedExercise(user.id);
+      jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
+
+      await exercisesService.deleteOne(testExercise, user);
+
+      expect(mockExerciseRepo.remove).toHaveBeenCalled();
+      expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
+    });
+    it('should throw ExerciseUserDoesNotMatchUserInRequestError if exercise user does not match user in request', () => {
+      const user = new User();
+      user.id = '123';
+      const testExercise = generateUserCreatedExercise('not-the-same-id');
+      jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
+
+      expect(
+        async () => await exercisesService.deleteOne(testExercise, user),
+      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+    });
+  });
 });
 
 function generateDefaultExercise(id: number): Exercise {

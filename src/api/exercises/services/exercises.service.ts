@@ -76,6 +76,18 @@ export default class ExercisesService {
   }
 
   /**
+   * Deletes an exercise from the db
+   * @param {Exercise} exercise
+   * @param {User} user
+   *
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   */
+  public async deleteOne(exercise: Exercise, user: User): Promise<void> {
+    this.assertExerciseUserMatchesUserInRequest(exercise, user);
+    await this.exerciseRepo.remove(exercise);
+  }
+
+  /**
    * Asserts if user the exercise belongs to is the same as the user in the request
    * @param {Exercise} exercise
    * @param {User} user
