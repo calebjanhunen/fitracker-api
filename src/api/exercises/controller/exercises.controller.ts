@@ -14,7 +14,6 @@ import {
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { GetByIdParam } from 'src/common/requests/get-by-id.params';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { IUser } from 'src/interfaces';
@@ -72,7 +71,7 @@ export default class ExercisesController {
   @Get(':id')
   async getExercise(
     @Headers('user-id') userId: string,
-    @Param() { id }: GetByIdParam,
+    @Param('id') id: string,
   ): Promise<ExerciseResponse> {
     let exerciseResponse = new ExerciseResponse();
 
