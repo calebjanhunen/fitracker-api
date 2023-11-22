@@ -13,6 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
+import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
@@ -146,6 +147,8 @@ export default class ExercisesController {
         throw new ForbiddenException();
       if (error instanceof EntityNotFoundError)
         throw new ExerciseNotFoundException();
+      if (error instanceof ExerciseIsNotCustomError)
+        throw new ForbiddenException(error.message);
 
       throw new CouldNotDeleteExerciseException();
     }
