@@ -13,10 +13,11 @@ import { UserNotFoundException } from 'src/common/exceptions/user-not-found.exce
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { IUser } from 'src/interfaces';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { EntityNotFoundError } from 'typeorm';
+import { EntityNotFoundError, TypeORMError } from 'typeorm';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 import ExercisesController from './exercises.controller';
 
@@ -57,6 +58,7 @@ describe('ExerciseController', () => {
             getDefaultAndUserCreatedExercises: jest.fn(),
             createCustomExercise: jest.fn(),
             getById: jest.fn(),
+            deleteById: jest.fn(),
           },
         },
         {
@@ -201,6 +203,62 @@ describe('ExerciseController', () => {
       expect(
         async () =>
           await exercisesController.getExercise('user-id', 'exercise-id'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('test deleteExercise()', () => {
+    it('should return no content on success of deleting exercise', async () => {
+      const user = new User();
+
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
+      jest.spyOn(mockExerciseService, 'deleteById').mockResolvedValue();
+
+      await exercisesController.deleteExercise(user.id, 'exercise-id');
+
+      expect(mockExerciseService.deleteById).toHaveBeenCalled();
+      expect(mockExerciseService.deleteById).toHaveBeenCalledWith(
+        'exercise-id',
+        user,
+      );
+    });
+    it('should throw CouldNotDeleteExerciseException if exercise could not be deleted', () => {
+      const user = new User();
+
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
+      jest
+        .spyOn(mockExerciseService, 'deleteById')
+        .mockRejectedValue(new TypeORMError());
+
+      expect(
+        async () =>
+          await exercisesController.deleteExercise(user.id, 'exercise-id'),
+      ).rejects.toThrow(CouldNotDeleteExerciseException);
+    });
+    it('should throw ExerciseNotFoundException if exercise could not be found', () => {
+      const user = new User();
+
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
+      jest
+        .spyOn(mockExerciseService, 'deleteById')
+        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
+
+      expect(
+        async () =>
+          await exercisesController.deleteExercise(user.id, 'exercise-id'),
+      ).rejects.toThrow(ExerciseNotFoundException);
+    });
+    it('should throw ForbiddenException if deleting an exercise that does not belong to that user', () => {
+      const user = new User();
+
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
+      jest
+        .spyOn(mockExerciseService, 'deleteById')
+        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+
+      expect(
+        async () =>
+          await exercisesController.deleteExercise(user.id, 'exercise-id'),
       ).rejects.toThrow(ForbiddenException);
     });
   });

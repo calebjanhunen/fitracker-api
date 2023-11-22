@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Headers,
@@ -18,10 +19,12 @@ import { PaginationParams } from 'src/common/requests/pagination-params.request'
 import { ListResponse } from 'src/common/responses/list.response';
 import { IUser } from 'src/interfaces';
 import { CollectionModel, Exercise, User } from 'src/model';
+import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
 import { CreateExerciseRequest } from '../request/create-exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
+import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Controller('api/exercises')
@@ -122,5 +125,29 @@ export default class ExercisesController {
     exerciseResponse = exerciseResponse.fromEntityToResponse(createdExercise);
 
     return exerciseResponse;
+  }
+
+  @Delete(':id')
+  async deleteExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    let user: User;
+    try {
+      user = await this.userService.getById(userId);
+    } catch (error) {
+      throw new UserNotFoundException();
+    }
+
+    try {
+      await this.exercisesService.deleteById(id, user);
+    } catch (error) {
+      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+        throw new ForbiddenException();
+      if (error instanceof EntityNotFoundError)
+        throw new ExerciseNotFoundException();
+
+      throw new CouldNotDeleteExerciseException();
+    }
   }
 }
