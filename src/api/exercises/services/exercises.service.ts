@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
+import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
 
@@ -76,6 +77,21 @@ export default class ExercisesService {
   }
 
   /**
+   * Deletes an exercise from the db
+   * @param {string} id
+   * @param {User} user
+   *
+   * @throws {EntityNotFoundError}
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseIsNotCustomError}
+   */
+  public async deleteById(id: string, user: User): Promise<void> {
+    const exercise = await this.getById(id, user);
+    this.assertExerciseIsCustom(exercise);
+    await this.exerciseRepo.remove(exercise);
+  }
+
+  /**
    * Asserts if user the exercise belongs to is the same as the user in the request
    * @param {Exercise} exercise
    * @param {User} user
@@ -88,6 +104,18 @@ export default class ExercisesService {
   ): void {
     if (exercise.user && exercise.user.id !== user.id) {
       throw new ExerciseUserDoesNotMatchUserInRequestError();
+    }
+  }
+
+  /**
+   * Checks if the exercise is a custom exercise, throws error if it's default
+   * @param {Exercise} exercise
+   *
+   * @throws {ExerciseIsNotCustomError}
+   */
+  private assertExerciseIsCustom(exercise: Exercise): void {
+    if (!exercise.user) {
+      throw new ExerciseIsNotCustomError();
     }
   }
 }

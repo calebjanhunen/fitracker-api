@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
+import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import ExercisesService from './exercises.service';
@@ -117,6 +118,42 @@ describe('ExerciseService', () => {
 
       expect(
         async () => await exercisesService.getById('exercise-id', user),
+      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+    });
+  });
+
+  describe('test deleteById()', () => {
+    it('should successfully delete exercise', async () => {
+      const user = new User();
+      user.id = '123';
+      const testExercise = generateUserCreatedExercise(user.id);
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
+      jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
+
+      await exercisesService.deleteById(testExercise.id, user);
+
+      expect(mockExerciseRepo.remove).toHaveBeenCalled();
+      expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
+    });
+    it('should throw ExerciseIsNotCustom if deleting a default exercise', async () => {
+      const testExercise = generateDefaultExercise(1);
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
+
+      expect(
+        async () =>
+          await exercisesService.deleteById(testExercise.id, new User()),
+      ).rejects.toThrow(ExerciseIsNotCustomError);
+    });
+    it('should throw ExerciseUserDoesNotMatchUserInRequestError if exercise user does not match user in request', () => {
+      const user = new User();
+      user.id = '123';
+      const testExercise = generateUserCreatedExercise('not-the-same-id');
+      jest
+        .spyOn(exercisesService, 'getById')
+        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+
+      expect(
+        async () => await exercisesService.deleteById(testExercise.id, user),
       ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
     });
   });
