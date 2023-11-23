@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 
 @Injectable()
 export default class ExercisesService {
@@ -74,6 +74,22 @@ export default class ExercisesService {
     this.assertExerciseUserMatchesUserInRequest(exercise, user);
 
     return exercise;
+  }
+
+  /**
+   * Updates the exercise
+   * @param {string} id
+   * @param {User} user
+   * @returns {Exercise}
+   *
+   * @throws {EntityNotFoundError}
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseIsNotCustomError}
+   */
+  async updateById(id: string, user: User): Promise<Exercise> {
+    const existingExercise = await this.getById(id, user);
+    const updatedExercise = await this.exerciseRepo.save(existingExercise);
+    return updatedExercise;
   }
 
   /**

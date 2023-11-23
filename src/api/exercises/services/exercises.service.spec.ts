@@ -157,6 +157,20 @@ describe('ExerciseService', () => {
       ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
     });
   });
+
+  describe('test updateById()', () => {
+    it('should return the updated exercise on success', async () => {
+      const exercise = generateUserCreatedExercise('123');
+      const user = new User();
+
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(exercise);
+      jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(exercise);
+
+      const result = await exercisesService.updateById('123', user);
+
+      expect(result).toBeInstanceOf(Exercise);
+    });
+  });
 });
 
 function generateDefaultExercise(id: number): Exercise {
