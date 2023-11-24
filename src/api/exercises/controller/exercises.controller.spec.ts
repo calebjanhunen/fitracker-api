@@ -14,7 +14,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { IUser } from 'src/interfaces';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { EntityNotFoundError, TypeORMError } from 'typeorm';
-import { CreateExerciseRequest } from '../request/create-exercise.request';
+import { ExerciseRequest } from '../request/exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
 import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
@@ -59,6 +59,7 @@ describe('ExerciseController', () => {
             createCustomExercise: jest.fn(),
             getById: jest.fn(),
             deleteById: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -145,7 +146,7 @@ describe('ExerciseController', () => {
   describe('test createExercise()', () => {
     it('should return exercise on success', async () => {
       const testCustomExercise = generateUserCreatedExercise();
-      const request = new CreateExerciseRequest();
+      const request = new ExerciseRequest();
 
       jest
         .spyOn(mockExerciseService, 'createCustomExercise')
@@ -159,7 +160,7 @@ describe('ExerciseController', () => {
       jest
         .spyOn(mockUserService, 'getById')
         .mockRejectedValue(EntityNotFoundError);
-      const request = new CreateExerciseRequest();
+      const request = new ExerciseRequest();
 
       expect(
         async () => await exercisesController.createExercise('123', request),
@@ -260,6 +261,23 @@ describe('ExerciseController', () => {
         async () =>
           await exercisesController.deleteExercise(user.id, 'exercise-id'),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('test updateExercise()', () => {
+    it('should return updated exercise on success', async () => {
+      const updateExerciseRequest = new ExerciseRequest();
+      const exercise = generateUserCreatedExercise();
+      const userid = '123';
+
+      jest.spyOn(mockExerciseService, 'update').mockResolvedValue(exercise);
+
+      const result = await exercisesController.updateExercise(
+        userid,
+        exercise.id,
+        updateExerciseRequest,
+      );
+      expect(result).toBeInstanceOf(ExerciseResponse);
     });
   });
 });

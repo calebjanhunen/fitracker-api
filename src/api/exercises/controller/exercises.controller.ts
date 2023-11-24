@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -22,7 +23,7 @@ import { IUser } from 'src/interfaces';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
-import { CreateExerciseRequest } from '../request/create-exercise.request';
+import { ExerciseRequest } from '../request/exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import ExercisesService from '../services/exercises.service';
 import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
@@ -104,7 +105,7 @@ export default class ExercisesController {
   @Post()
   async createExercise(
     @Headers('user-id') userId: string,
-    @Body() createExerciseRequest: CreateExerciseRequest,
+    @Body() createExerciseRequest: ExerciseRequest,
   ): Promise<ExerciseResponse> {
     let user: User;
     let exerciseResponse = new ExerciseResponse();
@@ -115,7 +116,7 @@ export default class ExercisesController {
       throw new UserNotFoundException();
     }
 
-    const exerciseEntity = createExerciseRequest.fromRequestToEntity(
+    const exerciseEntity = createExerciseRequest.fromCreateRequestToEntity(
       createExerciseRequest,
       user,
     );
@@ -124,6 +125,50 @@ export default class ExercisesController {
       await this.exercisesService.createCustomExercise(exerciseEntity);
 
     exerciseResponse = exerciseResponse.fromEntityToResponse(createdExercise);
+
+    return exerciseResponse;
+  }
+
+  @Put(':id')
+  async updateExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+    @Body() createExerciseRequest: ExerciseRequest,
+  ): Promise<ExerciseResponse> {
+    let user: User;
+    let exerciseResponse = new ExerciseResponse();
+
+    try {
+      user = await this.userService.getById(userId);
+    } catch (error) {
+      throw new UserNotFoundException();
+    }
+
+    const exerciseEntity = createExerciseRequest.fromUpdateRequestToEntity(
+      createExerciseRequest,
+    );
+
+    let updatedExercise: Exercise;
+    try {
+      updatedExercise = await this.exercisesService.update(
+        id,
+        exerciseEntity,
+        user,
+      );
+    } catch (error) {
+      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+        throw new ForbiddenException(error.message);
+      if (error instanceof EntityNotFoundError)
+        throw new ExerciseNotFoundException();
+      if (error instanceof ExerciseIsNotCustomError)
+        throw new ForbiddenException(error.message);
+
+      throw new ConflictException(
+        'Could not update exercise using the given id',
+      );
+    }
+
+    exerciseResponse = exerciseResponse.fromEntityToResponse(updatedExercise);
 
     return exerciseResponse;
   }

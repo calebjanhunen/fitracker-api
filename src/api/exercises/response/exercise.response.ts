@@ -6,7 +6,7 @@ export class ExerciseResponse {
   public difficultyLevel: string;
   public equipment: string;
   public instructions: string[];
-  public primaryMucle: string;
+  public primaryMuscle: string;
   public secondaryMuscles: string[];
   public isCustom: boolean;
   public userId: string | undefined;
@@ -18,7 +18,7 @@ export class ExerciseResponse {
     exerciseResponse.difficultyLevel = exercise.difficultyLevel;
     exerciseResponse.equipment = exercise.equipment;
     exerciseResponse.instructions = exercise.instructions;
-    exerciseResponse.primaryMucle = exercise.primaryMuscle;
+    exerciseResponse.primaryMuscle = exercise.primaryMuscle;
     exerciseResponse.secondaryMuscles = exercise.secondaryMuscles;
     exerciseResponse.isCustom = exercise.isCustom;
     exerciseResponse.userId = exercise.user?.id;

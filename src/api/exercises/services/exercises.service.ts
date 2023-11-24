@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 
 @Injectable()
 export default class ExercisesService {
@@ -66,14 +66,39 @@ export default class ExercisesService {
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
   async getById(id: string, user: User): Promise<Exercise> {
-    const exercise = await this.exerciseRepo.findOneOrFail({
-      where: { id },
-      relations: { user: true },
-    });
+    let exercise: Exercise;
+    try {
+      exercise = await this.exerciseRepo.findOneOrFail({
+        where: { id },
+        relations: { user: true },
+      });
+    } catch (error) {
+      throw new EntityNotFoundError(Exercise, '');
+    }
 
     this.assertExerciseUserMatchesUserInRequest(exercise, user);
 
     return exercise;
+  }
+
+  /**
+   * Updates the exercise
+   * @param {string} id
+   * @param {User} user
+   * @returns {Exercise}
+   *
+   * @throws {EntityNotFoundError}
+   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseIsNotCustomError}
+   */
+  async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
+    const existingExercise = await this.getById(id, user);
+    this.assertExerciseIsCustom(existingExercise);
+
+    exercise.user = user;
+    exercise.id = id;
+    const updatedExercise = await this.exerciseRepo.save(exercise);
+    return updatedExercise;
   }
 
   /**
