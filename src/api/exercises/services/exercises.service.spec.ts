@@ -166,9 +166,31 @@ describe('ExerciseService', () => {
       jest.spyOn(exercisesService, 'getById').mockResolvedValue(exercise);
       jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(exercise);
 
-      const result = await exercisesService.updateById('123', user);
+      const result = await exercisesService.update('123', exercise, user);
 
       expect(result).toBeInstanceOf(Exercise);
+    });
+    it('should throw ExerciseIsNotCustom if trying to update a default exercise', () => {
+      const exercise = generateDefaultExercise(1);
+      const user = new User();
+
+      jest.spyOn(exercisesService, 'getById').mockResolvedValue(exercise);
+
+      expect(
+        async () => await exercisesService.update(exercise.id, exercise, user),
+      ).rejects.toThrow(ExerciseIsNotCustomError);
+    });
+    it('should throw ExerciseUserDoesNotMatchUserInRequest if trying to update an exercise that does not belong to the user', () => {
+      const user = new User();
+      const exercise = generateUserCreatedExercise();
+
+      jest
+        .spyOn(exercisesService, 'getById')
+        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+
+      expect(
+        async () => await exercisesService.update(exercise.id, exercise, user),
+      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
     });
   });
 });

@@ -2,6 +2,6 @@ import { BaseError } from './base.error';
 
 export class ExerciseIsNotCustomError extends BaseError {
   constructor() {
-    super('Cannot delete a default exercise');
+    super('Cannot update or delete a default exercise');
   }
 }

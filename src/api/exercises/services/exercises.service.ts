@@ -66,10 +66,15 @@ export default class ExercisesService {
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
   async getById(id: string, user: User): Promise<Exercise> {
-    const exercise = await this.exerciseRepo.findOneOrFail({
-      where: { id },
-      relations: { user: true },
-    });
+    let exercise: Exercise;
+    try {
+      exercise = await this.exerciseRepo.findOneOrFail({
+        where: { id },
+        relations: { user: true },
+      });
+    } catch (error) {
+      throw new EntityNotFoundError(Exercise, '');
+    }
 
     this.assertExerciseUserMatchesUserInRequest(exercise, user);
 
@@ -86,9 +91,13 @@ export default class ExercisesService {
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    * @throws {ExerciseIsNotCustomError}
    */
-  async updateById(id: string, user: User): Promise<Exercise> {
+  async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
     const existingExercise = await this.getById(id, user);
-    const updatedExercise = await this.exerciseRepo.save(existingExercise);
+    this.assertExerciseIsCustom(existingExercise);
+
+    exercise.user = user;
+    exercise.id = id;
+    const updatedExercise = await this.exerciseRepo.save(exercise);
     return updatedExercise;
   }
 

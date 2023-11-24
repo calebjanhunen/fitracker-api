@@ -8,7 +8,7 @@ import {
 import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { Exercise, User } from 'src/model';
 
-export class CreateExerciseRequest {
+export class ExerciseRequest {
   @IsNotEmpty()
   @IsString()
   public name: string;
@@ -36,12 +36,12 @@ export class CreateExerciseRequest {
 
   /**
    * Transform create exercise request to exercise entity
-   * @param {CreateExerciseRequest} request
+   * @param {ExerciseRequest} request
    * @param {User} user
    * @returns {Exercise}
    */
-  public fromRequestToEntity(
-    request: CreateExerciseRequest,
+  public fromCreateRequestToEntity(
+    request: ExerciseRequest,
     user: User,
   ): Exercise {
     const entity = new Exercise();
@@ -53,6 +53,19 @@ export class CreateExerciseRequest {
     entity.secondaryMuscles = request.secondaryMuscles;
     entity.isCustom = true;
     entity.user = user;
+
+    return entity;
+  }
+
+  public fromUpdateRequestToEntity(request: ExerciseRequest): Exercise {
+    const entity = new Exercise();
+    entity.name = request.name;
+    entity.difficultyLevel = request.difficultyLevel;
+    entity.equipment = request.equipment;
+    entity.instructions = request.instructions;
+    entity.primaryMuscle = request.primaryMuscle;
+    entity.secondaryMuscles = request.secondaryMuscles;
+    entity.isCustom = true;
 
     return entity;
   }
