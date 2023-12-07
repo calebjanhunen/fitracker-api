@@ -15,5 +15,6 @@ import { WorkoutsService } from './service/workouts.service';
   ],
   providers: [WorkoutsService, CreateWorkoutAdapter, WorkoutResponseAdapter],
   controllers: [WorkoutsController],
+  exports: [WorkoutsService],
 })
 export class WorkoutsModule {}
