@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Set, User, Workout } from 'src/model';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 
 @Injectable()
 export class WorkoutsService {
@@ -34,10 +35,10 @@ export class WorkoutsService {
    *
    * @return {Workout}
    *
-   * @throws {EntityNotFoundError}
+   * @throws {ResourceNotFoundException}
    */
   async getById(workoutId: string, userId: string): Promise<Workout> {
-    const workout = await this.workoutRepo.findOneOrFail({
+    const workout = await this.workoutRepo.findOne({
       where: { id: workoutId, user: { id: userId } },
       relations: {
         exercises: true,
@@ -46,6 +47,12 @@ export class WorkoutsService {
         },
       },
     });
+
+    if (!workout) {
+      throw new ResourceNotFoundException(
+        'Workout could not be found using the provided id and user',
+      );
+    }
 
     return workout;
   }
@@ -80,5 +87,18 @@ export class WorkoutsService {
     }
 
     return workouts;
+  }
+
+  /**
+   * Deletes a workout given its id
+   *
+   * @param {string} workoutId
+   * @param {string} userId
+   *
+   * @throws {EntityNotFoundError}
+   */
+  async deleteById(workoutId: string, userId: string): Promise<void> {
+    const workout = await this.getById(workoutId, userId);
+    await this.workoutRepo.remove(workout);
   }
 }
