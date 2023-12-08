@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { WorkoutsService } from './workouts.service';
 
 describe('WorkoutsService', () => {

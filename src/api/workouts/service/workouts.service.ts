@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Set, User, Workout } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class WorkoutsService {
