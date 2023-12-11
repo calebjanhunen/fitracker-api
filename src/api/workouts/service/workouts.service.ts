@@ -95,10 +95,13 @@ export class WorkoutsService {
    * @param {string} workoutId
    * @param {string} userId
    *
-   * @throws {EntityNotFoundError}
+   * @throws {ResourceNotFoundException}
    */
   async deleteById(workoutId: string, userId: string): Promise<void> {
-    const workout = await this.getById(workoutId, userId);
-    await this.workoutRepo.remove(workout);
+    await this.getById(workoutId, userId);
+    await this.workoutRepo.delete({
+      id: workoutId,
+      user: { id: userId },
+    });
   }
 }

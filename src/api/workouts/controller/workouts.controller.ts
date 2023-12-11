@@ -1,8 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
+  HttpCode,
+  HttpException,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -10,13 +14,13 @@ import {
 } from '@nestjs/common';
 import { UserService } from 'src/api/user/service/user.service';
 import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
+import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { User, Workout } from 'src/model';
 import { CreateWorkoutAdapter } from '../adapter/create-workout.adapter';
 import { WorkoutResponseAdapter } from '../adapter/workout-response.adapter';
 import { CreateWorkoutRequest } from '../request/create-workout.request';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
-import { CreateWorkoutResponse } from '../response/create-workout.response';
 import { WorkoutResponse } from '../response/workout.response';
 import { WorkoutsService } from '../service/workouts.service';
 import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
@@ -114,5 +118,22 @@ export class WorkoutsController {
     const workoutResponse =
       this.workoutResponseAdapter.fromEntityToResponse(workout);
     return workoutResponse;
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteWorkout(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    try {
+      await this.workoutsService.deleteById(id, userId);
+    } catch (err) {
+      if (err instanceof ResourceNotFoundException) {
+        throw new NotFoundException(err.message);
+      }
+
+      throw new HttpException('Could not delete workout', HttpStatus.CONFLICT);
+    }
   }
 }

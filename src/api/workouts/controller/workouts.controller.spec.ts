@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from 'src/api/user/service/user.service';
 import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
+import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Exercise, Set, User, Workout } from 'src/model';
 import { EntityNotFoundError } from 'typeorm';
@@ -64,6 +65,7 @@ describe('WorkoutsController', () => {
             createWorkout: jest.fn(),
             getWorkouts: jest.fn(),
             getById: jest.fn(),
+            deleteById: jest.fn(),
           },
         },
         {
@@ -205,6 +207,30 @@ describe('WorkoutsController', () => {
             id: 'test-workout-id',
           }),
       ).rejects.toThrow(CouldNotFindWorkoutException);
+    });
+  });
+
+  describe('test deleteWorkout()', () => {
+    it('should return no content when delete is successful', async () => {
+      jest.spyOn(mockWorkoutsService, 'deleteById').mockResolvedValue();
+
+      await workoutsController.deleteWorkout('user-id', 'workout-id');
+
+      expect(mockWorkoutsService.deleteById).toHaveBeenCalledTimes(1);
+      expect(mockWorkoutsService.deleteById).toHaveBeenCalledWith(
+        'workout-id',
+        'user-id',
+      );
+    });
+    it('should throw NotFoundException when workout is not found', () => {
+      jest
+        .spyOn(mockWorkoutsService, 'deleteById')
+        .mockRejectedValue(new ResourceNotFoundException('Workout not found'));
+
+      expect(
+        async () =>
+          await workoutsController.deleteWorkout('user-id', 'workout-id'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

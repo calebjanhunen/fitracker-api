@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { WorkoutsService } from './workouts.service';
 
 describe('WorkoutsService', () => {
@@ -120,14 +120,18 @@ describe('WorkoutsService', () => {
   describe('test deleteById()', () => {
     it('should successfully delete workout', async () => {
       const model = getWorkoutModel();
-
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 1;
       jest.spyOn(workoutsService, 'getById').mockResolvedValue(model);
-      jest.spyOn(mockWorkoutRepo, 'remove').mockResolvedValue(model);
+      jest.spyOn(mockWorkoutRepo, 'delete').mockResolvedValue(deleteResult);
 
       await workoutsService.deleteById(model.id, 'user-id');
 
-      expect(mockWorkoutRepo.remove).toHaveBeenCalled();
-      expect(mockWorkoutRepo.remove).toHaveBeenCalledWith(model);
+      expect(mockWorkoutRepo.delete).toHaveBeenCalledWith({
+        id: model.id,
+        user: { id: 'user-id' },
+      });
+      expect(mockWorkoutRepo.delete).toReturn();
     });
     it('should throw ResourceNotFoundException if user in request does not match the user that owns the workout', async () => {
       jest
