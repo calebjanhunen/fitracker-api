@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { WorkoutsService } from './workouts.service';
 
 describe('WorkoutsService', () => {
@@ -100,23 +101,60 @@ describe('WorkoutsService', () => {
 
   describe('test getWorkoutById()', () => {
     it('should successfully return a workout', async () => {
-      jest
-        .spyOn(mockWorkoutRepo, 'findOneOrFail')
-        .mockResolvedValue(mockWorkout1);
+      jest.spyOn(mockWorkoutRepo, 'findOne').mockResolvedValue(mockWorkout1);
 
       const result = await workoutsService.getById('workout-id', 'user-id');
 
       expect(result).toStrictEqual(mockWorkout1);
     });
 
-    it('should throw EntityNotFoundError if workout does not exist', async () => {
-      jest
-        .spyOn(mockWorkoutRepo, 'findOneOrFail')
-        .mockRejectedValue(new EntityNotFoundError(Workout, '?'));
+    it('should throw ResourceNotFoundError if workout does not exist', async () => {
+      jest.spyOn(mockWorkoutRepo, 'findOne').mockResolvedValue(null);
 
       expect(
         async () => await workoutsService.getById('workout-id', 'user-id'),
-      ).rejects.toThrow(EntityNotFoundError);
+      ).rejects.toThrow(ResourceNotFoundException);
+    });
+  });
+
+  describe('test deleteById()', () => {
+    it('should successfully delete workout', async () => {
+      const model = getWorkoutModel();
+      const deleteResult = new DeleteResult();
+      deleteResult.affected = 1;
+      jest.spyOn(workoutsService, 'getById').mockResolvedValue(model);
+      jest.spyOn(mockWorkoutRepo, 'delete').mockResolvedValue(deleteResult);
+
+      await workoutsService.deleteById(model.id, 'user-id');
+
+      expect(mockWorkoutRepo.delete).toHaveBeenCalledWith({
+        id: model.id,
+        user: { id: 'user-id' },
+      });
+      expect(mockWorkoutRepo.delete).toReturn();
+    });
+    it('should throw ResourceNotFoundException if user in request does not match the user that owns the workout', async () => {
+      jest
+        .spyOn(workoutsService, 'getById')
+        .mockRejectedValue(new ResourceNotFoundException('Workout not found'));
+
+      expect(
+        async () => await workoutsService.deleteById('workout-id', 'user-id'),
+      ).rejects.toThrow(ResourceNotFoundException);
     });
   });
 });
+
+function getWorkoutModel(): Workout {
+  const model: Workout = {
+    id: 'workout-id',
+    name: 'Workout',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    user: new User(),
+    exercises: [new Exercise(), new Exercise()],
+    sets: [new Set(), new Set()],
+  };
+
+  return model;
+}
