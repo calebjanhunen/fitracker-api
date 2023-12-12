@@ -89,7 +89,7 @@ export default class ExercisesController {
 
     let exercise: Exercise;
     try {
-      exercise = await this.exercisesService.getById(id, user);
+      exercise = await this.exercisesService.getById(id, user.id);
     } catch (error) {
       if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
         throw new ForbiddenException();

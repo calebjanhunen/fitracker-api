@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
+import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export default class ExercisesService {
@@ -58,25 +58,24 @@ export default class ExercisesService {
 
   /**
    * Gets an exercise by its id
-   * @param {string} id
-   * @param {User} user
+   * @param {string} exerciseId
+   * @param {string} userId
    * @returns {Exercise}
    *
-   * @throws {EntityNotFoundError}
+   * @throws {ResourceNotFoundException}
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
-  async getById(id: string, user: User): Promise<Exercise> {
-    let exercise: Exercise;
-    try {
-      exercise = await this.exerciseRepo.findOneOrFail({
-        where: { id },
-        relations: { user: true },
-      });
-    } catch (error) {
-      throw new EntityNotFoundError(Exercise, '');
-    }
+  async getById(exerciseId: string, userId: string): Promise<Exercise> {
+    const exercise = await this.exerciseRepo.findOne({
+      where: { id: exerciseId, user: { id: userId } },
+      relations: { user: true },
+    });
 
-    this.assertExerciseUserMatchesUserInRequest(exercise, user);
+    if (!exercise) {
+      throw new ResourceNotFoundException(
+        'Exercise could not be found using the provided id and user',
+      );
+    }
 
     return exercise;
   }
@@ -92,7 +91,7 @@ export default class ExercisesService {
    * @throws {ExerciseIsNotCustomError}
    */
   async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
-    const existingExercise = await this.getById(id, user);
+    const existingExercise = await this.getById(id, user.id);
     this.assertExerciseIsCustom(existingExercise);
 
     exercise.user = user;
@@ -111,25 +110,9 @@ export default class ExercisesService {
    * @throws {ExerciseIsNotCustomError}
    */
   public async deleteById(id: string, user: User): Promise<void> {
-    const exercise = await this.getById(id, user);
+    const exercise = await this.getById(id, user.id);
     this.assertExerciseIsCustom(exercise);
     await this.exerciseRepo.remove(exercise);
-  }
-
-  /**
-   * Asserts if user the exercise belongs to is the same as the user in the request
-   * @param {Exercise} exercise
-   * @param {User} user
-   *
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
-   */
-  private assertExerciseUserMatchesUserInRequest(
-    exercise: Exercise,
-    user: User,
-  ): void {
-    if (exercise.user && exercise.user.id !== user.id) {
-      throw new ExerciseUserDoesNotMatchUserInRequestError();
-    }
   }
 
   /**
