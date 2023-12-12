@@ -104,4 +104,25 @@ export class WorkoutsService {
       user: { id: userId },
     });
   }
+
+  /**
+   * Updates a workout given the new workout and workout id
+   * @param {Workout} workout The new workout
+   * @param {String} workoutId
+   * @param {String} userId
+   *
+   * @return {Workout} The updated workout
+   */
+  async update(
+    workout: Workout,
+    workoutId: string,
+    userId: string,
+  ): Promise<Workout> {
+    await this.getById(workoutId, userId);
+    workout.id = workoutId;
+
+    const updatedWorkout = this.workoutRepo.save(workout);
+
+    return updatedWorkout;
+  }
 }
