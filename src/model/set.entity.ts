@@ -1,11 +1,9 @@
-import { IExercise, ISet, IWorkout } from 'src/interfaces';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Exercise } from './exercise.entity';
-import { Workout } from './workout.entity';
 
 @Entity('sets')
-export class Set extends BaseEntity implements ISet {
+export class Set extends BaseEntity {
   @Column({
     type: 'integer',
   })
@@ -20,12 +18,6 @@ export class Set extends BaseEntity implements ISet {
     type: 'integer',
   })
   rpe: number;
-
-  @ManyToOne(() => Workout, (workout) => workout.sets, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
-  workout: Workout;
 
   @ManyToOne(() => Exercise, { nullable: false, onDelete: 'CASCADE' })
   exercise: Exercise;
