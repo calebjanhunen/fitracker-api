@@ -1,19 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
   let exercisesService: ExercisesService;
   let mockExerciseRepo: Repository<Exercise>;
-  const testExercises: Exercise[] = [
-    generateDefaultExercise(1),
-    generateDefaultExercise(2),
-    generateDefaultExercise(3),
-  ];
 
   const exerciseRepoToken = getRepositoryToken(Exercise);
 
@@ -38,9 +34,12 @@ describe('ExerciseService', () => {
 
   describe('test getDefaultAndUserCreatedExercises()', () => {
     it('should return a collection model of exercises', async () => {
+      const exercise1 = getExerciseModel();
+      const exercise2 = getExerciseModel();
+      const exercises = [exercise1, exercise2];
       jest
         .spyOn(mockExerciseRepo, 'findAndCount')
-        .mockResolvedValueOnce([testExercises, testExercises.length]);
+        .mockResolvedValueOnce([exercises, exercises.length]);
       const page = 1;
       const limit = 3;
 
@@ -51,8 +50,8 @@ describe('ExerciseService', () => {
       );
 
       const returnVal = new CollectionModel<Exercise>();
-      returnVal.listObjects = testExercises;
-      returnVal.totalCount = testExercises.length;
+      returnVal.listObjects = exercises;
+      returnVal.totalCount = exercises.length;
       returnVal.limit = limit;
       returnVal.offset = limit * (page - 1);
       expect(result).toStrictEqual(returnVal);
@@ -61,10 +60,11 @@ describe('ExerciseService', () => {
 
   describe('test createExercise()', () => {
     it('should return the created exercise on success', async () => {
-      const testExercise = generateUserCreatedExercise();
-      jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(testExercise);
+      const exercise = getExerciseModel();
 
-      const result = await exercisesService.createCustomExercise(testExercise);
+      jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(exercise);
+
+      const result = await exercisesService.createCustomExercise(exercise);
 
       expect(result).toBeInstanceOf(Exercise);
     });
@@ -72,53 +72,57 @@ describe('ExerciseService', () => {
 
   describe('test getById()', () => {
     it('should return an exercise when requesting a default exercise', async () => {
-      const testExercise = generateDefaultExercise(1);
+      const user = new User();
+      user.id = 'user-id';
+      const defaultExercise = getExerciseModel();
 
       jest
-        .spyOn(mockExerciseRepo, 'findOneOrFail')
-        .mockResolvedValue(testExercise);
+        .spyOn(mockExerciseRepo, 'findOne')
+        .mockResolvedValue(defaultExercise);
 
       const result = await exercisesService.getById(
-        `exercise-${1}`,
-        new User(),
+        defaultExercise.id,
+        user.id,
       );
-      expect(result).toBeInstanceOf(Exercise);
-      expect(result).toEqual(testExercise);
+      expect(result).toStrictEqual(defaultExercise);
     });
     it('should return an exercise when requesting a user created exercise', async () => {
       const user = new User();
-      user.id = 'test-user-id';
+      user.id = 'user-id';
 
-      const exercise = generateUserCreatedExercise(user.id);
+      const exercise = getExerciseModel();
+      exercise.user = user;
 
-      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
+      jest.spyOn(mockExerciseRepo, 'findOne').mockResolvedValue(exercise);
 
-      const result = await exercisesService.getById('exercise-id', user);
+      const result = await exercisesService.getById('exercise-id', user.id);
 
-      expect(result).toBeInstanceOf(Exercise);
-      expect(result).toEqual(exercise);
+      expect(result).toStrictEqual(exercise);
       expect(result.user?.id).toEqual(user.id);
     });
-    it('should throw EntityNotFoundError if exercise not found', async () => {
-      jest
-        .spyOn(mockExerciseRepo, 'findOneOrFail')
-        .mockRejectedValue(new EntityNotFoundError(Exercise, ''));
-
-      expect(
-        async () => await exercisesService.getById('123', new User()),
-      ).rejects.toThrow(EntityNotFoundError);
-    });
-    it('should throw ExerciseUserDoesNotMatchUserInRequestError if exercise user does not match user in request', () => {
+    it('should throw ExerciseNotFoundException if exercise not found', async () => {
       const user = new User();
-      user.id = 'test-user-id';
 
-      const exercise = generateUserCreatedExercise('not-the-same-id');
+      jest.spyOn(mockExerciseRepo, 'findOne').mockResolvedValue(null);
 
-      jest.spyOn(mockExerciseRepo, 'findOneOrFail').mockResolvedValue(exercise);
+      await expect(() =>
+        exercisesService.getById('123', user.id),
+      ).rejects.toThrow(ExerciseNotFoundException);
+    });
+    it('should throw ExerciseDoesNotBelongToUser if exercise user does not match user in request', async () => {
+      const user = new User();
+      user.id = 'user-id';
+      const user2 = new User();
+      user.id = 'different-id';
 
-      expect(
-        async () => await exercisesService.getById('exercise-id', user),
-      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+      const exercise = getExerciseModel();
+      exercise.user = user2;
+
+      jest.spyOn(mockExerciseRepo, 'findOne').mockResolvedValue(exercise);
+
+      await expect(() =>
+        exercisesService.getById(exercise.id, user.id),
+      ).rejects.toThrow(ExerciseDoesNotBelongToUser);
     });
   });
 
@@ -126,7 +130,9 @@ describe('ExerciseService', () => {
     it('should successfully delete exercise', async () => {
       const user = new User();
       user.id = '123';
-      const testExercise = generateUserCreatedExercise(user.id);
+      const testExercise = getExerciseModel();
+      testExercise.user = user;
+
       jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
       jest.spyOn(mockExerciseRepo, 'remove').mockResolvedValue(testExercise);
 
@@ -136,32 +142,35 @@ describe('ExerciseService', () => {
       expect(mockExerciseRepo.remove).toHaveBeenCalledWith(testExercise);
     });
     it('should throw ExerciseIsNotCustom if deleting a default exercise', async () => {
-      const testExercise = generateDefaultExercise(1);
+      const user = new User();
+      user.id = 'user-id';
+      const testExercise = getExerciseModel();
+
       jest.spyOn(exercisesService, 'getById').mockResolvedValue(testExercise);
 
-      expect(
-        async () =>
-          await exercisesService.deleteById(testExercise.id, new User()),
+      await expect(() =>
+        exercisesService.deleteById(testExercise.id, user),
       ).rejects.toThrow(ExerciseIsNotCustomError);
     });
-    it('should throw ExerciseUserDoesNotMatchUserInRequestError if exercise user does not match user in request', () => {
+    it('should throw ExerciseDoesNotBelongToUser if exercise user does not match user in request', async () => {
       const user = new User();
       user.id = '123';
-      const testExercise = generateUserCreatedExercise('not-the-same-id');
+      const testExercise = getExerciseModel();
       jest
         .spyOn(exercisesService, 'getById')
-        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+        .mockRejectedValue(new ExerciseDoesNotBelongToUser());
 
-      expect(
-        async () => await exercisesService.deleteById(testExercise.id, user),
-      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+      await expect(() =>
+        exercisesService.deleteById(testExercise.id, user),
+      ).rejects.toThrow(ExerciseDoesNotBelongToUser);
     });
   });
 
   describe('test updateById()', () => {
     it('should return the updated exercise on success', async () => {
-      const exercise = generateUserCreatedExercise('123');
       const user = new User();
+      const exercise = getExerciseModel();
+      exercise.user = user;
 
       jest.spyOn(exercisesService, 'getById').mockResolvedValue(exercise);
       jest.spyOn(mockExerciseRepo, 'save').mockResolvedValue(exercise);
@@ -171,7 +180,7 @@ describe('ExerciseService', () => {
       expect(result).toBeInstanceOf(Exercise);
     });
     it('should throw ExerciseIsNotCustom if trying to update a default exercise', () => {
-      const exercise = generateDefaultExercise(1);
+      const exercise = getExerciseModel();
       const user = new User();
 
       jest.spyOn(exercisesService, 'getById').mockResolvedValue(exercise);
@@ -182,33 +191,23 @@ describe('ExerciseService', () => {
     });
     it('should throw ExerciseUserDoesNotMatchUserInRequest if trying to update an exercise that does not belong to the user', () => {
       const user = new User();
-      const exercise = generateUserCreatedExercise();
+      const exercise = getExerciseModel();
 
       jest
         .spyOn(exercisesService, 'getById')
-        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+        .mockRejectedValue(new ExerciseDoesNotBelongToUser());
 
       expect(
         async () => await exercisesService.update(exercise.id, exercise, user),
-      ).rejects.toThrow(ExerciseUserDoesNotMatchUserInRequestError);
+      ).rejects.toThrow(ExerciseDoesNotBelongToUser);
     });
   });
 });
 
-function generateDefaultExercise(id: number): Exercise {
+function getExerciseModel(): Exercise {
   const exercise = new Exercise();
-  exercise.id = `exericse-${id}`;
-  exercise.name = `Exercise ${id}`;
-  return exercise;
-}
-
-function generateUserCreatedExercise(userId?: string): Exercise {
-  const exercise = new Exercise();
-  exercise.id = '1234';
-  exercise.name = 'Custom Exercise';
-  exercise.isCustom = true;
-  exercise.user = new User();
-  exercise.user.id = userId || 'test-user-id';
-
+  exercise.id = `exericse-id`;
+  exercise.name = `Exercise Name`;
+  exercise.user = null;
   return exercise;
 }

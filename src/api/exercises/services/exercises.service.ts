@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
+import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Injectable()
@@ -67,13 +68,15 @@ export default class ExercisesService {
    */
   async getById(exerciseId: string, userId: string): Promise<Exercise> {
     const exercise = await this.exerciseRepo.findOne({
-      where: { id: exerciseId, user: { id: userId } },
+      where: { id: exerciseId },
       relations: { user: true },
     });
 
     if (!exercise) {
       throw new ExerciseNotFoundException();
     }
+
+    this.assertExerciseBelongsToUser(exercise, userId);
 
     return exercise;
   }
@@ -84,8 +87,8 @@ export default class ExercisesService {
    * @param {User} user
    * @returns {Exercise}
    *
-   * @throws {EntityNotFoundError}
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
   async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
@@ -103,8 +106,8 @@ export default class ExercisesService {
    * @param {string} id
    * @param {User} user
    *
-   * @throws {EntityNotFoundError}
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
   public async deleteById(id: string, user: User): Promise<void> {
@@ -113,6 +116,21 @@ export default class ExercisesService {
     await this.exerciseRepo.remove(exercise);
   }
 
+  /**
+   * Checks if the exercise belongs to the user that requested it
+   * @param {Exercise} exercise
+   * @param {string} userId
+   *
+   * @throws {ExerciseDoesNotBelongToUser}
+   */
+  private assertExerciseBelongsToUser(
+    exercise: Exercise,
+    userId: string,
+  ): void {
+    if (exercise.user && exercise.user.id !== userId) {
+      throw new ExerciseDoesNotBelongToUser();
+    }
+  }
   /**
    * Checks if the exercise is a custom exercise, throws error if it's default
    * @param {Exercise} exercise
