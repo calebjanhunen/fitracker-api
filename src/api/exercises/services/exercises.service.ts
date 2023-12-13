@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
-import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { Repository } from 'typeorm';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Injectable()
 export default class ExercisesService {
@@ -72,9 +72,7 @@ export default class ExercisesService {
     });
 
     if (!exercise) {
-      throw new ResourceNotFoundException(
-        'Exercise could not be found using the provided id and user',
-      );
+      throw new ExerciseNotFoundException();
     }
 
     return exercise;
