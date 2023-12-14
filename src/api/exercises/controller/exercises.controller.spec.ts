@@ -8,7 +8,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from 'src/api/user/service/user.service';
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
-import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
 import { IUser } from 'src/interfaces';
@@ -16,6 +15,7 @@ import { CollectionModel, Exercise, User } from 'src/model';
 import { EntityNotFoundError, TypeORMError } from 'typeorm';
 import { ExerciseRequest } from '../request/exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
+import { ExerciseDoesNotBelongToUser } from '../services/exceptions/exercise-does-not-belong-to-user.exception';
 import ExercisesService from '../services/exercises.service';
 import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
@@ -199,7 +199,7 @@ describe('ExerciseController', () => {
       jest.spyOn(mockUserService, 'getById').mockResolvedValue(new User());
       jest
         .spyOn(mockExerciseService, 'getById')
-        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+        .mockRejectedValue(new ExerciseDoesNotBelongToUser());
 
       expect(
         async () =>
@@ -255,7 +255,7 @@ describe('ExerciseController', () => {
       jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
       jest
         .spyOn(mockExerciseService, 'deleteById')
-        .mockRejectedValue(new ExerciseUserDoesNotMatchUserInRequestError());
+        .mockRejectedValue(new ExerciseDoesNotBelongToUser());
 
       expect(
         async () =>

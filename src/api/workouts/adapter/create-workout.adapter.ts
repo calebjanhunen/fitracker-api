@@ -1,43 +1,53 @@
-import { Exercise, Set, User, Workout } from 'src/model';
-import { CreateWorkoutRequest } from '../request/create-workout.request';
+import { Exercise, Set, Workout } from 'src/model';
+import {
+  CreateWorkoutRequest,
+  ExerciseInWorkoutRequest,
+  SetInExerciseRequest,
+} from '../request/create-workout.request';
 
 export class CreateWorkoutAdapter {
   /**
    *
-   * @param CreateWorkoutRequest workoutDto
+   * @param CreateWorkoutRequest request
    * @param String userId
-   * @returns Workout
+   * @returns {Workout}
    */
   public fromDtoToEntity(
-    workoutDto: CreateWorkoutRequest,
+    request: CreateWorkoutRequest,
     userId: string,
   ): Workout {
     const workoutModel = new Workout();
+    workoutModel.name = request.name;
     workoutModel.exercises = [];
-    workoutModel.sets = [];
+    workoutModel.user.id = userId;
 
-    workoutModel.name = workoutDto.name;
-
-    const user = new User();
-    user.id = userId;
-    workoutModel.user = user;
-
-    if (Array.isArray(workoutDto.exercises)) {
-      for (const exercise of workoutDto.exercises) {
-        const newExercise = new Exercise();
-        newExercise.id = exercise.id;
-        workoutModel.exercises.push(newExercise);
-        for (const set of exercise.sets) {
-          const newSet = new Set();
-          newSet.reps = set.reps;
-          newSet.weight = set.weight;
-          newSet.rpe = set.rpe;
-          newSet.exercise = newExercise;
-          workoutModel.sets.push(newSet);
-        }
-      }
+    for (const exercise of request.exercises) {
+      const exerciseModel = this.createExerciseModelFromRequest(exercise);
+      workoutModel.exercises.push(exerciseModel);
     }
 
     return workoutModel;
+  }
+
+  private createExerciseModelFromRequest(
+    request: ExerciseInWorkoutRequest,
+  ): Exercise {
+    const model = new Exercise();
+    model.id = request.id;
+    model.sets = [];
+
+    for (const set of request.sets) {
+      const setModel = this.createSetModelFromRequest(set);
+      model.sets.push(setModel);
+    }
+    return model;
+  }
+
+  private createSetModelFromRequest(request: SetInExerciseRequest): Set {
+    const model = new Set();
+    model.reps = request.reps;
+    model.weight = request.weight;
+    model.rpe = request.rpe;
+    return model;
   }
 }

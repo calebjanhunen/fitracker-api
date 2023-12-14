@@ -30,6 +30,7 @@ export class WorkoutsService {
    * @returns {Workout} Created Workout
    *
    * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseDoesNotBelongToUser}
    * @throws {CouldNotSaveSetException}
    * @throws {CouldNotSaveWorkoutException}
    * @throws {WorkoutNotFoundException}
