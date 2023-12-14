@@ -55,6 +55,6 @@ export class Exercise extends BaseEntity implements IExercise {
   @JoinColumn()
   user: User | null;
 
-  @OneToMany(() => Set, (set) => set.id)
+  @OneToMany(() => Set, (set) => set.exercise)
   sets: Set[];
 }

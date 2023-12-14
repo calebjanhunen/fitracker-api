@@ -19,6 +19,9 @@ export class Set extends BaseEntity {
   })
   rpe: number;
 
-  @ManyToOne(() => Exercise, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Exercise, (exercise) => exercise.sets, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   exercise: Exercise;
 }
