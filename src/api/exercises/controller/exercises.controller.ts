@@ -13,7 +13,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
@@ -25,6 +24,7 @@ import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
 import { ExerciseRequest } from '../request/exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
+import { ExerciseDoesNotBelongToUser } from '../services/exceptions/exercise-does-not-belong-to-user.exception';
 import ExercisesService from '../services/exercises.service';
 import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
@@ -89,9 +89,9 @@ export default class ExercisesController {
 
     let exercise: Exercise;
     try {
-      exercise = await this.exercisesService.getById(id, user);
+      exercise = await this.exercisesService.getById(id, user.id);
     } catch (error) {
-      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+      if (error instanceof ExerciseDoesNotBelongToUser)
         throw new ForbiddenException();
 
       throw new ExerciseNotFoundException();
@@ -156,7 +156,7 @@ export default class ExercisesController {
         user,
       );
     } catch (error) {
-      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+      if (error instanceof ExerciseDoesNotBelongToUser)
         throw new ForbiddenException(error.message);
       if (error instanceof EntityNotFoundError)
         throw new ExerciseNotFoundException();
@@ -188,7 +188,7 @@ export default class ExercisesController {
     try {
       await this.exercisesService.deleteById(id, user);
     } catch (error) {
-      if (error instanceof ExerciseUserDoesNotMatchUserInRequestError)
+      if (error instanceof ExerciseDoesNotBelongToUser)
         throw new ForbiddenException();
       if (error instanceof EntityNotFoundError)
         throw new ExerciseNotFoundException();

@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ExerciseUserDoesNotMatchUserInRequestError } from 'src/api/utils/internal-errors/ExerciseUserDoesNotMatchUserInRequestError';
 import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
+import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Injectable()
 export default class ExercisesService {
@@ -58,25 +59,24 @@ export default class ExercisesService {
 
   /**
    * Gets an exercise by its id
-   * @param {string} id
-   * @param {User} user
+   * @param {string} exerciseId
+   * @param {string} userId
    * @returns {Exercise}
    *
-   * @throws {EntityNotFoundError}
+   * @throws {ResourceNotFoundException}
    * @throws {ExerciseUserDoesNotMatchUserInRequestError}
    */
-  async getById(id: string, user: User): Promise<Exercise> {
-    let exercise: Exercise;
-    try {
-      exercise = await this.exerciseRepo.findOneOrFail({
-        where: { id },
-        relations: { user: true },
-      });
-    } catch (error) {
-      throw new EntityNotFoundError(Exercise, '');
+  async getById(exerciseId: string, userId: string): Promise<Exercise> {
+    const exercise = await this.exerciseRepo.findOne({
+      where: { id: exerciseId },
+      relations: { user: true },
+    });
+
+    if (!exercise) {
+      throw new ExerciseNotFoundException();
     }
 
-    this.assertExerciseUserMatchesUserInRequest(exercise, user);
+    this.assertExerciseBelongsToUser(exercise, userId);
 
     return exercise;
   }
@@ -87,12 +87,12 @@ export default class ExercisesService {
    * @param {User} user
    * @returns {Exercise}
    *
-   * @throws {EntityNotFoundError}
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
   async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
-    const existingExercise = await this.getById(id, user);
+    const existingExercise = await this.getById(id, user.id);
     this.assertExerciseIsCustom(existingExercise);
 
     exercise.user = user;
@@ -106,32 +106,31 @@ export default class ExercisesService {
    * @param {string} id
    * @param {User} user
    *
-   * @throws {EntityNotFoundError}
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
   public async deleteById(id: string, user: User): Promise<void> {
-    const exercise = await this.getById(id, user);
+    const exercise = await this.getById(id, user.id);
     this.assertExerciseIsCustom(exercise);
     await this.exerciseRepo.remove(exercise);
   }
 
   /**
-   * Asserts if user the exercise belongs to is the same as the user in the request
+   * Checks if the exercise belongs to the user that requested it
    * @param {Exercise} exercise
-   * @param {User} user
+   * @param {string} userId
    *
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {ExerciseDoesNotBelongToUser}
    */
-  private assertExerciseUserMatchesUserInRequest(
+  private assertExerciseBelongsToUser(
     exercise: Exercise,
-    user: User,
+    userId: string,
   ): void {
-    if (exercise.user && exercise.user.id !== user.id) {
-      throw new ExerciseUserDoesNotMatchUserInRequestError();
+    if (exercise.user && exercise.user.id !== userId) {
+      throw new ExerciseDoesNotBelongToUser();
     }
   }
-
   /**
    * Checks if the exercise is a custom exercise, throws error if it's default
    * @param {Exercise} exercise

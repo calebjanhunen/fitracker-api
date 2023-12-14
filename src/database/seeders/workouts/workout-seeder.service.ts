@@ -80,7 +80,6 @@ export class WorkoutSeederService {
     workout.name = `Seed Workout ${index + 1} for ${user.username}`;
     workout.user = user;
     workout.exercises = [];
-    workout.sets = [];
 
     const numExercisesToInsert = this.getRandomNumber(3, 6);
     for (let i = 0; i < numExercisesToInsert; i++) {
@@ -92,13 +91,14 @@ export class WorkoutSeederService {
         numExercises,
       );
       const exercise = allExercises[randomExerciseIndex];
-      workout.exercises.push(exercise);
+      exercise.sets = [];
 
       const numSetsToInsert = this.getRandomNumber(2, 4);
       for (let i = 0; i < numSetsToInsert; i++) {
         const set = this.createSetObject(exercise);
-        workout.sets.push(set);
+        exercise.sets.push(set);
       }
+      workout.exercises.push(exercise);
     }
 
     return workout;

@@ -2,16 +2,17 @@ export class WorkoutResponse {
   public id: string;
   public name: string;
   public dateCreated: Date;
-  public exercises: Exercise[];
+  public exercises: ExerciseResponseInWorkout[];
 }
 
-class Exercise {
+export class ExerciseResponseInWorkout {
   public id: string;
   public name: string;
-  public sets: Set[];
+  public sets: SetResponseInExercise[];
 }
 
-class Set {
+export class SetResponseInExercise {
+  public id: string;
   public weight: number;
   public reps: number;
   public rpe: number;

@@ -1,7 +1,9 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Headers,
   HttpCode,
@@ -12,6 +14,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ExerciseDoesNotBelongToUser } from 'src/api/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
+import { ExerciseNotFoundException } from 'src/api/exercises/services/exceptions/exercise-not-found.exception';
 import { UserService } from 'src/api/user/service/user.service';
 import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
@@ -22,6 +26,9 @@ import { WorkoutResponseAdapter } from '../adapter/workout-response.adapter';
 import { CreateWorkoutRequest } from '../request/create-workout.request';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { WorkoutResponse } from '../response/workout.response';
+import { CouldNotSaveSetException } from '../service/exceptions/could-not-save-set.exception';
+import { CouldNotSaveWorkoutException } from '../service/exceptions/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from '../service/exceptions/workout-not-found.exception';
 import { WorkoutsService } from '../service/workouts.service';
 import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
 import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
@@ -51,20 +58,26 @@ export class WorkoutsController {
     @Body() createWorkoutDto: CreateWorkoutRequest,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutResponse> {
-    let createdWorkout: Workout;
     const workoutModel = this.createWorkoutAdapter.fromDtoToEntity(
       createWorkoutDto,
       userId,
     );
 
+    let createdWorkout: Workout;
     try {
-      const createdWorkoutId =
-        await this.workoutsService.createWorkout(workoutModel);
-      createdWorkout = await this.workoutsService.getById(
-        createdWorkoutId,
-        userId,
-      );
+      createdWorkout = await this.workoutsService.createWorkout(workoutModel);
     } catch (err) {
+      if (err instanceof ExerciseNotFoundException) {
+        throw new NotFoundException(err.message);
+      } else if (err instanceof ExerciseDoesNotBelongToUser) {
+        throw new ForbiddenException(err.message);
+      } else if (err instanceof CouldNotSaveSetException) {
+        throw new ConflictException(err.message);
+      } else if (err instanceof CouldNotSaveWorkoutException) {
+        throw new ConflictException(err.message);
+      } else if (err instanceof WorkoutNotFoundException) {
+        throw new NotFoundException(err.message);
+      }
       throw new CouldNotCreateWorkoutException();
     }
 

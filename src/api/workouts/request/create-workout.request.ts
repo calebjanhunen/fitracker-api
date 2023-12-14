@@ -15,21 +15,21 @@ export class CreateWorkoutRequest {
   public name: string;
 
   @ValidateNested({ each: true })
-  @Type(() => Exercise)
-  public exercises: Exercise[];
+  @Type(() => ExerciseInWorkoutRequest)
+  public exercises: ExerciseInWorkoutRequest[];
 }
 
-class Exercise {
+export class ExerciseInWorkoutRequest {
   @IsUUID()
   @IsNotEmpty()
   public id: string;
 
   @ValidateNested({ each: true })
-  @Type(() => Set)
-  public sets: Set[];
+  @Type(() => SetInExerciseRequest)
+  public sets: SetInExerciseRequest[];
 }
 
-class Set {
+export class SetInExerciseRequest {
   @IsNumber()
   public weight: number;
 
