@@ -2,6 +2,6 @@ import { ResourceNotFoundException } from 'src/common/business-exceptions/resour
 
 export class WorkoutNotFoundException extends ResourceNotFoundException {
   constructor() {
-    super('Could not find working using the provided id and user');
+    super('Could not find workout using the provided id and user');
   }
 }
