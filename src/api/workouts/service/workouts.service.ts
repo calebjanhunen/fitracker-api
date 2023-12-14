@@ -118,13 +118,25 @@ export class WorkoutsService {
    * @throws {CouldNotDeleteWorkoutException}
    */
   async deleteById(workoutId: string, userId: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    const workout = await this.getById(workoutId, userId);
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      await this.workoutRepo.delete({
-        id: workoutId,
-        user: { id: userId },
-      });
+      for (const workoutExercise of workout.exercises) {
+        await queryRunner.manager.remove(workoutExercise.sets);
+      }
+
+      await queryRunner.manager.remove(workout);
+
+      await queryRunner.commitTransaction();
     } catch (err) {
+      await queryRunner.rollbackTransaction();
       throw new CouldNotDeleteWorkoutException();
+    } finally {
+      await queryRunner.release();
     }
   }
 }
