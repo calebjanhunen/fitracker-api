@@ -7,7 +7,6 @@ import { Exercise, Set, User, Workout } from 'src/model';
 import {
   DataSource,
   DeepPartial,
-  DeleteResult,
   EntityManager,
   QueryRunner,
   Repository,
@@ -36,6 +35,7 @@ describe('WorkoutsService', () => {
       release: jest.fn(),
       manager: {
         save: jest.fn(),
+        remove: jest.fn(),
       },
     };
     const module: TestingModule = await Test.createTestingModule({
@@ -254,21 +254,28 @@ describe('WorkoutsService', () => {
 
   describe('test deleteById()', () => {
     it('should successfully delete workout', async () => {
-      const model = getWorkoutModel();
-      const deleteResult = new DeleteResult();
-      deleteResult.affected = 1;
-      jest.spyOn(workoutsService, 'getById').mockResolvedValue(model);
-      jest.spyOn(mockWorkoutRepo, 'delete').mockResolvedValue(deleteResult);
+      const user = new User();
+      const workout = getWorkoutModel();
+      const exercise = getExerciseModel('id', 'name', user);
+      const set = getSetModel(1, 1, 1, new Exercise());
+      exercise.sets.push(set);
+      workout.exercises.push(exercise);
 
-      await workoutsService.deleteById(model.id, 'user-id');
+      jest.spyOn(workoutsService, 'getById').mockResolvedValue(workout);
+      jest
+        .spyOn(mockQueryRunner.manager as EntityManager, 'remove')
+        .mockResolvedValueOnce([set]);
+      jest
+        .spyOn(mockQueryRunner.manager as EntityManager, 'remove')
+        .mockResolvedValueOnce([workout]);
 
-      expect(mockWorkoutRepo.delete).toHaveBeenCalledWith({
-        id: model.id,
-        user: { id: 'user-id' },
-      });
-      expect(mockWorkoutRepo.delete).toReturn();
+      await workoutsService.deleteById(workout.id, 'user-id');
+
+      expect(mockQueryRunner.manager?.remove).toHaveBeenCalledTimes(2);
+      expect(mockQueryRunner.manager?.remove).toReturnTimes(2);
     });
     it('should throw CouldNotDeleteWorkoutException if workout can not be deleted', async () => {
+      jest.spyOn(workoutsService, 'getById').mockResolvedValue(new Workout());
       jest
         .spyOn(mockWorkoutRepo, 'delete')
         .mockRejectedValue(new TypeORMError());
