@@ -19,6 +19,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fitracker-nestjs
+    command: npm run start:debug
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -27,6 +28,7 @@ services:
       POSTGRES_HOST: db
     ports:
       - '3000:3000'
+      - '9229:9229' # debug port
     depends_on:
       - db
     # Mount host directory to docker container (for hot reloading)
