@@ -1,6 +1,6 @@
-# fitfriends-api-v2
+# fitracker-api
 
-Backend for fitfriends app using NestJS
+Backend for fitracker app using NestJS
 
 ## Installation
 
