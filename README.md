@@ -1,4 +1,4 @@
-# fitracker-api
+# Fitracker API
 
 Backend for fitracker app using NestJS
 
