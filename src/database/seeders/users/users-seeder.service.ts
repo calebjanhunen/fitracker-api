@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from 'src/model/user.entity';
-import { generateHashPassword } from 'src/modules/utils/helpers/password-helper';
+import { generateHashPassword } from 'src/modules/auth/helpers/password-helper';
 import { userSeedData } from './user-seed-data';
 
 @Injectable()

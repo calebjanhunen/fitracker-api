@@ -2,9 +2,9 @@ import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from 'src/model/user.entity';
+import * as passwordHelper from 'src/modules/auth/helpers/password-helper';
 import { UserService } from 'src/modules/user/service/user.service';
 import { SkillLevel } from 'src/modules/utils/enums/skill-level';
-import * as passwordHelper from 'src/modules/utils/helpers/password-helper';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {

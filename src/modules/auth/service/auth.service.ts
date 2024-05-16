@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { comparePasswords } from 'src/modules/utils/helpers/password-helper';
+import { comparePasswords } from 'src/modules/auth/helpers/password-helper';
 import { UserService } from '../../user/service/user.service';
 
 @Injectable()
