@@ -18,7 +18,7 @@ import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { ExerciseIsNotCustomError } from 'src/modules/utils/internal-errors/exercise-is-not-custom.error';
+import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
 import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
 import { ExerciseRequest } from '../request/exercise.request';

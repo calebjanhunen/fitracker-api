@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CollectionModel, Exercise, User } from 'src/model';
-import { ExerciseIsNotCustomError } from 'src/modules/utils/internal-errors/exercise-is-not-custom.error';
+import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
 import { Repository } from 'typeorm';
 import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';

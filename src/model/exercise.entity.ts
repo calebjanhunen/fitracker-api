@@ -1,4 +1,4 @@
-import { ExerciseDifficultyLevel } from 'src/modules/utils/enums/exercise-difficulty-level';
+import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Set } from './set.entity';
