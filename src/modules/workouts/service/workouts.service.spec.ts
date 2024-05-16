@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';

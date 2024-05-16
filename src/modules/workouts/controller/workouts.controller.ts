@@ -14,9 +14,9 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { User, Workout } from 'src/model';
 import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';

@@ -1,4 +1,4 @@
-import { BaseException } from 'src/common/business-exceptions/base.exception';
+import { BaseException } from 'src/common/internal-exceptions/base.exception';
 
 export class ExerciseDoesNotBelongToUser extends BaseException {
   constructor() {

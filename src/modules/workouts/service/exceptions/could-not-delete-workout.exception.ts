@@ -1,4 +1,4 @@
-import { DatabaseException } from 'src/common/business-exceptions/database.exception';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 
 export class CouldNotDeleteWorkoutException extends DatabaseException {
   constructor() {
