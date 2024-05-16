@@ -10,7 +10,6 @@ import { UserService } from 'src/api/user/service/user.service';
 import { SkillLevel } from 'src/api/utils/enums/skill-level';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
-import { IUser } from 'src/interfaces';
 import { CollectionModel, Exercise, User } from 'src/model';
 import { EntityNotFoundError, TypeORMError } from 'typeorm';
 import { ExerciseRequest } from '../request/exercise.request';
@@ -34,7 +33,7 @@ describe('ExerciseController', () => {
     generateDefaultExercise(3),
   ];
 
-  const testUser: IUser = {
+  const testUser: User = {
     id: 'test-uuid',
     username: 'testuser',
     createdAt: new Date(),
