@@ -4,10 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { typeormConfig } from './config/typeorm.config';
 
-import { AuthModule } from './api/auth/auth.module';
-import { ExerciseModule } from './api/exercises/exercises.module';
-import { UserModule } from './api/user/user.module';
-import { WorkoutsModule } from './api/workouts/workouts.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ExerciseModule } from './modules/exercises/exercises.module';
+import { UserModule } from './modules/user/user.module';
+import { WorkoutsModule } from './modules/workouts/workouts.module';
 
 @Module({
   imports: [

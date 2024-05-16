@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ExerciseModule } from 'src/api/exercises/exercises.module';
-import { UserModule } from 'src/api/user/user.module';
-import { WorkoutsModule } from 'src/api/workouts/workouts.module';
 import { Workout } from 'src/model';
+import { ExerciseModule } from 'src/modules/exercises/exercises.module';
+import { UserModule } from 'src/modules/user/user.module';
+import { WorkoutsModule } from 'src/modules/workouts/workouts.module';
 import { WorkoutSeederService } from './workout-seeder.service';
 
 @Module({
