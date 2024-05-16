@@ -1,6 +1,7 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { Exercise } from './exercise.entity';
+import { Workout } from './workout.entity';
 
 @Entity('sets')
 export class Set extends BaseEntity {
@@ -24,4 +25,10 @@ export class Set extends BaseEntity {
     onDelete: 'CASCADE',
   })
   exercise: Exercise;
+
+  @ManyToOne(() => Workout, (workout) => workout.sets, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  workout: Workout;
 }
