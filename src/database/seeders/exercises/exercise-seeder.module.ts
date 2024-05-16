@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from 'src/api/user/user.module';
 import { Exercise } from 'src/model';
+import { UserModule } from 'src/modules/user/user.module';
 import { ExerciseSeederService } from './exercise-seeder.service';
 
 @Module({

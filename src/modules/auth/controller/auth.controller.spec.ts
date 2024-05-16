@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from 'src/api/user/service/user.service';
+import { UserService } from 'src/modules/user/service/user.service';
 import { UserLoginDto } from '../dto/user-signin.dto';
 import { AuthService } from '../service/auth.service';
 import { AuthController } from './auth.controller';

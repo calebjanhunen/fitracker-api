@@ -14,13 +14,13 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ExerciseDoesNotBelongToUser } from 'src/api/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
-import { ExerciseNotFoundException } from 'src/api/exercises/services/exceptions/exercise-not-found.exception';
-import { UserService } from 'src/api/user/service/user.service';
-import { UserNotFoundException } from 'src/api/utils/exceptions/user-not-found.exception';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { User, Workout } from 'src/model';
+import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
+import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
+import { UserService } from 'src/modules/user/service/user.service';
+import { UserNotFoundException } from 'src/modules/utils/exceptions/user-not-found.exception';
 import { CreateWorkoutAdapter } from '../adapter/create-workout.adapter';
 import { WorkoutResponseAdapter } from '../adapter/workout-response.adapter';
 import { CreateWorkoutRequest } from '../request/create-workout.request';

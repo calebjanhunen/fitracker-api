@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserService } from 'src/api/user/service/user.service';
-import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { Exercise, User } from 'src/model';
+import { UserService } from 'src/modules/user/service/user.service';
+import { ExerciseDifficultyLevel } from 'src/modules/utils/enums/exercise-difficulty-level';
 import { Repository } from 'typeorm';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

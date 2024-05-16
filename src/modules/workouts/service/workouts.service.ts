@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import ExercisesService from 'src/api/exercises/services/exercises.service';
 import { User, Workout } from 'src/model';
+import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { DataSource, Repository } from 'typeorm';
 import { CouldNotDeleteWorkoutException } from './exceptions/could-not-delete-workout.exception';
 import { CouldNotSaveSetException } from './exceptions/could-not-save-set.exception';

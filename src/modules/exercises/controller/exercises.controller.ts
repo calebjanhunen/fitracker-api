@@ -13,12 +13,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ExerciseIsNotCustomError } from 'src/api/utils/internal-errors/exercise-is-not-custom.error';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { CollectionModel, Exercise, User } from 'src/model';
+import { ExerciseIsNotCustomError } from 'src/modules/utils/internal-errors/exercise-is-not-custom.error';
 import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
 import { ExerciseRequest } from '../request/exercise.request';

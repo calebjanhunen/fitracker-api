@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ExerciseNotFoundException } from 'src/api/exercises/services/exceptions/exercise-not-found.exception';
-import ExercisesService from 'src/api/exercises/services/exercises.service';
 import { ResourceNotFoundException } from 'src/common/business-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
+import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
+import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import {
   DataSource,
   DeepPartial,

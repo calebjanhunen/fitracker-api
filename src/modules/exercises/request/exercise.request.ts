@@ -5,8 +5,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { ExerciseDifficultyLevel } from 'src/api/utils/enums/exercise-difficulty-level';
 import { Exercise, User } from 'src/model';
+import { ExerciseDifficultyLevel } from 'src/modules/utils/enums/exercise-difficulty-level';
 
 export class ExerciseRequest {
   @IsNotEmpty()

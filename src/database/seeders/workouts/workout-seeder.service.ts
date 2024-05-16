@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import ExercisesService from 'src/api/exercises/services/exercises.service';
-import { UserService } from 'src/api/user/service/user.service';
-import { WorkoutsService } from 'src/api/workouts/service/workouts.service';
 import { Exercise, Set, User, Workout } from 'src/model';
+import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import { UserService } from 'src/modules/user/service/user.service';
+import { WorkoutsService } from 'src/modules/workouts/service/workouts.service';
 import { Repository } from 'typeorm';
 
 @Injectable()

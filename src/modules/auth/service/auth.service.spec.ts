@@ -1,10 +1,10 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from 'src/api/user/service/user.service';
-import { SkillLevel } from 'src/api/utils/enums/skill-level';
-import * as passwordHelper from 'src/api/utils/helpers/password-helper';
 import { User } from 'src/model/user.entity';
+import { UserService } from 'src/modules/user/service/user.service';
+import { SkillLevel } from 'src/modules/utils/enums/skill-level';
+import * as passwordHelper from 'src/modules/utils/helpers/password-helper';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
