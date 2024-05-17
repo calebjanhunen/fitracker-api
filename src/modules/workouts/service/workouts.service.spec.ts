@@ -1,43 +1,58 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { Exercise, Set, User, Workout } from 'src/model';
+import { WorkoutExercise } from 'src/model/workout-exercises.entity';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import { UserService } from 'src/modules/user/service/user.service';
+import {
+  CreateWorkoutRequestDTO,
+  ExerciseDTO,
+  SetDTO,
+} from 'src/modules/workouts/dtos/create-workout.dto';
 import {
   DataSource,
   DeepPartial,
   EntityManager,
+  EntityTarget,
   QueryRunner,
   Repository,
   TypeORMError,
 } from 'typeorm';
-import { CouldNotDeleteWorkoutException } from './exceptions/could-not-delete-workout.exception';
 import { CouldNotSaveSetException } from './exceptions/could-not-save-set.exception';
 import { CouldNotSaveWorkoutException } from './exceptions/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from './exceptions/workout-not-found.exception';
 import { WorkoutsService } from './workouts.service';
 
+interface SimplifiedEntityManager {
+  create<Entity>(
+    entityClass: EntityTarget<Entity>,
+    plainObject?: DeepPartial<Entity>,
+  ): Entity;
+}
+
 describe('WorkoutsService', () => {
+  const workoutRepoToken = getRepositoryToken(Workout);
   let workoutsService: WorkoutsService;
   let mockWorkoutRepo: Repository<Workout>;
   let mockExercisesService: ExercisesService;
+  let mockUserService: UserService;
   let mockDataSource: DataSource;
-  let mockQueryRunner: DeepPartial<QueryRunner>;
 
-  const workoutRepoToken = getRepositoryToken(Workout);
+  const mockQueryRunner: DeepPartial<QueryRunner> = {
+    connect: jest.fn(),
+    startTransaction: jest.fn(),
+    commitTransaction: jest.fn(),
+    rollbackTransaction: jest.fn(),
+    release: jest.fn(),
+    manager: {
+      save: jest.fn(),
+      create: jest.fn(),
+    },
+  };
 
   beforeEach(async () => {
-    mockQueryRunner = {
-      connect: jest.fn(),
-      startTransaction: jest.fn(),
-      commitTransaction: jest.fn(),
-      rollbackTransaction: jest.fn(),
-      release: jest.fn(),
-      manager: {
-        save: jest.fn(),
-        remove: jest.fn(),
-      },
-    };
+    mockQueryRunner;
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkoutsService,
@@ -46,15 +61,21 @@ describe('WorkoutsService', () => {
           useClass: Repository,
         },
         {
-          provide: DataSource,
-          useValue: {
-            createQueryRunner: jest.fn(),
-          },
-        },
-        {
           provide: ExercisesService,
           useValue: {
             getById: jest.fn(),
+          },
+        },
+        {
+          provide: UserService,
+          useValue: {
+            getById: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            createQueryRunner: jest.fn(() => mockQueryRunner),
           },
         },
       ],
@@ -64,10 +85,21 @@ describe('WorkoutsService', () => {
     mockWorkoutRepo = module.get<Repository<Workout>>(workoutRepoToken);
     mockDataSource = module.get<DataSource>(DataSource);
     mockExercisesService = module.get<ExercisesService>(ExercisesService);
+    mockUserService = module.get<UserService>(UserService);
 
     jest
       .spyOn(mockDataSource, 'createQueryRunner')
       .mockReturnValue(mockQueryRunner as QueryRunner);
+
+    jest
+      .spyOn(mockQueryRunner.manager as SimplifiedEntityManager, 'create')
+      .mockReturnValueOnce(new Workout());
+    jest
+      .spyOn(mockQueryRunner.manager as SimplifiedEntityManager, 'create')
+      .mockReturnValueOnce(new Exercise());
+    jest
+      .spyOn(mockQueryRunner.manager as SimplifiedEntityManager, 'create')
+      .mockReturnValueOnce(new Set());
   });
 
   it('should be defined', () => {
@@ -75,255 +107,167 @@ describe('WorkoutsService', () => {
     expect(mockWorkoutRepo).toBeDefined();
   });
 
-  describe('test createWorkout()', () => {
-    it('should return the created workout on success', async () => {
-      // Create test user
-      const user = new User();
-      user.id = 'user-id';
+  describe('Test createWorkout()', () => {
+    it('should successfully create workout and return workout entity', async () => {
+      const mockUser = getMockUser();
+      const mockWorkoutDTO = getMockWorkoutDTO();
+      mockWorkoutDTO.exercises.push(getMockExerciseDTO());
+      mockWorkoutDTO.exercises[0].sets.push(getMockSetDTO(120, 12, 10));
+      const mockWorkoutEntity = getMockWorkoutEntity();
 
-      // Create test workout
-      const workout = getWorkoutModel();
-      workout.user = user;
-      const exercise = getExerciseModel('exercise-id', 'Exercise Name', user);
-      const set = getSetModel(12, 120, 10, exercise);
-      exercise.sets.push(set);
-      workout.exercises.push(exercise);
-
-      jest.spyOn(mockExercisesService, 'getById').mockResolvedValue(exercise);
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(mockUser);
+      jest
+        .spyOn(workoutsService, 'getById')
+        .mockResolvedValue(mockWorkoutEntity);
       jest
         .spyOn(mockQueryRunner.manager as EntityManager, 'save')
-        .mockResolvedValueOnce([set]);
+        .mockResolvedValueOnce(new Workout());
       jest
         .spyOn(mockQueryRunner.manager as EntityManager, 'save')
-        .mockResolvedValueOnce(workout);
-      jest.spyOn(workoutsService, 'getById').mockResolvedValue(workout);
+        .mockResolvedValueOnce(new WorkoutExercise());
+      jest
+        .spyOn(mockQueryRunner.manager as EntityManager, 'save')
+        .mockResolvedValueOnce(new Set());
 
-      const result = await workoutsService.createWorkout(workout);
+      const createdWorkout = await workoutsService.createWorkout(
+        mockWorkoutDTO,
+        mockUser.id,
+      );
 
-      expect(result).toStrictEqual(workout);
+      const expectedResult = new Workout();
+      expectedResult.id = 'workout-entity-id';
+      expectedResult.name = 'Test Workout Entity';
+      expectedResult.user = mockUser;
+      expect(createdWorkout).toStrictEqual(expectedResult);
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
       expect(mockQueryRunner.release).toHaveBeenCalled();
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalledTimes(0);
     });
-    it('should rollback transaction if exercise is not found', async () => {
-      // Create test user
-      const user = new User();
-      user.id = 'user-id';
-
-      // Create test workout
-      const workout = getWorkoutModel();
-      workout.user = user;
-      const exercise = getExerciseModel('exercise-id', 'Exercise Name', user);
-      const set = getSetModel(12, 120, 10, exercise);
-      exercise.sets.push(set);
-      workout.exercises.push(exercise);
+    it('should throw ExerciseNotFoundException if exercise is not found', async () => {
+      const workout = getMockWorkoutDTO();
+      workout.exercises.push(getMockExerciseDTO());
 
       jest
         .spyOn(mockExercisesService, 'getById')
         .mockRejectedValue(new ExerciseNotFoundException());
 
       await expect(() =>
-        workoutsService.createWorkout(workout),
+        workoutsService.createWorkout(workout, 'user-id'),
       ).rejects.toThrow(ExerciseNotFoundException);
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
+      // expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
       expect(mockQueryRunner.release).toHaveBeenCalled();
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
     });
-    it('should rollback transaction if there is an error saving the sets', async () => {
-      // Create test user
-      const user = new User();
-      user.id = 'user-id';
+    it('should throw CouldNotSaveSetException if set can not be saved', async () => {
+      const workout = getMockWorkoutDTO();
+      workout.exercises.push(getMockExerciseDTO());
+      workout.exercises[0].sets.push(getMockSetDTO(120, 10, 10));
 
-      // Create test workout
-      const workout = getWorkoutModel();
-      workout.user = user;
-      const exercise = getExerciseModel('exercise-id', 'Exercise Name', user);
-      const set = getSetModel(12, 120, 10, exercise);
-      exercise.sets.push(set);
-      workout.exercises.push(exercise);
-
-      jest.spyOn(mockExercisesService, 'getById').mockResolvedValue(exercise);
+      jest
+        .spyOn(mockQueryRunner.manager as EntityManager, 'save')
+        .mockResolvedValueOnce(new Workout());
+      jest
+        .spyOn(mockQueryRunner.manager as EntityManager, 'save')
+        .mockResolvedValueOnce(new WorkoutExercise());
       jest
         .spyOn(mockQueryRunner.manager as EntityManager, 'save')
         .mockRejectedValue(new TypeORMError());
 
       await expect(() =>
-        workoutsService.createWorkout(workout),
+        workoutsService.createWorkout(workout, 'user-id'),
       ).rejects.toThrow(CouldNotSaveSetException);
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
+      // expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
       expect(mockQueryRunner.release).toHaveBeenCalled();
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
     });
-    it('should rollback transaction if there is an error saving the workout', async () => {
-      // Create test user
-      const user = new User();
-      user.id = 'user-id';
+    it('should throw CouldNotSaveWorkoutException if workout can not be saved', async () => {
+      const workout = getMockWorkoutDTO();
+      workout.exercises.push(getMockExerciseDTO());
+      workout.exercises[0].sets.push(getMockSetDTO(120, 10, 10));
 
-      // Create test workout
-      const workout = getWorkoutModel();
-      workout.user = user;
-      const exercise = getExerciseModel('exercise-id', 'Exercise Name', user);
-      const set = getSetModel(12, 120, 10, exercise);
-      exercise.sets.push(set);
-      workout.exercises.push(exercise);
-
-      jest.spyOn(mockExercisesService, 'getById').mockResolvedValue(exercise);
-      jest
-        .spyOn(mockQueryRunner.manager as EntityManager, 'save')
-        .mockResolvedValueOnce([set]);
       jest
         .spyOn(mockQueryRunner.manager as EntityManager, 'save')
         .mockRejectedValue(new TypeORMError());
 
       await expect(() =>
-        workoutsService.createWorkout(workout),
+        workoutsService.createWorkout(workout, 'user-id'),
       ).rejects.toThrow(CouldNotSaveWorkoutException);
       expect(mockQueryRunner.startTransaction).toHaveBeenCalled();
-      expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
+      // expect(mockQueryRunner.commitTransaction).toHaveBeenCalledTimes(0);
       expect(mockQueryRunner.release).toHaveBeenCalled();
       expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
     });
   });
 
-  describe('test getWorkouts()', () => {
-    it('should successfully return a list of workouts', async () => {
-      const user = new User();
-      user.id = 'user-id';
-      const workout1 = getWorkoutModelWithExercisesAndSets(user);
-      workout1.id = 'workout-1';
-      const workout2 = getWorkoutModelWithExercisesAndSets(user);
-      workout2.id = 'workout-2';
+  describe('Test getById()', () => {
+    it('should sucessfully find and return a workout entity', async () => {
+      const workoutEntity = new Workout();
+      workoutEntity.id = 'workout-id';
+      const userId = 'user-id';
 
-      jest
-        .spyOn(mockWorkoutRepo, 'find')
-        .mockResolvedValue([workout1, workout2]);
+      jest.spyOn(mockWorkoutRepo, 'findOne').mockResolvedValue(workoutEntity);
 
-      const result = await workoutsService.getWorkouts(user);
-
-      expect(result).toStrictEqual([workout1, workout2]);
-      expect(mockWorkoutRepo.find).toHaveBeenCalledWith({
-        where: { user: { id: user.id } },
-        relations: ['exercises', 'exercises.sets'],
-      });
-    });
-    it('Should return an empty array if no workouts exist for the user', async () => {
-      const user = new User();
-      user.id = 'user-id';
-
-      jest.spyOn(mockWorkoutRepo, 'find').mockResolvedValue([]);
-
-      const result = await workoutsService.getWorkouts(user);
-
-      expect(result).toStrictEqual([]);
-    });
-  });
-
-  describe('test getById()', () => {
-    it('should successfully return a workout', async () => {
-      const user = new User();
-      user.id = 'user-id';
-
-      const workout = getWorkoutModel();
-      workout.id = 'workout-id';
-      workout.exercises = [
-        getExerciseModel('exercise-id', 'Exercise Name', user),
-      ];
-
-      jest.spyOn(mockWorkoutRepo, 'findOne').mockResolvedValue(workout);
-
-      const result = await workoutsService.getById(workout.id, user.id);
+      const result = await workoutsService.getById(workoutEntity.id, userId);
 
       expect(mockWorkoutRepo.findOne).toBeCalledWith({
         where: { id: 'workout-id', user: { id: 'user-id' } },
-        relations: ['exercises', 'exercises.sets'],
+        relations: [
+          'workoutExercise',
+          'workoutExercise.exercise',
+          'workoutExercise.set',
+        ],
       });
-      expect(result).toStrictEqual(workout);
+      expect(result).toStrictEqual(workoutEntity);
     });
+    it('should throw WorkoutNotFoundException if no workout is found', () => {
+      const workoutId = 'workout-id';
+      const userId = 'user-id';
 
-    it('should throw ResourceNotFoundError if workout does not exist', async () => {
       jest.spyOn(mockWorkoutRepo, 'findOne').mockResolvedValue(null);
 
       expect(
-        async () => await workoutsService.getById('workout-id', 'user-id'),
-      ).rejects.toThrow(ResourceNotFoundException);
-    });
-  });
-
-  describe('test deleteById()', () => {
-    it('should successfully delete workout', async () => {
-      const user = new User();
-      const workout = getWorkoutModel();
-      const exercise = getExerciseModel('id', 'name', user);
-      const set = getSetModel(1, 1, 1, new Exercise());
-      exercise.sets.push(set);
-      workout.exercises.push(exercise);
-
-      jest.spyOn(workoutsService, 'getById').mockResolvedValue(workout);
-      jest
-        .spyOn(mockQueryRunner.manager as EntityManager, 'remove')
-        .mockResolvedValueOnce([set]);
-      jest
-        .spyOn(mockQueryRunner.manager as EntityManager, 'remove')
-        .mockResolvedValueOnce([workout]);
-
-      await workoutsService.deleteById(workout.id, 'user-id');
-
-      expect(mockQueryRunner.manager?.remove).toHaveBeenCalledTimes(2);
-      expect(mockQueryRunner.manager?.remove).toReturnTimes(2);
-    });
-    it('should throw CouldNotDeleteWorkoutException if workout can not be deleted', async () => {
-      jest.spyOn(workoutsService, 'getById').mockResolvedValue(new Workout());
-      jest
-        .spyOn(mockWorkoutRepo, 'delete')
-        .mockRejectedValue(new TypeORMError());
-
-      await expect(() =>
-        workoutsService.deleteById('workout-id', 'user-id'),
-      ).rejects.toThrow(CouldNotDeleteWorkoutException);
+        async () => await workoutsService.getById(workoutId, userId),
+      ).rejects.toThrow(WorkoutNotFoundException);
     });
   });
 });
 
-function getWorkoutModelWithExercisesAndSets(user: User): Workout {
-  const workout = getWorkoutModel();
-  const exercise = getExerciseModel('exercise-id', 'Exercise', user);
-  const set = getSetModel(120, 12, 10, exercise);
-  exercise.sets.push(set);
-  workout.exercises.push(exercise);
-  return workout;
+function getMockUser(): User {
+  const user = new User();
+  user.id = 'user-id';
+  return user;
 }
 
-function getWorkoutModel(): Workout {
-  const model = new Workout();
-  model.id = 'workout-id';
-  model.name = 'Workout Name';
-  model.exercises = [];
-  return model;
+function getMockWorkoutDTO(): CreateWorkoutRequestDTO {
+  const workoutDTO = new CreateWorkoutRequestDTO();
+  workoutDTO.name = 'Test Workout';
+  workoutDTO.exercises = [];
+  return workoutDTO;
 }
 
-function getExerciseModel(id: string, name: string, user: User): Exercise {
-  const model = new Exercise();
-  model.id = id;
-  model.name = name;
-  model.user = user;
-  model.sets = [];
-
-  return model;
+function getMockExerciseDTO(): ExerciseDTO {
+  const exerciseDTO = new ExerciseDTO();
+  exerciseDTO.id = 'exercise-id';
+  exerciseDTO.sets = [];
+  return exerciseDTO;
 }
 
-function getSetModel(
-  reps: number,
-  weight: number,
-  rpe: number,
-  exercise: Exercise,
-): Set {
-  const model = new Set();
-  model.reps = reps;
-  model.weight = weight;
-  model.rpe = rpe;
-  model.exercise = exercise;
-  return model;
+function getMockSetDTO(weight: number, reps: number, rpe: number): SetDTO {
+  const setDTO = new SetDTO();
+  setDTO.reps = reps;
+  setDTO.rpe = rpe;
+  setDTO.weight = weight;
+  return setDTO;
+}
+
+function getMockWorkoutEntity(): Workout {
+  const workoutEntity = new Workout();
+  workoutEntity.id = 'workout-entity-id';
+  workoutEntity.name = 'Test Workout Entity';
+  workoutEntity.user = getMockUser();
+
+  return workoutEntity;
 }

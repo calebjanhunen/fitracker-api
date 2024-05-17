@@ -3,6 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Exercise, Set, User, Workout } from 'src/model';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
+import {
+  CreateWorkoutRequestDTO,
+  ExerciseDTO,
+} from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { WorkoutsService } from 'src/modules/workouts/service/workouts.service';
 import { Repository } from 'typeorm';
 
@@ -57,32 +61,32 @@ export class WorkoutSeederService {
 
     const numWorkoutsToInsert = this.getRandomNumber(1, 3);
     for (let i = 0; i < numWorkoutsToInsert; i++) {
-      const workout = this.createWorkoutObject(
+      const workoutDTO = this.CreateWorkoutRequestDTO(
         i,
         user,
         allExercises.listObjects,
         numExercises,
       );
 
-      await this.workoutService.createWorkout(workout);
+      await this.workoutService.createWorkout(workoutDTO, user.id);
     }
 
     return numWorkoutsToInsert;
   }
 
-  private createWorkoutObject(
+  private CreateWorkoutRequestDTO(
     index: number,
     user: User,
     allExercises: Exercise[],
     numExercises: number,
-  ): Workout {
-    const workout = new Workout();
+  ): CreateWorkoutRequestDTO {
+    const workout = new CreateWorkoutRequestDTO();
     workout.name = `Seed Workout ${index + 1} for ${user.username}`;
-    workout.user = user;
     workout.exercises = [];
 
     const numExercisesToInsert = this.getRandomNumber(3, 6);
     for (let i = 0; i < numExercisesToInsert; i++) {
+      const exercise = new ExerciseDTO();
       const alreadyInsertedExerciseIndexes: number[] = [];
 
       // Gets a random exercise from the list of exercises retrieved from the db
@@ -90,12 +94,12 @@ export class WorkoutSeederService {
         alreadyInsertedExerciseIndexes,
         numExercises,
       );
-      const exercise = allExercises[randomExerciseIndex];
+      exercise.id = allExercises[randomExerciseIndex].id;
       exercise.sets = [];
 
       const numSetsToInsert = this.getRandomNumber(2, 4);
       for (let i = 0; i < numSetsToInsert; i++) {
-        const set = this.createSetObject(exercise);
+        const set = this.createSetObject();
         exercise.sets.push(set);
       }
       workout.exercises.push(exercise);
@@ -121,9 +125,8 @@ export class WorkoutSeederService {
     return randomExerciseIndex;
   }
 
-  private createSetObject(exercise: Exercise): Set {
+  private createSetObject(): Set {
     const set = new Set();
-    set.exercise = exercise;
     set.reps = Math.floor(Math.random() * (12 - 6) + 6);
     set.weight = Math.floor(Math.random() * (100 - 60) + 60);
     set.rpe = Math.floor(Math.random() * (10 - 8) + 8);

@@ -3,17 +3,21 @@ import { Exercise } from './exercise.entity';
 import { Set } from './set.entity';
 import { Workout } from './workout.entity';
 
-@Entity('workout_exercises')
-export class WorkoutExercises {
+@Entity('workout_exercise')
+export class WorkoutExercise {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Workout, (workout) => workout.workoutExercises)
+  @ManyToOne(() => Workout, (workout) => workout.workoutExercise, {
+    onDelete: 'CASCADE',
+  })
   workout: Workout;
 
-  @ManyToOne(() => Exercise, (exercise) => exercise.workoutExercises)
+  @ManyToOne(() => Exercise, (exercise) => exercise.workoutExercise, {
+    onDelete: 'CASCADE',
+  })
   exercise: Exercise;
 
-  @OneToMany(() => Set, (set) => set.workoutExercises)
-  set: Set;
+  @OneToMany(() => Set, (set) => set.workoutExercise)
+  sets: Set[];
 }

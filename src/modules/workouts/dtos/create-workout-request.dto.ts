@@ -10,26 +10,26 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateWorkoutRequest {
+export class CreateWorkoutRequestDTO {
   @IsString()
   public name: string;
 
   @ValidateNested({ each: true })
-  @Type(() => ExerciseInWorkoutRequest)
-  public exercises: ExerciseInWorkoutRequest[];
+  @Type(() => ExerciseDTO)
+  public exercises: ExerciseDTO[];
 }
 
-export class ExerciseInWorkoutRequest {
+export class ExerciseDTO {
   @IsUUID()
   @IsNotEmpty()
   public id: string;
 
   @ValidateNested({ each: true })
-  @Type(() => SetInExerciseRequest)
-  public sets: SetInExerciseRequest[];
+  @Type(() => SetDTO)
+  public sets: SetDTO[];
 }
 
-export class SetInExerciseRequest {
+export class SetDTO {
   @IsNumber()
   public weight: number;
 
