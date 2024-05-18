@@ -217,7 +217,7 @@ describe('WorkoutsService', () => {
         relations: [
           'workoutExercise',
           'workoutExercise.exercise',
-          'workoutExercise.set',
+          'workoutExercise.sets',
         ],
       });
       expect(result).toStrictEqual(workoutEntity);
