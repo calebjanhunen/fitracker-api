@@ -1,8 +1,8 @@
-import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { ExerciseDifficultyLevel } from '../modules/exercises/enums/exercise-difficulty-level';
 import { BaseEntity } from './base.entity';
-import { Set } from './set.entity';
 import { User } from './user.entity';
+import { WorkoutExercise } from './workout-exercises.entity';
 
 @Entity('exercises')
 export class Exercise extends BaseEntity {
@@ -54,6 +54,9 @@ export class Exercise extends BaseEntity {
   @JoinColumn()
   user: User | null;
 
-  @OneToMany(() => Set, (set) => set.exercise)
-  sets: Set[];
+  @OneToMany(
+    () => WorkoutExercise,
+    (workoutExercise) => workoutExercise.exercise,
+  )
+  workoutExercise: WorkoutExercise[];
 }
