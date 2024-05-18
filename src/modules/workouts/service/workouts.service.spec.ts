@@ -9,7 +9,7 @@ import {
   CreateWorkoutRequestDTO,
   ExerciseDTO,
   SetDTO,
-} from 'src/modules/workouts/dtos/create-workout.dto';
+} from 'src/modules/workouts/dtos/create-workout-request.dto';
 import {
   DataSource,
   DeepPartial,
