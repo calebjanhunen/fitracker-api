@@ -19,9 +19,9 @@ import {
   Repository,
   TypeORMError,
 } from 'typeorm';
-import { CouldNotSaveSetException } from './exceptions/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from './exceptions/could-not-save-workout.exception';
-import { WorkoutNotFoundException } from './exceptions/workout-not-found.exception';
+import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
+import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutsService } from './workouts.service';
 
 interface SimplifiedEntityManager {

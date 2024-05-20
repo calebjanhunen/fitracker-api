@@ -6,9 +6,9 @@ import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { DataSource, Repository } from 'typeorm';
-import { CouldNotSaveSetException } from './exceptions/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from './exceptions/could-not-save-workout.exception';
-import { WorkoutNotFoundException } from './exceptions/workout-not-found.exception';
+import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
+import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 
 @Injectable()
 export class WorkoutsService {
