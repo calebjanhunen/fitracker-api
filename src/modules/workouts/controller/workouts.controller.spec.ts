@@ -27,7 +27,6 @@ import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutsService } from '../service/workouts.service';
-import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 import { WorkoutsController } from './workouts.controller';
 
 describe('WorkoutsController', () => {
