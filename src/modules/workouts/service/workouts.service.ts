@@ -108,6 +108,8 @@ export class WorkoutsService {
    * @throws {WorkoutNotFoundException}
    */
   async getById(workoutId: string, userId: string): Promise<Workout> {
+    await this.userService.getById(userId);
+
     const workout = await this.workoutRepo.findOne({
       where: { id: workoutId, user: { id: userId } },
       relations: [

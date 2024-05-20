@@ -31,7 +31,6 @@ import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.e
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { WorkoutsService } from '../service/workouts.service';
 import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
-import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
@@ -94,29 +93,21 @@ export class WorkoutsController {
   //   return workoutsResponse;
   // }
 
-  // @Get(':id')
-  // async getSingleWorkout(
-  //   @Headers('user-id') userId: string,
-  //   @Param() { id }: GetSingleWorkoutParams,
-  // ): Promise<WorkoutResponse> {
-  //   let workout: Workout;
+  @Get(':id')
+  async getSingleWorkout(
+    @Headers('user-id') userId: string,
+    @Param() { id }: GetSingleWorkoutParams,
+  ): Promise<WorkoutResponseDTO> {
+    let workout: Workout;
+    try {
+      workout = await this.workoutsService.getById(id, userId);
+    } catch (err) {
+      throw new NotFoundException(err);
+    }
 
-  //   try {
-  //     await this.userService.getById(userId);
-  //   } catch (err) {
-  //     throw new UserNotFoundException();
-  //   }
-
-  //   try {
-  //     workout = await this.workoutsService.getById(id, userId);
-  //   } catch (err) {
-  //     throw new CouldNotFindWorkoutException();
-  //   }
-
-  //   const workoutResponse =
-  //     this.workoutResponseAdapter.fromEntityToResponse(workout);
-  //   return workoutResponse;
-  // }
+    const workoutResponse = fromWorkoutEntityToDTO(workout);
+    return workoutResponse;
+  }
 
   // @Delete(':id')
   // @HttpCode(204)
