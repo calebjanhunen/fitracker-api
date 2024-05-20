@@ -23,11 +23,10 @@ import {
   WorkoutResponseDTO,
 } from '../dtos/create-workout-response.dto';
 import { fromWorkoutEntityToDTO } from '../helpers/from-entity-to-dto.helper';
-import { CouldNotSaveSetException } from '../service/exceptions/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from '../service/exceptions/could-not-save-workout.exception';
-import { WorkoutNotFoundException } from '../service/exceptions/workout-not-found.exception';
+import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
+import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutsService } from '../service/workouts.service';
-import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 import { WorkoutsController } from './workouts.controller';
 
 describe('WorkoutsController', () => {

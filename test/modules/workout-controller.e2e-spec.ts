@@ -23,32 +23,79 @@ describe('Workouts Controller (e2e)', () => {
     accessToken = response.body.accessToken;
   });
 
-  it('should create a new workout', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/workouts')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
+  describe('test /workouts POST', () => {
+    it('should create a new workout', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Test Workout',
+          exercises: [
+            {
+              id: 'd2283824-010b-4427-8775-6f3ccdad81ea',
+              sets: [{ weight: 123, reps: 12, rpe: 10 }],
+            },
+          ],
+        });
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toEqual({
+        id: expect.any(String),
         name: 'Test Workout',
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
         exercises: [
           {
+            name: 'Test Exercise',
             id: 'd2283824-010b-4427-8775-6f3ccdad81ea',
-            sets: [{ weight: 123, reps: 12, rpe: 10 }],
+            sets: [{ id: expect.any(String), weight: 123, reps: 12, rpe: 10 }],
           },
         ],
       });
-    expect(response.statusCode).toBe(201);
-    expect(response.body).toEqual({
-      id: expect.any(String),
-      name: 'Test Workout',
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
-      exercises: [
-        {
-          name: 'Test Exercise',
-          id: 'd2283824-010b-4427-8775-6f3ccdad81ea',
-          sets: [{ id: expect.any(String), weight: 123, reps: 12, rpe: 10 }],
-        },
-      ],
+    });
+  });
+
+  describe('test /workouts GET', () => {
+    let createdWorkoutId: string;
+    beforeEach(async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/workouts')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          name: 'Test Workout',
+          exercises: [
+            {
+              id: 'd2283824-010b-4427-8775-6f3ccdad81ea',
+              sets: [{ weight: 123, reps: 12, rpe: 10 }],
+            },
+          ],
+        });
+      createdWorkoutId = response.body.id;
+    });
+    it('should return a workout', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/workouts/${createdWorkoutId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.body).toEqual({
+        id: createdWorkoutId,
+        name: 'Test Workout',
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        exercises: [
+          {
+            id: 'd2283824-010b-4427-8775-6f3ccdad81ea',
+            name: 'Test Exercise',
+            sets: [{ id: expect.any(String), weight: 123, reps: 12, rpe: 10 }],
+          },
+        ],
+      });
+    });
+    it('should throw NotFoundException if workout is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/workouts/${'does-not-exist'}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.statusCode).toBe(404);
     });
   });
 });

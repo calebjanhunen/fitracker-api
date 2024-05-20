@@ -25,13 +25,12 @@ import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { WorkoutResponseDTO } from '../dtos/create-workout-response.dto';
 import { fromWorkoutEntityToDTO } from '../helpers/from-entity-to-dto.helper';
+import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
+import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
+import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
-import { CouldNotSaveSetException } from '../service/exceptions/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from '../service/exceptions/could-not-save-workout.exception';
-import { WorkoutNotFoundException } from '../service/exceptions/workout-not-found.exception';
 import { WorkoutsService } from '../service/workouts.service';
 import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
-import { CouldNotFindWorkoutException } from './exceptions/could-not-find-workout.exception';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
@@ -94,29 +93,21 @@ export class WorkoutsController {
   //   return workoutsResponse;
   // }
 
-  // @Get(':id')
-  // async getSingleWorkout(
-  //   @Headers('user-id') userId: string,
-  //   @Param() { id }: GetSingleWorkoutParams,
-  // ): Promise<WorkoutResponse> {
-  //   let workout: Workout;
+  @Get(':id')
+  async getSingleWorkout(
+    @Headers('user-id') userId: string,
+    @Param() { id }: GetSingleWorkoutParams,
+  ): Promise<WorkoutResponseDTO> {
+    let workout: Workout;
+    try {
+      workout = await this.workoutsService.getById(id, userId);
+    } catch (err) {
+      throw new NotFoundException(err);
+    }
 
-  //   try {
-  //     await this.userService.getById(userId);
-  //   } catch (err) {
-  //     throw new UserNotFoundException();
-  //   }
-
-  //   try {
-  //     workout = await this.workoutsService.getById(id, userId);
-  //   } catch (err) {
-  //     throw new CouldNotFindWorkoutException();
-  //   }
-
-  //   const workoutResponse =
-  //     this.workoutResponseAdapter.fromEntityToResponse(workout);
-  //   return workoutResponse;
-  // }
+    const workoutResponse = fromWorkoutEntityToDTO(workout);
+    return workoutResponse;
+  }
 
   // @Delete(':id')
   // @HttpCode(204)
