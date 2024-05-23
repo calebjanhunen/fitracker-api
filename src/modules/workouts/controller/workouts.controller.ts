@@ -23,6 +23,7 @@ import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exce
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
+import { EntityNotFoundError } from 'typeorm';
 import { WorkoutResponseDTO } from '../dtos/create-workout-response.dto';
 import { fromWorkoutEntityToDTO } from '../helpers/from-entity-to-dto.helper';
 import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
@@ -71,27 +72,24 @@ export class WorkoutsController {
     return workoutResponse;
   }
 
-  // @Get()
-  // async getWorkouts(@Headers('user-id') userId: string) {
-  //   let user: User;
-  //   const workoutsResponse: WorkoutResponse[] = [];
+  @Get()
+  async getWorkouts(@Headers('user-id') userId: string) {
+    let workouts: Workout[];
+    const response: WorkoutResponseDTO[] = [];
+    try {
+      workouts = await this.workoutsService.getWorkouts(userId);
+    } catch (e) {
+      if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
+      throw new ConflictException('Could not get workouts.');
+    }
 
-  //   try {
-  //     user = await this.userService.getById(userId);
-  //   } catch (error) {
-  //     throw new NotFoundException();
-  //   }
+    workouts.forEach((workout) => {
+      const workoutResponse = fromWorkoutEntityToDTO(workout);
+      response.push(workoutResponse);
+    });
 
-  //   const workouts = await this.workoutsService.getWorkouts(user);
-
-  //   workouts.forEach((workout) => {
-  //     const workoutResponse =
-  //       this.workoutResponseAdapter.fromEntityToResponse(workout);
-  //     workoutsResponse.push(workoutResponse);
-  //   });
-
-  //   return workoutsResponse;
-  // }
+    return response;
+  }
 
   @Get(':id')
   async getSingleWorkout(
