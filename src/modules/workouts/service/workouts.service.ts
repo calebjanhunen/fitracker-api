@@ -136,7 +136,11 @@ export class WorkoutsService {
 
     const workouts = await this.workoutRepo.find({
       where: { user: { id: userId } },
-      relations: ['exercises', 'exercises.sets'],
+      relations: [
+        'workoutExercise',
+        'workoutExercise.exercise',
+        'workoutExercise.sets',
+      ],
     });
 
     return workouts;
