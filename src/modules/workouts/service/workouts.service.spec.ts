@@ -14,6 +14,7 @@ import {
   DataSource,
   DeepPartial,
   EntityManager,
+  EntityNotFoundError,
   EntityTarget,
   QueryRunner,
   Repository,
@@ -231,6 +232,36 @@ describe('WorkoutsService', () => {
       expect(
         async () => await workoutsService.getById(workoutId, userId),
       ).rejects.toThrow(WorkoutNotFoundException);
+    });
+  });
+
+  describe('test getWorkouts()', () => {
+    it('should return an array of workouts on success', async () => {
+      const user = getMockUser();
+      const workoutEntity1 = new Workout();
+      workoutEntity1.id = 'workout-id-1';
+      const workoutEntity2 = new Workout();
+      workoutEntity2.id = 'workout-id-2';
+
+      jest.spyOn(mockUserService, 'getById').mockResolvedValue(user);
+      jest
+        .spyOn(mockWorkoutRepo, 'find')
+        .mockResolvedValue([workoutEntity1, workoutEntity2]);
+
+      const response = await workoutsService.getWorkouts(user.id);
+      expect(response).toEqual([
+        { id: 'workout-id-1' },
+        { id: 'workout-id-2' },
+      ]);
+    });
+    it('should throw EntityNotFoundError if user not found', () => {
+      jest
+        .spyOn(mockUserService, 'getById')
+        .mockRejectedValue(new EntityNotFoundError(User, {}));
+
+      expect(
+        async () => await workoutsService.getWorkouts('user-id'),
+      ).rejects.toThrow(EntityNotFoundError);
     });
   });
 });

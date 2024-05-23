@@ -126,19 +126,21 @@ export class WorkoutsService {
     return workout;
   }
 
-  // /**
-  //  * Gets all workouts for a given user
-  //  * @param {User} user
-  //  * @returns {Workout[]}
-  //  */
-  // async getWorkouts(user: User): Promise<Workout[]> {
-  //   const workouts = await this.workoutRepo.find({
-  //     where: { user: { id: user.id } },
-  //     relations: ['exercises', 'exercises.sets'],
-  //   });
+  /**
+   * Gets all workouts for a given user
+   * @param {string} userId
+   * @returns {Workout[]}
+   */
+  async getWorkouts(userId: string): Promise<Workout[]> {
+    await this.userService.getById(userId);
 
-  //   return workouts;
-  // }
+    const workouts = await this.workoutRepo.find({
+      where: { user: { id: userId } },
+      relations: ['exercises', 'exercises.sets'],
+    });
+
+    return workouts;
+  }
 
   // /**
   //  * Deletes a workout given its id
