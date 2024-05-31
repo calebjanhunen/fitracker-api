@@ -86,7 +86,7 @@ export class WorkoutsController {
   @Get('/exercises')
   async getExercisesForWorkout(
     @Headers('user-id') userId: string,
-  ): Promise<ExercisesForWorkoutResponseDTO> {
+  ): Promise<ExercisesForWorkoutResponseDTO[]> {
     let exercises: Exercise[];
     try {
       exercises = await this.workoutsService.getExercisesForWorkout(userId);
@@ -94,7 +94,7 @@ export class WorkoutsController {
       throw new ConflictException(e);
     }
 
-    return { exercises };
+    return exercises;
   }
 
   @Get(':id')
