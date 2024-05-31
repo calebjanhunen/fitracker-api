@@ -45,9 +45,9 @@ describe('ExerciseService', () => {
 
       expect(mockQueryBuilder.select).toBeCalled();
       expect(mockQueryBuilder.select).toBeCalledWith([
-        'id',
-        'name',
-        'primaryMuscle',
+        'exercise.id',
+        'exercise.name',
+        'exercise.primaryMuscle',
       ]);
       expect(mockQueryBuilder.getMany).toBeCalled();
     });
