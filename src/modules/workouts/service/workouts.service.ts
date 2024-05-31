@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Set, Workout } from 'src/model';
+import { Exercise, Set, Workout } from 'src/model';
 import { WorkoutExercise } from 'src/model/workout-exercises.entity';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
@@ -144,6 +144,21 @@ export class WorkoutsService {
     });
 
     return workouts;
+  }
+
+  /**
+   * Retrieves exercises for a workout based on a user ID.
+   * @param {string} userId - String representing the id of the user.
+   * @returns {Exercise[]} Array of Exercise objects with the properties 'id', 'name', and 'primaryMuscle'.
+   */
+  public async getExercisesForWorkout(userId: string): Promise<Exercise[]> {
+    const exercises = await this.exercisesService.findAllExercises(userId, [
+      'id',
+      'name',
+      'primaryMuscle',
+    ]);
+
+    return exercises;
   }
 
   // /**

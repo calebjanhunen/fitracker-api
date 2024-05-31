@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { CollectionModel, Exercise, User } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
-import { Repository } from 'typeorm';
 import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
@@ -45,6 +46,35 @@ export default class ExercisesService {
     exerciseCollectionModel.offset = offset;
 
     return exerciseCollectionModel;
+  }
+
+  /**
+   * Retrieves default and user created exercises based on the provided user ID and optional
+   * fields.
+   * @param {string} userId - A string that represents the unique identifier of the user for whom we want to find exercises.
+   * @param {(keyof Exercise)[]} [fields] - An optional array of fields from the `Exercise` entity. If provided, only the specified fields
+   * will be selected in the query result. If not provided, all fields of the `Exercise` entity will be
+   * selected.
+   *
+   * @returns {Exercise[]} - An array of Exercise objects.
+   */
+  public async findAllExercises(
+    userId: string,
+    fields?: (keyof Exercise)[],
+  ): Promise<Exercise[]> {
+    const query = this.exerciseRepo.createQueryBuilder('exercise');
+
+    if (fields && fields.length > 0) {
+      const selectQuery = fields.map((field) => `exercise.${field}`);
+      query.select(selectQuery);
+    }
+
+    query.where('exercise.is_custom = false or exercise.user_id = :userId', {
+      userId,
+    });
+
+    const result = await query.getMany();
+    return result;
   }
 
   /**

@@ -18,13 +18,14 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { User, Workout } from 'src/model';
+import { Exercise, User, Workout } from 'src/model';
 import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { EntityNotFoundError } from 'typeorm';
 import { WorkoutResponseDTO } from '../dtos/create-workout-response.dto';
+import { ExercisesForWorkoutResponseDTO } from '../dtos/exercises-for-workout-response.dto';
 import { fromWorkoutEntityToDTO } from '../helpers/from-entity-to-dto.helper';
 import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
@@ -89,6 +90,20 @@ export class WorkoutsController {
     });
 
     return response;
+  }
+
+  @Get('/exercises')
+  async getExercisesForWorkout(
+    @Headers('user-id') userId: string,
+  ): Promise<ExercisesForWorkoutResponseDTO> {
+    let exercises: Exercise[];
+    try {
+      exercises = await this.workoutsService.getExercisesForWorkout(userId);
+    } catch (e) {
+      throw new ConflictException(e);
+    }
+
+    return { exercises };
   }
 
   @Get(':id')
