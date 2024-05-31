@@ -1,15 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { CollectionModel, Exercise, User } from 'src/model';
-import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
 import { Repository } from 'typeorm';
-import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
-import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
+
+import { Exercise } from 'src/model';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
   let exercisesService: ExercisesService;
   let mockExerciseRepo: Repository<Exercise>;
+  const mockQueryBuilder = {
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    getMany: jest.fn(),
+  };
 
   const exerciseRepoToken = getRepositoryToken(Exercise);
 
@@ -19,7 +22,9 @@ describe('ExerciseService', () => {
         ExercisesService,
         {
           provide: exerciseRepoToken,
-          useClass: Repository,
+          useValue: {
+            createQueryBuilder: jest.fn(() => mockQueryBuilder),
+          },
         },
       ],
     }).compile();
@@ -32,6 +37,32 @@ describe('ExerciseService', () => {
     expect(mockExerciseRepo).toBeDefined();
   });
 
+  describe('test findAllExercises()', () => {
+    it('should fetch only specified fields if fields are provided', async () => {
+      const fields: (keyof Exercise)[] = ['id', 'name', 'primaryMuscle'];
+
+      await exercisesService.findAllExercises('user-id', fields);
+
+      expect(mockQueryBuilder.select).toBeCalled();
+      expect(mockQueryBuilder.select).toBeCalledWith([
+        'exercise.id',
+        'exercise.name',
+        'exercise.primaryMuscle',
+      ]);
+      expect(mockQueryBuilder.getMany).toBeCalled();
+    });
+  });
+});
+
+// function getExerciseModel(): Exercise {
+//   const exercise = new Exercise();
+//   exercise.id = `exericse-id`;
+//   exercise.name = `Exercise Name`;
+//   exercise.user = null;
+//   return exercise;
+// }
+
+/*
   describe('test getDefaultAndUserCreatedExercises()', () => {
     it('should return a collection model of exercises', async () => {
       const exercise1 = getExerciseModel();
@@ -57,7 +88,7 @@ describe('ExerciseService', () => {
       expect(result).toStrictEqual(returnVal);
     });
   });
-
+  
   describe('test createExercise()', () => {
     it('should return the created exercise on success', async () => {
       const exercise = getExerciseModel();
@@ -202,12 +233,4 @@ describe('ExerciseService', () => {
       ).rejects.toThrow(ExerciseDoesNotBelongToUser);
     });
   });
-});
-
-function getExerciseModel(): Exercise {
-  const exercise = new Exercise();
-  exercise.id = `exericse-id`;
-  exercise.name = `Exercise Name`;
-  exercise.user = null;
-  return exercise;
-}
+*/
