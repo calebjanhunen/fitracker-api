@@ -73,6 +73,8 @@ export default class ExercisesService {
       userId,
     });
 
+    query.orderBy('exercise.name', 'ASC');
+
     const result = await query.getMany();
     return result;
   }
