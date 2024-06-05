@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Exercise, Set, Workout } from 'src/model';
+import { Set, Workout } from 'src/model';
 import { WorkoutExercise } from 'src/model/workout-exercises.entity';
+import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
@@ -154,12 +155,11 @@ export class WorkoutsService {
    * @param {string} userId - String representing the id of the user.
    * @returns {Exercise[]} Array of Exercise objects with the properties 'id', 'name', and 'primaryMuscle'.
    */
-  public async getExercisesForWorkout(userId: string): Promise<Exercise[]> {
-    const exercises = await this.exercisesService.findAllExercises(userId, [
-      'id',
-      'name',
-      'primaryMuscle',
-    ]);
+  public async getExercisesForWorkout(
+    userId: string,
+  ): Promise<ExerciseForWorkout[]> {
+    const exercises =
+      await this.exercisesService.findAllExercisesForWorkout(userId);
 
     return exercises;
   }
