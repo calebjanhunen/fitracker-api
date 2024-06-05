@@ -141,6 +141,9 @@ export class WorkoutsService {
         'workoutExercise.exercise',
         'workoutExercise.sets',
       ],
+      order: {
+        createdAt: 'DESC',
+      },
     });
 
     return workouts;
