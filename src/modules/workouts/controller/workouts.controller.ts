@@ -2,9 +2,11 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Headers,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -13,8 +15,8 @@ import {
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { Exercise, Workout } from 'src/model';
-import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/ExerciseForWorkout.interface';
+import { Workout } from 'src/model';
+import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
 import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
@@ -116,20 +118,20 @@ export class WorkoutsController {
     return workoutResponse;
   }
 
-  // @Delete(':id')
-  // @HttpCode(204)
-  // async deleteWorkout(
-  //   @Headers('user-id') userId: string,
-  //   @Param('id') id: string,
-  // ): Promise<void> {
-  //   try {
-  //     await this.workoutsService.deleteById(id, userId);
-  //   } catch (err) {
-  //     if (err instanceof ResourceNotFoundException) {
-  //       throw new NotFoundException(err.message);
-  //     }
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteWorkout(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    try {
+      await this.workoutsService.deleteById(id, userId);
+    } catch (err) {
+      if (err instanceof ResourceNotFoundException) {
+        throw new NotFoundException(err.message);
+      }
 
-  //     throw new HttpException('Could not delete workout', HttpStatus.CONFLICT);
-  //   }
-  // }
+      throw new ConflictException(`Could not delete workout: ${id}`);
+    }
+  }
 }
