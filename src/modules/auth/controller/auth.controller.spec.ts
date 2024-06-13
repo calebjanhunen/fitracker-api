@@ -47,13 +47,17 @@ describe('AuthController', () => {
     };
 
     it('should return access token if login is successful', async () => {
-      jest
-        .spyOn(authService, 'signIn')
-        .mockResolvedValueOnce('test-access-token');
+      jest.spyOn(authService, 'signIn').mockResolvedValueOnce({
+        accessToken: 'test-access-token',
+        user: { firstName: 'Test', lastName: 'User', username: 'testuser' },
+      });
 
       const result = await authController.login(userLoginBody);
 
-      expect(result).toStrictEqual({ accessToken: 'test-access-token' });
+      expect(result).toEqual({
+        accessToken: 'test-access-token',
+        user: { firstName: 'Test', lastName: 'User', username: 'testuser' },
+      });
     });
     it('should throw HttpException if username is not found', () => {
       jest

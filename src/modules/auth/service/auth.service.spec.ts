@@ -84,7 +84,14 @@ describe('AuthService', () => {
 
       const result = await authService.signIn(username, '123');
 
-      expect(result).toBe('test-access-token');
+      expect(result).toEqual({
+        accessToken: 'test-access-token',
+        user: {
+          firstName: 'Test',
+          lastName: 'User',
+          username: 'testuser',
+        },
+      });
     });
   });
 });
