@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 
 import { CollectionModel, Exercise, User } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
-import { ExerciseForWorkout } from '../interfaces/exercise-for-workout.interface';
 import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
@@ -77,32 +76,6 @@ export default class ExercisesService {
     query.orderBy('exercise.name', 'ASC');
 
     const result = await query.getMany();
-    return result;
-  }
-
-  public async findAllExercisesForWorkout(
-    userId: string,
-  ): Promise<ExerciseForWorkout[]> {
-    const query = this.exerciseRepo.createQueryBuilder('exercise');
-
-    query.select([
-      'exercise.id as id',
-      'exercise.name as name',
-      'exercise.primary_muscle',
-    ]);
-
-    query.where('exercise.is_custom = false or exercise.user_id = :userId', {
-      userId,
-    });
-
-    query
-      .leftJoin('workout_exercise', 'we', 'exercise.id = we.exercise_id')
-      .groupBy('exercise.id')
-      .addSelect('COUNT(we.exercise_id) AS num_times_used');
-
-    query.orderBy('exercise.name', 'ASC');
-
-    const result = await query.getRawMany<ExerciseForWorkout>();
     return result;
   }
 

@@ -11,6 +11,7 @@ describe('ExerciseService', () => {
   const mockQueryBuilder = {
     select: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
     getMany: jest.fn(),
   };
 

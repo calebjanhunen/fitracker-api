@@ -16,6 +16,8 @@ import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.e
 export class WorkoutsService {
   constructor(
     @InjectRepository(Workout) private workoutRepo: Repository<Workout>,
+    @InjectRepository(WorkoutExercise)
+    private workoutExerciseRepo: Repository<WorkoutExercise>,
     private exercisesService: ExercisesService,
     private userService: UserService,
     private dataSource: DataSource,
@@ -154,15 +156,41 @@ export class WorkoutsService {
   /**
    * Retrieves exercises for a workout based on a user ID.
    * @param {string} userId - String representing the id of the user.
-   * @returns {Exercise[]} Array of Exercise objects with the properties 'id', 'name', and 'primaryMuscle'.
+   * @returns {ExerciseForWorkout[]} Array of Exercise objects with the properties 'id', 'name', 'primaryMuscle' and 'numTimesUsed'.
    */
   public async getExercisesForWorkout(
     userId: string,
   ): Promise<ExerciseForWorkout[]> {
-    const exercises =
-      await this.exercisesService.findAllExercisesForWorkout(userId);
+    // find all exercises
+    const exercises = await this.exercisesService.findAllExercises(userId, [
+      'id',
+      'name',
+      'primaryMuscle',
+    ]);
 
-    return exercises;
+    // Get number of times each exercise was used in a workout for the user
+    const query = this.workoutExerciseRepo.createQueryBuilder('we');
+    query
+      .select('we.exercise_id', 'exercise_id')
+      .addSelect('COUNT(we.exercise_id)', 'num_times_used')
+      .groupBy('we.exercise_id')
+      .innerJoin('workouts', 'w', 'w.id = we.workout_id')
+      .where('w.user_id = :userId', { userId });
+    const result = await query.getRawMany<{
+      exercise_id: string;
+      num_times_used: string;
+    }>();
+
+    // Combine both queries into one array of exercises
+    const numTimesUsedMap = new Map(
+      result.map((res) => [res.exercise_id, res.num_times_used]),
+    );
+    const exercisesForWorkout: ExerciseForWorkout[] = exercises.map((e) => ({
+      ...e,
+      numTimesUsed: numTimesUsedMap.get(e.id) || '0',
+    }));
+
+    return exercisesForWorkout;
   }
 
   /**

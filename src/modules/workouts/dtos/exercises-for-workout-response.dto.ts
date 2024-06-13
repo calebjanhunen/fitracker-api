@@ -8,10 +8,10 @@ export class ExerciseForWorkoutResponseDTO {
   @Expose()
   name: string;
 
-  @Expose({ name: 'primary_muscle' })
+  @Expose()
   primaryMuscle: string;
 
-  @Expose({ name: 'num_times_used' })
+  @Expose()
   numTimesUsed: number;
 
   static toDTO(entity: ExerciseForWorkout) {

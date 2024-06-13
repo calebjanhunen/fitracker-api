@@ -34,8 +34,10 @@ interface SimplifiedEntityManager {
 
 describe('WorkoutsService', () => {
   const workoutRepoToken = getRepositoryToken(Workout);
+  const workoutExerciseRepoToken = getRepositoryToken(WorkoutExercise);
   let workoutsService: WorkoutsService;
   let mockWorkoutRepo: Repository<Workout>;
+  let mockWorkoutExerciseRepo: Repository<WorkoutExercise>;
   let mockExercisesService: ExercisesService;
   let mockUserService: UserService;
   let mockDataSource: DataSource;
@@ -62,6 +64,10 @@ describe('WorkoutsService', () => {
           useClass: Repository,
         },
         {
+          provide: workoutExerciseRepoToken,
+          useClass: Repository,
+        },
+        {
           provide: ExercisesService,
           useValue: {
             getById: jest.fn(),
@@ -84,6 +90,9 @@ describe('WorkoutsService', () => {
 
     workoutsService = module.get<WorkoutsService>(WorkoutsService);
     mockWorkoutRepo = module.get<Repository<Workout>>(workoutRepoToken);
+    mockWorkoutExerciseRepo = module.get<Repository<WorkoutExercise>>(
+      workoutExerciseRepoToken,
+    );
     mockDataSource = module.get<DataSource>(DataSource);
     mockExercisesService = module.get<ExercisesService>(ExercisesService);
     mockUserService = module.get<UserService>(UserService);
@@ -106,6 +115,7 @@ describe('WorkoutsService', () => {
   it('should be defined', () => {
     expect(workoutsService).toBeDefined();
     expect(mockWorkoutRepo).toBeDefined();
+    expect(mockWorkoutExerciseRepo).toBeDefined();
   });
 
   describe('Test createWorkout()', () => {

@@ -7,9 +7,15 @@ import { UserModule } from '../user/user.module';
 // import { WorkoutResponseAdapter } from './adapter/workout-response.adapter';
 import { WorkoutsController } from './controller/workouts.controller';
 import { WorkoutsService } from './service/workouts.service';
+import { WorkoutExercise } from 'src/model/workout-exercises.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Workout]), ExerciseModule, UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Workout]),
+    TypeOrmModule.forFeature([WorkoutExercise]),
+    ExerciseModule,
+    UserModule,
+  ],
   providers: [WorkoutsService],
   controllers: [WorkoutsController],
   exports: [WorkoutsService],
