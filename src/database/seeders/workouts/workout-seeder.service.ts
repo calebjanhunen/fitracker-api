@@ -99,7 +99,7 @@ export class WorkoutSeederService {
 
       const numSetsToInsert = this.getRandomNumber(2, 4);
       for (let i = 0; i < numSetsToInsert; i++) {
-        const set = this.createSetObject();
+        const set = this.createSetObject(i + 1);
         exercise.sets.push(set);
       }
       workout.exercises.push(exercise);
@@ -125,11 +125,12 @@ export class WorkoutSeederService {
     return randomExerciseIndex;
   }
 
-  private createSetObject(): Set {
+  private createSetObject(setOrder: number): Set {
     const set = new Set();
     set.reps = Math.floor(Math.random() * (12 - 6) + 6);
     set.weight = Math.floor(Math.random() * (100 - 60) + 60);
     set.rpe = Math.floor(Math.random() * (10 - 8) + 8);
+    set.setOrder = setOrder;
 
     return set;
   }

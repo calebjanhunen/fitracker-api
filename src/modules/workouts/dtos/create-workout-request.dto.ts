@@ -40,4 +40,8 @@ export class SetDTO {
   @Min(1)
   @Max(10)
   public rpe: number;
+
+  @IsInt()
+  @Min(1)
+  public setOrder: number;
 }

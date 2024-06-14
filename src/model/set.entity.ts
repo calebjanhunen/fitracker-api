@@ -19,6 +19,12 @@ export class Set extends BaseEntity {
   })
   rpe: number;
 
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  setOrder: number;
+
   @ManyToOne(() => WorkoutExercise, (workoutExercise) => workoutExercise.sets, {
     onDelete: 'CASCADE',
   })
