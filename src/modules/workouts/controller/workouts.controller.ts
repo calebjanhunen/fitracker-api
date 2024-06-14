@@ -51,7 +51,6 @@ export class WorkoutsController {
         userId,
       );
     } catch (err) {
-      console.log(err);
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);
       } else if (err instanceof ExerciseDoesNotBelongToUser) {

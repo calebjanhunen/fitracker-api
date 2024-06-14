@@ -25,6 +25,7 @@ export function fromWorkoutEntityToDTO(workout: Workout): WorkoutResponseDTO {
       setDTO.reps = set.reps;
       setDTO.weight = set.weight;
       setDTO.rpe = set.rpe;
+      setDTO.setOrder = set.setOrder;
       exerciseDTO.sets.push(setDTO);
     }
     response.exercises.push(exerciseDTO);

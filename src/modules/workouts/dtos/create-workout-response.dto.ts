@@ -17,4 +17,5 @@ export class SetResponseDTO {
   weight: number;
   reps: number;
   rpe: number;
+  setOrder: number;
 }
