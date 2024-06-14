@@ -7,10 +7,12 @@ import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { DataSource, Repository } from 'typeorm';
+import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
+import { WorkoutTransformer } from '../transformers/workout-transformer';
 
 @Injectable()
 export class WorkoutsService {
@@ -38,7 +40,7 @@ export class WorkoutsService {
   async createWorkout(
     CreateWorkoutRequestDTO: CreateWorkoutRequestDTO,
     userId: string,
-  ): Promise<Workout> {
+  ): Promise<WorkoutResponseDto> {
     let savedWorkout: Workout;
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -111,7 +113,10 @@ export class WorkoutsService {
    *
    * @throws {WorkoutNotFoundException}
    */
-  async getById(workoutId: string, userId: string): Promise<Workout> {
+  async getById(
+    workoutId: string,
+    userId: string,
+  ): Promise<WorkoutResponseDto> {
     await this.userService.getById(userId);
 
     const workout = await this.workoutRepo.findOne({
@@ -127,7 +132,7 @@ export class WorkoutsService {
       throw new WorkoutNotFoundException();
     }
 
-    return workout;
+    return WorkoutTransformer.toResponseDto(workout);
   }
 
   /**
@@ -135,22 +140,26 @@ export class WorkoutsService {
    * @param {string} userId
    * @returns {Workout[]}
    */
-  async getWorkouts(userId: string): Promise<Workout[]> {
+  async getWorkouts(userId: string): Promise<WorkoutResponseDto[]> {
     await this.userService.getById(userId);
+    const query = this.workoutRepo.createQueryBuilder('w');
 
-    const workouts = await this.workoutRepo.find({
-      where: { user: { id: userId } },
-      relations: [
-        'workoutExercise',
-        'workoutExercise.exercise',
-        'workoutExercise.sets',
-      ],
-      order: {
-        createdAt: 'DESC',
-      },
-    });
+    query
+      .leftJoinAndSelect('w.workoutExercise', 'we')
+      .leftJoin('we.exercise', 'e')
+      .addSelect(['e.id', 'e.name'])
+      .leftJoin('we.sets', 'set')
+      .addSelect(['set.setOrder', 'set.reps', 'set.weight', 'set.rpe'])
+      .where('w.user_id = :userId', { userId })
+      .orderBy('w.created_at', 'DESC')
+      .addOrderBy('set.setOrder', 'ASC')
+      .getMany();
 
-    return workouts;
+    const workoutsV2 = await query.getMany();
+
+    return workoutsV2.map((workout) =>
+      WorkoutTransformer.toResponseDto(workout),
+    );
   }
 
   /**

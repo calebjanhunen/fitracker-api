@@ -1,31 +1,7 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { Exercise, Set, User, Workout } from 'src/model';
-import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
-import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import { UserService } from 'src/modules/user/service/user.service';
-import {
-  CreateWorkoutRequestDTO,
-  ExerciseDTO,
-  SetDTO,
-} from '../dtos/create-workout-request.dto';
-import {
-  ExerciseResponseDTO,
-  SetResponseDTO,
-  WorkoutResponseDTO,
-} from '../dtos/create-workout-response.dto';
-import { fromWorkoutEntityToDTO } from '../helpers/from-entity-to-dto.helper';
-import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
-import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutsService } from '../service/workouts.service';
 import { WorkoutsController } from './workouts.controller';
 
@@ -260,47 +236,47 @@ describe('WorkoutsController', () => {
 //   return user;
 // }
 
-function getMockWorkoutDTO(): CreateWorkoutRequestDTO {
-  const workoutDTO = new CreateWorkoutRequestDTO();
-  workoutDTO.name = 'Test Workout';
-  workoutDTO.exercises = [];
-  return workoutDTO;
-}
+// function getMockWorkoutDTO(): CreateWorkoutRequestDTO {
+//   const workoutDTO = new CreateWorkoutRequestDTO();
+//   workoutDTO.name = 'Test Workout';
+//   workoutDTO.exercises = [];
+//   return workoutDTO;
+// }
 
-function getMockExerciseDTO(): ExerciseDTO {
-  const exerciseDTO = new ExerciseDTO();
-  exerciseDTO.id = 'exercise-id';
-  exerciseDTO.sets = [];
-  return exerciseDTO;
-}
+// function getMockExerciseDTO(): ExerciseDTO {
+//   const exerciseDTO = new ExerciseDTO();
+//   exerciseDTO.id = 'exercise-id';
+//   exerciseDTO.sets = [];
+//   return exerciseDTO;
+// }
 
-function getMockSetDTO(weight: number, reps: number, rpe: number): SetDTO {
-  const setDTO = new SetDTO();
-  setDTO.reps = reps;
-  setDTO.rpe = rpe;
-  setDTO.weight = weight;
-  return setDTO;
-}
+// function getMockSetDTO(weight: number, reps: number, rpe: number): SetDTO {
+//   const setDTO = new SetDTO();
+//   setDTO.reps = reps;
+//   setDTO.rpe = rpe;
+//   setDTO.weight = weight;
+//   return setDTO;
+// }
 
-function getMockWorkoutResponseDTO(): WorkoutResponseDTO {
-  const responseDTO = new WorkoutResponseDTO();
-  responseDTO.exercises = [getMockExerciseResponseDTO()];
-  return responseDTO;
-}
+// function getMockWorkoutResponseDTO(): WorkoutResponseDto {
+//   const responseDTO = new WorkoutResponseDTO();
+//   responseDTO.exercises = [getMockExerciseResponseDTO()];
+//   return responseDTO;
+// }
 
-function getMockExerciseResponseDTO(): ExerciseResponseDTO {
-  const exercise = new ExerciseResponseDTO();
-  exercise.id = 'exercise-id';
-  exercise.name = 'Test Exercise';
-  exercise.sets = [getMockSetResponseDTO()];
-  return exercise;
-}
+// function getMockExerciseResponseDTO(): ExerciseInWorkoutResponseDto {
+//   const exercise = new ExerciseInWorkoutResponseDto();
+//   exercise.id = 'exercise-id';
+//   exercise.name = 'Test Exercise';
+//   exercise.sets = [getMockSetResponseDTO()];
+//   return exercise;
+// }
 
-function getMockSetResponseDTO(): SetResponseDTO {
-  const set = new SetResponseDTO();
-  set.id = '123';
-  set.reps = 12;
-  set.rpe = 1;
-  set.weight = 123;
-  return set;
-}
+// function getMockSetResponseDTO(): SetResponseDTO {
+//   const set = new SetResponseDTO();
+//   set.id = '123';
+//   set.reps = 12;
+//   set.rpe = 1;
+//   set.weight = 123;
+//   return set;
+// }
