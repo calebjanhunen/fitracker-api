@@ -190,14 +190,51 @@ export class WorkoutsService {
       num_times_used: string;
     }>();
 
-    // Combine both queries into one array of exercises
+    // Get sets from most recent workout for each exercise
+    const previousSetsQuery = this.workoutExerciseRepo.createQueryBuilder('we');
+    previousSetsQuery
+      .select([
+        'w.id',
+        'we.id',
+        'e.id',
+        'set.id',
+        'set.weight',
+        'set.reps',
+        'set.rpe',
+        'set.setOrder',
+      ])
+      .leftJoin('we.exercise', 'e')
+      .leftJoin('we.workout', 'w')
+      .leftJoin('we.sets', 'set')
+      .where((qb) => {
+        const subQ = qb
+          .subQuery()
+          .select('MAX(w2.created_at)')
+          .from('workouts', 'w2')
+          .leftJoin('w2.workoutExercise', 'we2')
+          .where('we2.exercise_id = we.exercise_id')
+          .getQuery();
+
+        return 'w.created_at = ' + subQ;
+      })
+      .andWhere('w.user_id = :userId', { userId })
+      .orderBy('we.exercise_id')
+      .addOrderBy('w.created_at')
+      .addOrderBy('set.set_order');
+    const prevSetsRes = await previousSetsQuery.getMany();
+
+    // Combine all 3 queries into one array of exercises
     const numTimesUsedMap = new Map(
       result.map((res) => [res.exercise_id, res.num_times_used]),
     );
-    const exercisesForWorkout: ExerciseForWorkout[] = exercises.map((e) => ({
-      ...e,
-      numTimesUsed: numTimesUsedMap.get(e.id) || '0',
-    }));
+    const exercisesForWorkout: ExerciseForWorkout[] = exercises.map((e) => {
+      const prevSets = prevSetsRes.find((prev) => prev.exercise.id === e.id);
+      return {
+        ...e,
+        numTimesUsed: numTimesUsedMap.get(e.id) || '0',
+        previousSets: prevSets?.sets || [],
+      };
+    });
 
     return exercisesForWorkout;
   }
