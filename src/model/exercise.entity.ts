@@ -1,3 +1,4 @@
+import { WorkoutTemplateExercise } from 'src/modules/workout-templates/models/workout-template-exercise.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { ExerciseDifficultyLevel } from '../modules/exercises/enums/exercise-difficulty-level';
 import { BaseEntity } from './base.entity';
@@ -59,4 +60,10 @@ export class Exercise extends BaseEntity {
     (workoutExercise) => workoutExercise.exercise,
   )
   workoutExercise: WorkoutExercise[];
+
+  @OneToMany(
+    () => WorkoutTemplateExercise,
+    (workoutTemplateExercise) => workoutTemplateExercise.exercise,
+  )
+  workoutTemplateExercise: WorkoutTemplateExercise[];
 }
