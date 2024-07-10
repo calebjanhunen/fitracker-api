@@ -1,7 +1,9 @@
 import { BaseEntity } from 'src/common/models';
 import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
 import { User } from 'src/modules/user/models/user.entity';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { WorkoutTemplateExercise } from 'src/modules/workout-templates/models/workout-template-exercise.entity';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('exercises')
 export class Exercise extends BaseEntity {
@@ -52,4 +54,16 @@ export class Exercise extends BaseEntity {
   @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn()
   user: User | null;
+
+  @OneToMany(
+    () => WorkoutExercise,
+    (workoutExercise) => workoutExercise.exercise,
+  )
+  workoutExercise: WorkoutExercise[];
+
+  @OneToMany(
+    () => WorkoutTemplateExercise,
+    (workoutTemplateExercise) => workoutTemplateExercise.exercise,
+  )
+  workoutTemplateExercise: WorkoutTemplateExercise[];
 }
