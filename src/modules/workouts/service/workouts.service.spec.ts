@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Exercise, Set, User, Workout } from 'src/model';
-import { WorkoutExercise } from 'src/model/workout-exercises.entity';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
@@ -10,6 +9,7 @@ import {
   ExerciseDTO,
   SetDTO,
 } from 'src/modules/workouts/dtos/create-workout-request.dto';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import {
   DataSource,
   DeepPartial,

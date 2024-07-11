@@ -1,8 +1,8 @@
-import { Workout } from 'src/model';
 import {
   ExerciseInWorkoutResponseDto,
   WorkoutResponseDto,
 } from '../dtos/workout-response.dto';
+import { Workout } from '../models/workout.entity';
 
 export class WorkoutTransformer {
   public static toResponseDto(workout: Workout): WorkoutResponseDto {

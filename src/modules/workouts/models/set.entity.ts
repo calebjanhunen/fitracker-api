@@ -1,5 +1,5 @@
+import { BaseEntity } from 'src/model/base.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { BaseEntity } from './base.entity';
 import { WorkoutExercise } from './workout-exercises.entity';
 
 @Entity('sets')

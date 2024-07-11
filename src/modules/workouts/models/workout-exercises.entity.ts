@@ -1,5 +1,5 @@
+import { Exercise } from 'src/model';
 import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Exercise } from './exercise.entity';
 import { Set } from './set.entity';
 import { Workout } from './workout.entity';
 
@@ -13,7 +13,7 @@ export class WorkoutExercise {
   })
   workout: Workout;
 
-  @ManyToOne(() => Exercise, (exercise) => exercise.workoutExercise, {
+  @ManyToOne(() => Exercise, {
     onDelete: 'CASCADE',
   })
   exercise: Exercise;

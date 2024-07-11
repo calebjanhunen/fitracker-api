@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Set, Workout } from 'src/model';
-import { WorkoutExercise } from 'src/model/workout-exercises.entity';
 import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import { DataSource, Repository } from 'typeorm';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
+import { Set } from '../models/set.entity';
+import { Workout } from '../models/workout.entity';
 import { WorkoutTransformer } from '../transformers/workout-transformer';
 
 @Injectable()
