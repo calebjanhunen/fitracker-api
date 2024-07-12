@@ -8,7 +8,7 @@ export class WorkoutExercise {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Workout, (workout) => workout.workoutExercise, {
+  @ManyToOne(() => Workout, (workout) => workout.workoutExercises, {
     onDelete: 'CASCADE',
   })
   workout: Workout;
@@ -18,6 +18,6 @@ export class WorkoutExercise {
   })
   exercise: Exercise;
 
-  @OneToMany(() => Set, (set) => set.workoutExercise)
+  @OneToMany(() => Set, (set) => set.workoutExercise, { cascade: ['insert'] })
   sets: Set[];
 }

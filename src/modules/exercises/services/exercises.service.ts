@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { CollectionModel, Exercise, User } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
@@ -77,6 +77,19 @@ export default class ExercisesService {
 
     const result = await query.getMany();
     return result;
+  }
+
+  public async getExercisesByIds(
+    ids: string[],
+    user: User,
+  ): Promise<Exercise[]> {
+    const exercises = await this.exerciseRepo.find({
+      where: [
+        { id: In(ids), user },
+        { id: In(ids), isCustom: false },
+      ],
+    });
+    return exercises;
   }
 
   /**

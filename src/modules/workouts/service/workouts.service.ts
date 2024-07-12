@@ -8,12 +8,11 @@ import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.e
 import { DataSource, Repository } from 'typeorm';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
-import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
-import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
+import { WorkoutMapper } from '../mappers/workout-mapper';
 import { Set } from '../models/set.entity';
 import { Workout } from '../models/workout.entity';
-import { WorkoutTransformer } from '../transformers/workout-transformer';
+import { WorkoutRepository } from '../repository/workout.repository';
 
 @Injectable()
 export class WorkoutsService {
@@ -24,6 +23,7 @@ export class WorkoutsService {
     private exercisesService: ExercisesService,
     private userService: UserService,
     private dataSource: DataSource,
+    private customWorkoutRepo: WorkoutRepository,
   ) {}
 
   /**
@@ -39,71 +39,32 @@ export class WorkoutsService {
    * @throws {WorkoutNotFoundException}
    */
   async createWorkout(
-    CreateWorkoutRequestDTO: CreateWorkoutRequestDTO,
+    workoutDto: CreateWorkoutRequestDTO,
     userId: string,
   ): Promise<WorkoutResponseDto> {
-    let savedWorkout: Workout;
-    const queryRunner = this.dataSource.createQueryRunner();
+    const user = await this.userService.getById(userId);
 
-    await queryRunner.connect();
-    try {
-      await queryRunner.startTransaction();
-    } catch (e) {
-      await queryRunner.release();
-      throw e;
-    }
-    try {
-      const user = await this.userService.getById(userId);
+    // Get existing exercises from db using ids in workout dto
+    const exerciseIds = workoutDto.exercises.map((e) => e.id);
+    const foundExercises = await this.exercisesService.getExercisesByIds(
+      exerciseIds,
+      user,
+    );
 
-      const newWorkout = queryRunner.manager.create(
-        Workout,
-        CreateWorkoutRequestDTO,
-      );
-      newWorkout.user = user;
+    // assert all exercises in dto exist in db
+    if (foundExercises.length !== exerciseIds.length)
+      throw new Error('One or more exercises do not exist');
 
-      try {
-        savedWorkout = await queryRunner.manager.save(newWorkout);
-      } catch (e) {
-        throw new CouldNotSaveWorkoutException(CreateWorkoutRequestDTO.name);
-      }
+    const workoutEntity = WorkoutMapper.fromDtoToEntity(
+      workoutDto,
+      foundExercises,
+      user,
+    );
 
-      for (const exerciseDTO of CreateWorkoutRequestDTO.exercises) {
-        const foundExercise = await this.exercisesService.getById(
-          exerciseDTO.id,
-          userId,
-        );
-        const newWorkoutExercise = queryRunner.manager.create(WorkoutExercise, {
-          workout: savedWorkout,
-          exercise: foundExercise,
-        });
-        const savedWorkoutExercise =
-          await queryRunner.manager.save(newWorkoutExercise);
+    const createdWorkout =
+      await this.customWorkoutRepo.saveWorkout(workoutEntity);
 
-        for (const setDTO of exerciseDTO.sets) {
-          const newSet = queryRunner.manager.create(Set, {
-            ...setDTO,
-            workoutExercise: savedWorkoutExercise,
-          });
-
-          try {
-            await queryRunner.manager.save(newSet);
-          } catch (e) {
-            throw new CouldNotSaveSetException();
-          }
-        }
-      }
-
-      await queryRunner.commitTransaction();
-    } catch (e) {
-      await queryRunner.rollbackTransaction();
-      throw e;
-    } finally {
-      await queryRunner.release();
-    }
-
-    const createdWorkout = await this.getById(savedWorkout.id, userId);
-
-    return createdWorkout;
+    return WorkoutMapper.fromEntityToDto(createdWorkout);
   }
 
   /**
@@ -133,7 +94,7 @@ export class WorkoutsService {
       throw new WorkoutNotFoundException();
     }
 
-    return WorkoutTransformer.toResponseDto(workout);
+    return WorkoutMapper.fromEntityToDto(workout);
   }
 
   /**
@@ -158,9 +119,7 @@ export class WorkoutsService {
 
     const workoutsV2 = await query.getMany();
 
-    return workoutsV2.map((workout) =>
-      WorkoutTransformer.toResponseDto(workout),
-    );
+    return workoutsV2.map((workout) => WorkoutMapper.fromEntityToDto(workout));
   }
 
   /**

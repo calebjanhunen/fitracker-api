@@ -13,10 +13,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
-import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { EntityNotFoundError } from 'typeorm';
@@ -24,7 +22,6 @@ import { ExerciseForWorkoutResponseDTO } from '../dtos/exercises-for-workout-res
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { WorkoutsService } from '../service/workouts.service';
-import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
@@ -51,12 +48,8 @@ export class WorkoutsController {
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);
-      } else if (err instanceof ExerciseDoesNotBelongToUser) {
-        throw new ForbiddenException(err.message);
-      } else if (err instanceof DatabaseException) {
-        throw new ConflictException(err.message);
       }
-      throw new CouldNotCreateWorkoutException();
+      throw new ConflictException(err.message);
     }
 
     return createdWorkout;
