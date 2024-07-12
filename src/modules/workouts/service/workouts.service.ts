@@ -28,15 +28,9 @@ export class WorkoutsService {
 
   /**
    * Saves a workout to the database
-   * @param {CreateWorkoutRequestDTO} CreateWorkoutRequestDTO
+   * @param {CreateWorkoutRequestDTO} workoutDto
    * @param {string} userId
    * @returns {Workout} Created Workout
-   *
-   * @throws {ExerciseNotFoundException}
-   * @throws {ExerciseDoesNotBelongToUser}
-   * @throws {CouldNotSaveSetException}
-   * @throws {CouldNotSaveWorkoutException}
-   * @throws {WorkoutNotFoundException}
    */
   async createWorkout(
     workoutDto: CreateWorkoutRequestDTO,
