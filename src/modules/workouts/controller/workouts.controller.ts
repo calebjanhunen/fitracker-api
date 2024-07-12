@@ -89,14 +89,12 @@ export class WorkoutsController {
     @Headers('user-id') userId: string,
     @Param() { id }: GetSingleWorkoutParams,
   ): Promise<WorkoutResponseDto> {
-    let workout: WorkoutResponseDto;
     try {
-      workout = await this.workoutsService.getById(id, userId);
+      const workout = await this.workoutsService.getById(id, userId);
+      return workout;
     } catch (err) {
       throw new NotFoundException(err.message);
     }
-
-    return workout;
   }
 
   @Delete(':id')
