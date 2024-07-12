@@ -34,4 +34,20 @@ export class WorkoutRepository {
       await queryRunner.release();
     }
   }
+
+  public async getSingle(id: string, userId: string): Promise<Workout | null> {
+    const query = this.workoutRepo.createQueryBuilder('w');
+
+    query
+      .leftJoinAndSelect('w.workoutExercises', 'we')
+      .leftJoin('we.exercise', 'e')
+      .addSelect(['e.id', 'e.name'])
+      .leftJoin('we.sets', 's')
+      .addSelect(['s.reps', 's.weight', 's.rpe', 's.setOrder'])
+      .where('w.id = :workoutId', { workoutId: id })
+      .andWhere('w.user_id = :userId', { userId });
+
+    const workout = await query.getOne();
+    return workout;
+  }
 }

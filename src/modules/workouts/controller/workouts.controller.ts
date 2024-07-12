@@ -93,7 +93,7 @@ export class WorkoutsController {
     try {
       workout = await this.workoutsService.getById(id, userId);
     } catch (err) {
-      throw new NotFoundException(err);
+      throw new NotFoundException(err.message);
     }
 
     return workout;

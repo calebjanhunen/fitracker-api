@@ -69,7 +69,7 @@ export class WorkoutsService {
    * Gets a workout by its id.
    * @param {string} workoutId The id of the workout.
    * @param {string} userId    The id of the user.
-   * @return {Workout}
+   * @return {WorkoutResponseDto}
    *
    * @throws {WorkoutNotFoundException}
    */
@@ -79,18 +79,9 @@ export class WorkoutsService {
   ): Promise<WorkoutResponseDto> {
     await this.userService.getById(userId);
 
-    const workout = await this.workoutRepo.findOne({
-      where: { id: workoutId, user: { id: userId } },
-      relations: [
-        'workoutExercise',
-        'workoutExercise.exercise',
-        'workoutExercise.sets',
-      ],
-    });
+    const workout = await this.customWorkoutRepo.getSingle(workoutId, userId);
 
-    if (!workout) {
-      throw new WorkoutNotFoundException();
-    }
+    if (!workout) throw new WorkoutNotFoundException();
 
     return WorkoutMapper.fromEntityToDto(workout);
   }
