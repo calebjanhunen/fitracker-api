@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -12,8 +13,10 @@ import {
 
 export class CreateWorkoutRequestDTO {
   @IsString()
+  @IsNotEmpty()
   public name: string;
 
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => ExerciseDTO)
   public exercises: ExerciseDTO[];
@@ -24,6 +27,7 @@ export class ExerciseDTO {
   @IsNotEmpty()
   public id: string;
 
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => SetDTO)
   public sets: SetDTO[];
@@ -31,9 +35,11 @@ export class ExerciseDTO {
 
 export class SetDTO {
   @IsNumber()
+  @Min(1)
   public weight: number;
 
   @IsInt()
+  @Min(1)
   public reps: number;
 
   @IsNumber()
