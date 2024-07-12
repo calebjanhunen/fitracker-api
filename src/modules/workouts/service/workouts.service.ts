@@ -27,10 +27,14 @@ export class WorkoutsService {
   ) {}
 
   /**
-   * Saves a workout to the database
+   * Validates exercises exist, maps workout dto to entity
+   * and saves the workout
    * @param {CreateWorkoutRequestDTO} workoutDto
    * @param {string} userId
-   * @returns {Workout} Created Workout
+   * @returns {WorkoutResponseDto} Created Workout
+   *
+   * @throws {EntityNotFoundError}
+   * @throws {CouldNotSaveWorkoutException}
    */
   async createWorkout(
     workoutDto: CreateWorkoutRequestDTO,
