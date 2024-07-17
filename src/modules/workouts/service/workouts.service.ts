@@ -89,26 +89,14 @@ export class WorkoutsService {
   /**
    * Gets all workouts for a given user
    * @param {string} userId
-   * @returns {Workout[]}
+   * @returns {WorkoutResponseDto[]}
    */
   async getWorkouts(userId: string): Promise<WorkoutResponseDto[]> {
     await this.userService.getById(userId);
-    const query = this.workoutRepo.createQueryBuilder('w');
 
-    query
-      .leftJoinAndSelect('w.workoutExercise', 'we')
-      .leftJoin('we.exercise', 'e')
-      .addSelect(['e.id', 'e.name'])
-      .leftJoin('we.sets', 'set')
-      .addSelect(['set.setOrder', 'set.reps', 'set.weight', 'set.rpe'])
-      .where('w.user_id = :userId', { userId })
-      .orderBy('w.created_at', 'DESC')
-      .addOrderBy('set.setOrder', 'ASC')
-      .getMany();
+    const workouts = await this.customWorkoutRepo.getMany(userId);
 
-    const workoutsV2 = await query.getMany();
-
-    return workoutsV2.map((workout) => WorkoutMapper.fromEntityToDto(workout));
+    return workouts.map((workout) => WorkoutMapper.fromEntityToDto(workout));
   }
 
   /**

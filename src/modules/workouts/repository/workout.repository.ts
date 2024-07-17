@@ -45,9 +45,28 @@ export class WorkoutRepository {
       .leftJoin('we.sets', 's')
       .addSelect(['s.reps', 's.weight', 's.rpe', 's.setOrder'])
       .where('w.id = :workoutId', { workoutId: id })
+      .orderBy('s.setOrder', 'ASC')
       .andWhere('w.user_id = :userId', { userId });
 
     const workout = await query.getOne();
     return workout;
+  }
+
+  public async getMany(userId: string): Promise<Workout[]> {
+    const query = this.workoutRepo.createQueryBuilder('w');
+
+    query
+      .leftJoinAndSelect('w.workoutExercises', 'we')
+      .leftJoin('we.exercise', 'e')
+      .addSelect(['e.id', 'e.name'])
+      .leftJoin('we.sets', 'set')
+      .addSelect(['set.setOrder', 'set.reps', 'set.weight', 'set.rpe'])
+      .where('w.user_id = :userId', { userId })
+      .orderBy('w.created_at', 'DESC')
+      .addOrderBy('set.setOrder', 'ASC')
+      .getMany();
+
+    const workouts = await query.getMany();
+    return workouts;
   }
 }

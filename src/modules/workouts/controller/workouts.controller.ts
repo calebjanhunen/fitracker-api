@@ -57,15 +57,13 @@ export class WorkoutsController {
 
   @Get()
   async getWorkouts(@Headers('user-id') userId: string) {
-    let workouts: WorkoutResponseDto[];
     try {
-      workouts = await this.workoutsService.getWorkouts(userId);
+      const workouts = await this.workoutsService.getWorkouts(userId);
+      return workouts;
     } catch (e) {
       if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
       throw new ConflictException('Could not get workouts.');
     }
-
-    return workouts;
   }
 
   @Get('/exercises')
