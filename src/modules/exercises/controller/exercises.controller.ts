@@ -18,8 +18,8 @@ import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { CollectionModel, Exercise, User } from 'src/model';
+import { ExerciseForWorkoutResponseDTO } from 'src/modules/exercises/dtos/exercises-for-workout-response.dto';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
-import { ExerciseForWorkoutResponseDTO } from 'src/modules/workouts/dtos/exercises-for-workout-response.dto';
 import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
 import { ExercisesForWorkoutMapper } from '../mappers/exercises-for-workout.mapper';

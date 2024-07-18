@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { ExerciseForWorkoutResponseDTO } from 'src/modules/workouts/dtos/exercises-for-workout-response.dto';
+import { ExerciseForWorkoutResponseDTO } from 'src/modules/exercises/dtos/exercises-for-workout-response.dto';
 import { ExerciseForWorkout } from '../interfaces/exercise-for-workout.interface';
 
 export class ExercisesForWorkoutMapper {

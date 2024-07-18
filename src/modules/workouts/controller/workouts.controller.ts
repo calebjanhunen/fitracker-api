@@ -3,7 +3,6 @@ import {
   ConflictException,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Headers,
   HttpCode,
@@ -14,11 +13,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { EntityNotFoundError } from 'typeorm';
-import { ExerciseForWorkoutResponseDTO } from '../dtos/exercises-for-workout-response.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { WorkoutMapper } from '../mappers/workout-mapper';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
@@ -37,12 +34,12 @@ export class WorkoutsController {
 
   @Post()
   async create(
-    @Body() CreateWorkoutRequestDTO: CreateWorkoutRequestDTO,
+    @Body() createWorkoutDto: CreateWorkoutRequestDTO,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutResponseDto> {
     try {
       const createdWorkout = await this.workoutsService.createWorkout(
-        CreateWorkoutRequestDTO,
+        createWorkoutDto,
         userId,
       );
       return WorkoutMapper.fromEntityToDto(createdWorkout);
@@ -65,22 +62,6 @@ export class WorkoutsController {
       if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
       throw new ConflictException('Could not get workouts.');
     }
-  }
-
-  @Get('/exercises')
-  async getExercisesForWorkout(
-    @Headers('user-id') userId: string,
-  ): Promise<ExerciseForWorkoutResponseDTO[]> {
-    let exercises: ExerciseForWorkout[];
-    try {
-      exercises = await this.workoutsService.getExercisesForWorkout(userId);
-    } catch (e) {
-      throw new ConflictException(e);
-    }
-
-    return exercises.map((exercise) =>
-      ExerciseForWorkoutResponseDTO.toDTO(exercise),
-    );
   }
 
   @Get(':id')
