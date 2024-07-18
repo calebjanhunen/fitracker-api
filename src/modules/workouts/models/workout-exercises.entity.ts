@@ -18,6 +18,8 @@ export class WorkoutExercise {
   })
   exercise: Exercise;
 
-  @OneToMany(() => Set, (set) => set.workoutExercise, { cascade: ['insert'] })
+  @OneToMany(() => Set, (set) => set.workoutExercise, {
+    cascade: ['insert', 'remove'],
+  })
   sets: Set[];
 }

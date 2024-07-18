@@ -20,6 +20,7 @@ import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workou
 import { EntityNotFoundError } from 'typeorm';
 import { ExerciseForWorkoutResponseDTO } from '../dtos/exercises-for-workout-response.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
+import { WorkoutMapper } from '../mappers/workout-mapper';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { WorkoutsService } from '../service/workouts.service';
 
@@ -39,27 +40,27 @@ export class WorkoutsController {
     @Body() CreateWorkoutRequestDTO: CreateWorkoutRequestDTO,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutResponseDto> {
-    let createdWorkout: WorkoutResponseDto;
     try {
-      createdWorkout = await this.workoutsService.createWorkout(
+      const createdWorkout = await this.workoutsService.createWorkout(
         CreateWorkoutRequestDTO,
         userId,
       );
+      return WorkoutMapper.fromEntityToDto(createdWorkout);
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);
       }
       throw new ConflictException(err.message);
     }
-
-    return createdWorkout;
   }
 
   @Get()
-  async getWorkouts(@Headers('user-id') userId: string) {
+  async getWorkouts(
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutResponseDto[]> {
     try {
       const workouts = await this.workoutsService.getWorkouts(userId);
-      return workouts;
+      return workouts.map((workout) => WorkoutMapper.fromEntityToDto(workout));
     } catch (e) {
       if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
       throw new ConflictException('Could not get workouts.');
@@ -89,7 +90,7 @@ export class WorkoutsController {
   ): Promise<WorkoutResponseDto> {
     try {
       const workout = await this.workoutsService.getById(id, userId);
-      return workout;
+      return WorkoutMapper.fromEntityToDto(workout);
     } catch (err) {
       throw new NotFoundException(err.message);
     }
@@ -102,7 +103,7 @@ export class WorkoutsController {
     @Param('id') id: string,
   ): Promise<void> {
     try {
-      await this.workoutsService.deleteById(id, userId);
+      await this.workoutsService.deleteWorkout(id, userId);
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);

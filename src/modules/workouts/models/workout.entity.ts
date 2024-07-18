@@ -17,7 +17,7 @@ export class Workout extends BaseEntity {
   @OneToMany(
     () => WorkoutExercise,
     (workoutExercise) => workoutExercise.workout,
-    { cascade: ['insert'] },
+    { cascade: ['insert', 'remove'] },
   )
   workoutExercises: WorkoutExercise[];
 }

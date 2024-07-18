@@ -6,11 +6,9 @@ import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import { DataSource, Repository } from 'typeorm';
-import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutMapper } from '../mappers/workout-mapper';
-import { Set } from '../models/set.entity';
 import { Workout } from '../models/workout.entity';
 import { WorkoutRepository } from '../repository/workout.repository';
 
@@ -39,7 +37,7 @@ export class WorkoutsService {
   async createWorkout(
     workoutDto: CreateWorkoutRequestDTO,
     userId: string,
-  ): Promise<WorkoutResponseDto> {
+  ): Promise<Workout> {
     const user = await this.userService.getById(userId);
 
     // Get existing exercises from db using ids in workout dto
@@ -62,41 +60,59 @@ export class WorkoutsService {
     const createdWorkout =
       await this.customWorkoutRepo.saveWorkout(workoutEntity);
 
-    return WorkoutMapper.fromEntityToDto(createdWorkout);
+    return createdWorkout;
   }
 
   /**
    * Gets a workout by its id.
    * @param {string} workoutId The id of the workout.
    * @param {string} userId    The id of the user.
-   * @return {WorkoutResponseDto}
+   * @return {Workout}
    *
    * @throws {WorkoutNotFoundException}
    */
-  async getById(
-    workoutId: string,
-    userId: string,
-  ): Promise<WorkoutResponseDto> {
+  async getById(workoutId: string, userId: string): Promise<Workout> {
     await this.userService.getById(userId);
 
     const workout = await this.customWorkoutRepo.getSingle(workoutId, userId);
 
     if (!workout) throw new WorkoutNotFoundException();
 
-    return WorkoutMapper.fromEntityToDto(workout);
+    return workout;
   }
 
   /**
    * Gets all workouts for a given user
    * @param {string} userId
-   * @returns {WorkoutResponseDto[]}
+   * @returns {Workout[]}
    */
-  async getWorkouts(userId: string): Promise<WorkoutResponseDto[]> {
+  async getWorkouts(userId: string): Promise<Workout[]> {
     await this.userService.getById(userId);
 
     const workouts = await this.customWorkoutRepo.getMany(userId);
 
-    return workouts.map((workout) => WorkoutMapper.fromEntityToDto(workout));
+    return workouts;
+  }
+
+  /**
+   * Deletes a workout given its id
+   *
+   * @param {string} workoutId
+   * @param {string} userId
+   *
+   * @throws {CouldNotDeleteWorkoutException}
+   * @throws {WorkoutNotFoundException}
+   */
+  async deleteWorkout(workoutId: string, userId: string): Promise<void> {
+    await this.userService.getById(userId);
+
+    const workoutToDelete = await this.getById(workoutId, userId);
+
+    try {
+      await this.customWorkoutRepo.delete(workoutToDelete);
+    } catch (e) {
+      throw new CouldNotDeleteWorkoutException();
+    }
   }
 
   /**
@@ -174,47 +190,5 @@ export class WorkoutsService {
     });
 
     return exercisesForWorkout;
-  }
-
-  /**
-   * Deletes a workout given its id
-   *
-   * @param {string} workoutId
-   * @param {string} userId
-   *
-   * @throws {CouldNotDeleteWorkoutException}
-   * @throws {WorkoutNotFoundException}
-   */
-  async deleteById(workoutId: string, userId: string): Promise<void> {
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    // throws WorkoutNotFoundException if workout does not exist
-    await this.getById(workoutId, userId);
-
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const workoutExercises = await queryRunner.manager.find(WorkoutExercise, {
-        where: { workout: { id: workoutId } },
-      });
-      for (const workoutExercise of workoutExercises) {
-        await queryRunner.manager.delete(Set, {
-          workoutExercise: { id: workoutExercise.id },
-        });
-      }
-
-      await queryRunner.manager.delete(WorkoutExercise, {
-        workout: { id: workoutId },
-      });
-
-      await queryRunner.manager.delete(Workout, { id: workoutId });
-
-      await queryRunner.commitTransaction();
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new CouldNotDeleteWorkoutException();
-    } finally {
-      await queryRunner.release();
-    }
   }
 }

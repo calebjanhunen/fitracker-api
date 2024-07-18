@@ -69,4 +69,20 @@ export class WorkoutRepository {
     const workouts = await query.getMany();
     return workouts;
   }
+
+  public async delete(workout: Workout): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      await queryRunner.manager.remove(workout);
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw e;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }
