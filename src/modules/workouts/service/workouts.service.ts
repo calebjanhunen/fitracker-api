@@ -164,7 +164,7 @@ export class WorkoutsService {
           .subQuery()
           .select('MAX(w2.created_at)')
           .from('workouts', 'w2')
-          .leftJoin('w2.workoutExercise', 'we2')
+          .leftJoin('w2.workoutExercises', 'we2')
           .where('we2.exercise_id = we.exercise_id')
           .getQuery();
 

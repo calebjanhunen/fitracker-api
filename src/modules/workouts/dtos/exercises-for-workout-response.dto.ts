@@ -1,5 +1,6 @@
 import { Expose, plainToClass } from 'class-transformer';
 import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
+import { Set } from '../models/set.entity';
 
 export class ExerciseForWorkoutResponseDTO {
   @Expose()
@@ -13,6 +14,8 @@ export class ExerciseForWorkoutResponseDTO {
 
   @Expose()
   numTimesUsed: number;
+
+  previousSets: Set[];
 
   static toDTO(entity: ExerciseForWorkout) {
     const dto = plainToClass(ExerciseForWorkoutResponseDTO, entity);

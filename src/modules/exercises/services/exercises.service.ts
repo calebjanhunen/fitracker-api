@@ -4,6 +4,10 @@ import { In, Repository } from 'typeorm';
 
 import { CollectionModel, Exercise, User } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { ExerciseForWorkout } from '../interfaces/exercise-for-workout.interface';
+import { ExerciseUsage } from '../interfaces/exercise-usage.interface';
+import { ExerciseRepository } from '../repository/exercise.repository';
 import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
@@ -11,7 +15,10 @@ import { ExerciseNotFoundException } from './exceptions/exercise-not-found.excep
 export default class ExercisesService {
   private exerciseRepo: Repository<Exercise>;
 
-  constructor(@InjectRepository(Exercise) exerciseRepo: Repository<Exercise>) {
+  constructor(
+    @InjectRepository(Exercise) exerciseRepo: Repository<Exercise>,
+    private customExerciseRepo: ExerciseRepository,
+  ) {
     this.exerciseRepo = exerciseRepo;
   }
 
@@ -124,6 +131,60 @@ export default class ExercisesService {
     this.assertExerciseBelongsToUser(exercise, userId);
 
     return exercise;
+  }
+
+  public async getExercisesForWorkout(
+    userId: string,
+  ): Promise<ExerciseForWorkout[]> {
+    let allExercises: Exercise[];
+    let exerciseUsages: ExerciseUsage[];
+    let recentSets: WorkoutExercise[];
+
+    // Get all exercises for user
+    try {
+      allExercises = await this.customExerciseRepo.getAll(userId, [
+        'id',
+        'name',
+        'primaryMuscle',
+      ]);
+    } catch (e) {
+      // TODO: Log error
+      throw new Error('Could not get exercises');
+    }
+
+    // Get number of times each exercise was used
+    try {
+      exerciseUsages = await this.customExerciseRepo.getExerciseUsages(userId);
+    } catch (e) {
+      // TODO: Log error
+      throw new Error('Could not number of times exercises were used');
+    }
+
+    // Get the most recent usage of each exercise (sets from most recent workout)
+    try {
+      recentSets =
+        await this.customExerciseRepo.getRecentSetsForExercises(userId);
+    } catch (e) {
+      // TODO: Log error
+      throw new Error('Could not get recent sets for exercises');
+    }
+
+    // Convert array of exercise usages to map for time complexity efficiency
+    const exerciseUsagesMap = new Map(
+      exerciseUsages.map((res) => [res.exercise_id, res.num_times_used]),
+    );
+
+    // Combine the 3 queries into one array
+    const exercisesForWorkout: ExerciseForWorkout[] = allExercises.map((e) => {
+      const prevSets = recentSets.find((prev) => prev.exercise.id === e.id);
+      return {
+        ...e,
+        numTimesUsed: exerciseUsagesMap.get(e.id) || '0',
+        previousSets: prevSets?.sets || [],
+      };
+    });
+
+    return exercisesForWorkout;
   }
 
   /**
