@@ -3,6 +3,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Exercise } from 'src/model';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { ExerciseRepository } from '../repository/exercise.repository';
 import ExercisesService from './exercises.service';
 
 describe('ExerciseService', () => {
@@ -16,6 +18,7 @@ describe('ExerciseService', () => {
   };
 
   const exerciseRepoToken = getRepositoryToken(Exercise);
+  const workoutExerciseRepoToken = getRepositoryToken(WorkoutExercise);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +29,14 @@ describe('ExerciseService', () => {
           useValue: {
             createQueryBuilder: jest.fn(() => mockQueryBuilder),
           },
+        },
+        {
+          provide: workoutExerciseRepoToken,
+          useClass: Repository,
+        },
+        {
+          provide: ExerciseRepository,
+          useClass: ExerciseRepository,
         },
       ],
     }).compile();

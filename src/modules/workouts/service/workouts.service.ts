@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
-import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
-import { DataSource, Repository } from 'typeorm';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { WorkoutMapper } from '../mappers/workout-mapper';
@@ -15,13 +11,9 @@ import { WorkoutRepository } from '../repository/workout.repository';
 @Injectable()
 export class WorkoutsService {
   constructor(
-    @InjectRepository(Workout) private workoutRepo: Repository<Workout>,
-    @InjectRepository(WorkoutExercise)
-    private workoutExerciseRepo: Repository<WorkoutExercise>,
     private exercisesService: ExercisesService,
     private userService: UserService,
-    private dataSource: DataSource,
-    private customWorkoutRepo: WorkoutRepository,
+    private workoutRepo: WorkoutRepository,
   ) {}
 
   /**
@@ -57,8 +49,7 @@ export class WorkoutsService {
       user,
     );
 
-    const createdWorkout =
-      await this.customWorkoutRepo.saveWorkout(workoutEntity);
+    const createdWorkout = await this.workoutRepo.saveWorkout(workoutEntity);
 
     return createdWorkout;
   }
@@ -74,7 +65,7 @@ export class WorkoutsService {
   async getById(workoutId: string, userId: string): Promise<Workout> {
     await this.userService.getById(userId);
 
-    const workout = await this.customWorkoutRepo.getSingle(workoutId, userId);
+    const workout = await this.workoutRepo.getSingle(workoutId, userId);
 
     if (!workout) throw new WorkoutNotFoundException();
 
@@ -89,7 +80,7 @@ export class WorkoutsService {
   async getWorkouts(userId: string): Promise<Workout[]> {
     await this.userService.getById(userId);
 
-    const workouts = await this.customWorkoutRepo.getMany(userId);
+    const workouts = await this.workoutRepo.getMany(userId);
 
     return workouts;
   }
@@ -109,86 +100,9 @@ export class WorkoutsService {
     const workoutToDelete = await this.getById(workoutId, userId);
 
     try {
-      await this.customWorkoutRepo.delete(workoutToDelete);
+      await this.workoutRepo.delete(workoutToDelete);
     } catch (e) {
       throw new CouldNotDeleteWorkoutException();
     }
-  }
-
-  /**
-   * Retrieves exercises for a workout based on a user ID.
-   * @param {string} userId - String representing the id of the user.
-   * @returns {ExerciseForWorkout[]} Array of Exercise objects with the properties 'id', 'name', 'primaryMuscle' and 'numTimesUsed'.
-   */
-  public async getExercisesForWorkout(
-    userId: string,
-  ): Promise<ExerciseForWorkout[]> {
-    // find all exercises
-    const exercises = await this.exercisesService.findAllExercises(userId, [
-      'id',
-      'name',
-      'primaryMuscle',
-    ]);
-
-    // Get number of times each exercise was used in a workout for the user
-    const query = this.workoutExerciseRepo.createQueryBuilder('we');
-    query
-      .select('we.exercise_id', 'exercise_id')
-      .addSelect('COUNT(we.exercise_id)', 'num_times_used')
-      .groupBy('we.exercise_id')
-      .innerJoin('workouts', 'w', 'w.id = we.workout_id')
-      .where('w.user_id = :userId', { userId });
-    const result = await query.getRawMany<{
-      exercise_id: string;
-      num_times_used: string;
-    }>();
-
-    // Get sets from most recent workout for each exercise
-    const previousSetsQuery = this.workoutExerciseRepo.createQueryBuilder('we');
-    previousSetsQuery
-      .select([
-        'w.id',
-        'we.id',
-        'e.id',
-        'set.id',
-        'set.weight',
-        'set.reps',
-        'set.rpe',
-        'set.setOrder',
-      ])
-      .leftJoin('we.exercise', 'e')
-      .leftJoin('we.workout', 'w')
-      .leftJoin('we.sets', 'set')
-      .where((qb) => {
-        const subQ = qb
-          .subQuery()
-          .select('MAX(w2.created_at)')
-          .from('workouts', 'w2')
-          .leftJoin('w2.workoutExercise', 'we2')
-          .where('we2.exercise_id = we.exercise_id')
-          .getQuery();
-
-        return 'w.created_at = ' + subQ;
-      })
-      .andWhere('w.user_id = :userId', { userId })
-      .orderBy('we.exercise_id')
-      .addOrderBy('w.created_at')
-      .addOrderBy('set.set_order');
-    const prevSetsRes = await previousSetsQuery.getMany();
-
-    // Combine all 3 queries into one array of exercises
-    const numTimesUsedMap = new Map(
-      result.map((res) => [res.exercise_id, res.num_times_used]),
-    );
-    const exercisesForWorkout: ExerciseForWorkout[] = exercises.map((e) => {
-      const prevSets = prevSetsRes.find((prev) => prev.exercise.id === e.id);
-      return {
-        ...e,
-        numTimesUsed: numTimesUsedMap.get(e.id) || '0',
-        previousSets: prevSets?.sets || [],
-      };
-    });
-
-    return exercisesForWorkout;
   }
 }

@@ -18,9 +18,11 @@ import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
 import { CollectionModel, Exercise, User } from 'src/model';
+import { ExerciseForWorkoutResponseDTO } from 'src/modules/exercises/dtos/exercises-for-workout-response.dto';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
 import { EntityNotFoundError } from 'typeorm';
 import { UserService } from '../../user/service/user.service';
+import { ExercisesForWorkoutMapper } from '../mappers/exercises-for-workout.mapper';
 import { ExerciseRequest } from '../request/exercise.request';
 import { ExerciseResponse } from '../response/exercise.response';
 import { ExerciseDoesNotBelongToUser } from '../services/exceptions/exercise-does-not-belong-to-user.exception';
@@ -70,6 +72,21 @@ export default class ExercisesController {
     response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
+  }
+
+  @Get('exercises-for-workout')
+  async getExercisesForWorkout(
+    @Headers('user-id') userId: string,
+  ): Promise<ExerciseForWorkoutResponseDTO[]> {
+    try {
+      const exercisesForWorkout =
+        await this.exercisesService.getExercisesForWorkout(userId);
+      return exercisesForWorkout.map((exercise) =>
+        ExercisesForWorkoutMapper.fromEntityToDto(exercise),
+      );
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
   }
 
   @Get(':id')
