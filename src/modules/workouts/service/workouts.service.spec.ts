@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Exercise, Set, User, Workout } from 'src/model';
-import { WorkoutExercise } from 'src/model/workout-exercises.entity';
+import { Exercise, User } from 'src/model';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
@@ -10,6 +9,9 @@ import {
   ExerciseDTO,
   SetDTO,
 } from 'src/modules/workouts/dtos/create-workout-request.dto';
+import { Set } from 'src/modules/workouts/models/set.entity';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { Workout } from 'src/modules/workouts/models/workout.entity';
 import {
   DataSource,
   DeepPartial,
@@ -20,9 +22,9 @@ import {
   Repository,
   TypeORMError,
 } from 'typeorm';
-import { CouldNotSaveSetException } from '../internal-errors/could-not-save-set.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
+import { WorkoutRepository } from '../repository/workout.repository';
 import { WorkoutsService } from './workouts.service';
 
 interface SimplifiedEntityManager {
@@ -84,6 +86,10 @@ describe('WorkoutsService', () => {
           useValue: {
             createQueryRunner: jest.fn(() => mockQueryRunner),
           },
+        },
+        {
+          provide: WorkoutRepository,
+          useClass: WorkoutRepository,
         },
       ],
     }).compile();

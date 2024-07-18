@@ -1,6 +1,6 @@
+import { User } from 'src/model';
+import { BaseEntity } from 'src/model/base.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
-import { BaseEntity } from './base.entity';
-import { User } from './user.entity';
 import { WorkoutExercise } from './workout-exercises.entity';
 
 @Entity('workouts')
@@ -17,6 +17,7 @@ export class Workout extends BaseEntity {
   @OneToMany(
     () => WorkoutExercise,
     (workoutExercise) => workoutExercise.workout,
+    { cascade: ['insert', 'remove'] },
   )
-  workoutExercise: WorkoutExercise[];
+  workoutExercises: WorkoutExercise[];
 }

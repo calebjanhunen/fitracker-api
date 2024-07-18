@@ -13,18 +13,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseForWorkout } from 'src/modules/exercises/interfaces/exercise-for-workout.interface';
-import { ExerciseDoesNotBelongToUser } from 'src/modules/exercises/services/exceptions/exercise-does-not-belong-to-user.exception';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { EntityNotFoundError } from 'typeorm';
 import { ExerciseForWorkoutResponseDTO } from '../dtos/exercises-for-workout-response.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
+import { WorkoutMapper } from '../mappers/workout-mapper';
 import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
 import { WorkoutsService } from '../service/workouts.service';
-import { CouldNotCreateWorkoutException } from './exceptions/could-not-create-workout.exception';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
@@ -42,37 +40,31 @@ export class WorkoutsController {
     @Body() CreateWorkoutRequestDTO: CreateWorkoutRequestDTO,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutResponseDto> {
-    let createdWorkout: WorkoutResponseDto;
     try {
-      createdWorkout = await this.workoutsService.createWorkout(
+      const createdWorkout = await this.workoutsService.createWorkout(
         CreateWorkoutRequestDTO,
         userId,
       );
+      return WorkoutMapper.fromEntityToDto(createdWorkout);
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);
-      } else if (err instanceof ExerciseDoesNotBelongToUser) {
-        throw new ForbiddenException(err.message);
-      } else if (err instanceof DatabaseException) {
-        throw new ConflictException(err.message);
       }
-      throw new CouldNotCreateWorkoutException();
+      throw new ConflictException(err.message);
     }
-
-    return createdWorkout;
   }
 
   @Get()
-  async getWorkouts(@Headers('user-id') userId: string) {
-    let workouts: WorkoutResponseDto[];
+  async getWorkouts(
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutResponseDto[]> {
     try {
-      workouts = await this.workoutsService.getWorkouts(userId);
+      const workouts = await this.workoutsService.getWorkouts(userId);
+      return workouts.map((workout) => WorkoutMapper.fromEntityToDto(workout));
     } catch (e) {
       if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
       throw new ConflictException('Could not get workouts.');
     }
-
-    return workouts;
   }
 
   @Get('/exercises')
@@ -96,14 +88,12 @@ export class WorkoutsController {
     @Headers('user-id') userId: string,
     @Param() { id }: GetSingleWorkoutParams,
   ): Promise<WorkoutResponseDto> {
-    let workout: WorkoutResponseDto;
     try {
-      workout = await this.workoutsService.getById(id, userId);
+      const workout = await this.workoutsService.getById(id, userId);
+      return WorkoutMapper.fromEntityToDto(workout);
     } catch (err) {
-      throw new NotFoundException(err);
+      throw new NotFoundException(err.message);
     }
-
-    return workout;
   }
 
   @Delete(':id')
@@ -113,7 +103,7 @@ export class WorkoutsController {
     @Param('id') id: string,
   ): Promise<void> {
     try {
-      await this.workoutsService.deleteById(id, userId);
+      await this.workoutsService.deleteWorkout(id, userId);
     } catch (err) {
       if (err instanceof ResourceNotFoundException) {
         throw new NotFoundException(err.message);

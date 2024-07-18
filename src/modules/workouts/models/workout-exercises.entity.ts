@@ -1,5 +1,5 @@
+import { Exercise } from 'src/model';
 import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Exercise } from './exercise.entity';
 import { Set } from './set.entity';
 import { Workout } from './workout.entity';
 
@@ -8,16 +8,18 @@ export class WorkoutExercise {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Workout, (workout) => workout.workoutExercise, {
+  @ManyToOne(() => Workout, (workout) => workout.workoutExercises, {
     onDelete: 'CASCADE',
   })
   workout: Workout;
 
-  @ManyToOne(() => Exercise, (exercise) => exercise.workoutExercise, {
+  @ManyToOne(() => Exercise, {
     onDelete: 'CASCADE',
   })
   exercise: Exercise;
 
-  @OneToMany(() => Set, (set) => set.workoutExercise)
+  @OneToMany(() => Set, (set) => set.workoutExercise, {
+    cascade: ['insert', 'remove'],
+  })
   sets: Set[];
 }
