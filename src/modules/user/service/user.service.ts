@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { User } from '../../../model/user.entity';
 
 @Injectable()
@@ -33,6 +34,8 @@ export class UserService {
    * @throws {EntityNotFoundError}
    */
   async getById(userId: string): Promise<User> {
-    return await this.usersRepository.findOneByOrFail({ id: userId });
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    if (!user) throw new ResourceNotFoundException('User not found');
+    return user;
   }
 }

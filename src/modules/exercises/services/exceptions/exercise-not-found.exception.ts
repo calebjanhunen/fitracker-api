@@ -2,6 +2,6 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 
 export class ExerciseNotFoundException extends ResourceNotFoundException {
   constructor() {
-    super('Exercise not found using the provided id and userId');
+    super('Exercise not found');
   }
 }

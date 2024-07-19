@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Exercise } from 'src/model';
+import { Exercise, User } from 'src/model';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ExerciseUsage } from '../interfaces/exercise-usage.interface';
 
 @Injectable()
@@ -13,16 +13,43 @@ export class ExerciseRepository {
     private workoutExerciseRepo: Repository<WorkoutExercise>,
   ) {}
 
+  /**
+   * Creates a new exercise.
+   * @param {Exercise} exercise
+   * @returns {Exercise}
+   */
+  public async create(exercise: Exercise): Promise<Exercise> {
+    return await this.exerciseRepo.save(exercise);
+  }
+
+  /**
+   * This function retrieves exercises based on specified options such as fields, pagination, and user
+   * ID.
+   * @param {string} userId   ID of the user
+   * @param options           Contains following properties: fields (Exercise fields),
+   *                          take (number of exercises to retrieve), skip (number of exercises to skip)
+   *
+   * @returns {Exercise[]}    Array of exercises
+   */
   public async getAll(
     userId: string,
-    fields?: (keyof Exercise)[],
+    options: {
+      fields?: (keyof Exercise)[];
+      take?: number;
+      skip?: number;
+    } = {},
   ): Promise<Exercise[]> {
     const query = this.exerciseRepo.createQueryBuilder('exercise');
 
-    if (fields && fields.length > 0) {
-      const selectQuery = fields.map((field) => `exercise.${field}`);
+    // Add fields to query if present
+    if (options.fields && options.fields.length > 0) {
+      const selectQuery = options.fields.map((field) => `exercise.${field}`);
       query.select(selectQuery);
     }
+
+    // add take and skip options to query if present (for pagination)
+    if (options.take) query.take(options.take);
+    if (options.skip) query.skip(options.skip);
 
     query.where('exercise.is_custom = false or exercise.user_id = :userId', {
       userId,
@@ -34,6 +61,48 @@ export class ExerciseRepository {
     return result;
   }
 
+  /**
+   * Retrieves exercises by their IDs for a specific user, including both
+   * custom and non-custom exercises.
+   * @param {string[]} ids
+   * @param {User} user
+   * @returns {Exercise[]}
+   */
+  public async getByIds(ids: string[], user: User): Promise<Exercise[]> {
+    return await this.exerciseRepo.find({
+      where: [
+        { id: In(ids), user },
+        { id: In(ids), isCustom: false },
+      ],
+    });
+  }
+
+  /**
+   * Gets an exercise by its id and user id if custom
+   * @param {string} id
+   * @param {string} userId
+   * @returns {Exercise | null}
+   */
+  public async getById(id: string, userId: string): Promise<Exercise | null> {
+    const query = this.exerciseRepo.createQueryBuilder('e');
+
+    query
+      .leftJoin('e.user', 'user')
+      .addSelect('user.id')
+      .where('e.id = :id AND (e.user_id = :userId OR e.user_id IS NULL)', {
+        id,
+        userId,
+      });
+
+    const result = await query.getOne();
+    return result;
+  }
+
+  /**
+   * Retrieves number of times each exercise is used along with its id.
+   * @param {string} userId
+   * @returns {ExerciseUsage[]}
+   */
   public async getExerciseUsages(userId: string): Promise<ExerciseUsage[]> {
     const query = this.workoutExerciseRepo.createQueryBuilder('we');
     query
@@ -50,6 +119,11 @@ export class ExerciseRepository {
     return result;
   }
 
+  /**
+   * Retrieves the sets of an exercise from the most recent workout the exercise was used in.
+   * @param {string} userId
+   * @returns {WorkoutExercise[]}
+   */
   public async getRecentSetsForExercises(
     userId: string,
   ): Promise<WorkoutExercise[]> {
@@ -85,5 +159,22 @@ export class ExerciseRepository {
       .addOrderBy('set.set_order');
     const result = await query.getMany();
     return result;
+  }
+
+  /**
+   * Updates an existing exercise.
+   * @param {Exercise} exercise
+   * @returns {Exercise}
+   */
+  public async update(exercise: Exercise): Promise<Exercise> {
+    return await this.exerciseRepo.save(exercise);
+  }
+
+  /**
+   * Deletes an existing exercise.
+   * @param {Exercise} exercise
+   */
+  public async delete(exercise: Exercise): Promise<void> {
+    await this.exerciseRepo.remove(exercise);
   }
 }

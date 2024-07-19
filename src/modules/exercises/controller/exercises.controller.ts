@@ -14,31 +14,40 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
-import { CollectionModel, Exercise, User } from 'src/model';
+import { CollectionModel, Exercise } from 'src/model';
 import { ExerciseForWorkoutResponseDTO } from 'src/modules/exercises/dtos/exercises-for-workout-response.dto';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
-import { EntityNotFoundError } from 'typeorm';
-import { UserService } from '../../user/service/user.service';
+import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
+import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
+import { ExerciseMapper } from '../mappers/exercise.mapper';
 import { ExercisesForWorkoutMapper } from '../mappers/exercises-for-workout.mapper';
-import { ExerciseRequest } from '../request/exercise.request';
-import { ExerciseResponse } from '../response/exercise.response';
-import { ExerciseDoesNotBelongToUser } from '../services/exceptions/exercise-does-not-belong-to-user.exception';
 import ExercisesService from '../services/exercises.service';
-import { CouldNotDeleteExerciseException } from './exceptions/could-not-delete-exercise.exception';
-import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Controller('api/exercises')
 @UseGuards(AuthGuard)
 export default class ExercisesController {
-  private exercisesService: ExercisesService;
-  private userService: UserService;
+  constructor(private exercisesService: ExercisesService) {}
 
-  constructor(exercisesService: ExercisesService, userService: UserService) {
-    this.exercisesService = exercisesService;
-    this.userService = userService;
+  @Post()
+  async createExercise(
+    @Headers('user-id') userId: string,
+    @Body() createExerciseDto: ExerciseRequestDto,
+  ): Promise<ExerciseResponseDto> {
+    const exerciseEntity = ExerciseMapper.fromDtoToEntity(createExerciseDto);
+
+    try {
+      const createdExercise = await this.exercisesService.createExercise(
+        exerciseEntity,
+        userId,
+      );
+
+      return ExerciseMapper.fromEntityToDto(createdExercise);
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
   }
 
   @Get()
@@ -47,22 +56,11 @@ export default class ExercisesController {
     @Query() { page, limit }: PaginationParams,
   ): Promise<ListResponse<Exercise>> {
     const response = new ListResponse<Exercise>();
-    let user: User;
-
-    try {
-      user = await this.userService.getById(userId);
-    } catch (error) {
-      throw new NotFoundException();
-    }
 
     let exercisesCollectionModel: CollectionModel<Exercise>;
     try {
       exercisesCollectionModel =
-        await this.exercisesService.getDefaultAndUserCreatedExercises(
-          user,
-          page,
-          limit,
-        );
+        await this.exercisesService.getExercisesForUser(userId, page, limit);
     } catch (error) {
       throw new ConflictException();
     }
@@ -72,6 +70,25 @@ export default class ExercisesController {
     response.hasMore = exercisesCollectionModel.hasMore();
 
     return response;
+  }
+
+  @Get(':id')
+  async getSingleExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<ExerciseResponseDto> {
+    try {
+      const exercise = await this.exercisesService.getSingleExerciseById(
+        id,
+        userId,
+      );
+      return ExerciseMapper.fromEntityToDto(exercise);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+
+      throw new ConflictException('Error getting exercise');
+    }
   }
 
   @Get('exercises-for-workout')
@@ -89,104 +106,29 @@ export default class ExercisesController {
     }
   }
 
-  @Get(':id')
-  async getExercise(
-    @Headers('user-id') userId: string,
-    @Param('id') id: string,
-  ): Promise<ExerciseResponse> {
-    let exerciseResponse = new ExerciseResponse();
-
-    let user: User;
-    try {
-      user = await this.userService.getById(userId);
-    } catch (error) {
-      throw new UserNotFoundException();
-    }
-
-    let exercise: Exercise;
-    try {
-      exercise = await this.exercisesService.getById(id, user.id);
-    } catch (error) {
-      if (error instanceof ExerciseDoesNotBelongToUser)
-        throw new ForbiddenException();
-
-      throw new ExerciseNotFoundException();
-    }
-
-    exerciseResponse = exerciseResponse.fromEntityToResponse(exercise);
-
-    return exerciseResponse;
-  }
-
-  @Post()
-  async createExercise(
-    @Headers('user-id') userId: string,
-    @Body() createExerciseRequest: ExerciseRequest,
-  ): Promise<ExerciseResponse> {
-    let user: User;
-    let exerciseResponse = new ExerciseResponse();
-
-    try {
-      user = await this.userService.getById(userId);
-    } catch (error) {
-      throw new UserNotFoundException();
-    }
-
-    const exerciseEntity = createExerciseRequest.fromCreateRequestToEntity(
-      createExerciseRequest,
-      user,
-    );
-
-    const createdExercise =
-      await this.exercisesService.createCustomExercise(exerciseEntity);
-
-    exerciseResponse = exerciseResponse.fromEntityToResponse(createdExercise);
-
-    return exerciseResponse;
-  }
-
   @Put(':id')
   async updateExercise(
     @Headers('user-id') userId: string,
     @Param('id') id: string,
-    @Body() createExerciseRequest: ExerciseRequest,
-  ): Promise<ExerciseResponse> {
-    let user: User;
-    let exerciseResponse = new ExerciseResponse();
+    @Body() updateExerciseDto: ExerciseRequestDto,
+  ): Promise<ExerciseResponseDto> {
+    const exerciseEntity = ExerciseMapper.fromDtoToEntity(updateExerciseDto);
 
     try {
-      user = await this.userService.getById(userId);
-    } catch (error) {
-      throw new UserNotFoundException();
-    }
-
-    const exerciseEntity = createExerciseRequest.fromUpdateRequestToEntity(
-      createExerciseRequest,
-    );
-
-    let updatedExercise: Exercise;
-    try {
-      updatedExercise = await this.exercisesService.update(
+      const updatedExercise = await this.exercisesService.updateExercise(
         id,
         exerciseEntity,
-        user,
+        userId,
       );
-    } catch (error) {
-      if (error instanceof ExerciseDoesNotBelongToUser)
-        throw new ForbiddenException(error.message);
-      if (error instanceof EntityNotFoundError)
-        throw new ExerciseNotFoundException();
-      if (error instanceof ExerciseIsNotCustomError)
-        throw new ForbiddenException(error.message);
+      return ExerciseMapper.fromEntityToDto(updatedExercise);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof ExerciseIsNotCustomError)
+        throw new ForbiddenException(e.message);
 
-      throw new ConflictException(
-        'Could not update exercise using the given id',
-      );
+      throw new ConflictException(e.message);
     }
-
-    exerciseResponse = exerciseResponse.fromEntityToResponse(updatedExercise);
-
-    return exerciseResponse;
   }
 
   @Delete(':id')
@@ -194,24 +136,15 @@ export default class ExercisesController {
     @Headers('user-id') userId: string,
     @Param('id') id: string,
   ): Promise<void> {
-    let user: User;
     try {
-      user = await this.userService.getById(userId);
-    } catch (error) {
-      throw new UserNotFoundException();
-    }
+      await this.exercisesService.deleteExercise(id, userId);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof ExerciseIsNotCustomError)
+        throw new ForbiddenException(e.message);
 
-    try {
-      await this.exercisesService.deleteById(id, user);
-    } catch (error) {
-      if (error instanceof ExerciseDoesNotBelongToUser)
-        throw new ForbiddenException();
-      if (error instanceof EntityNotFoundError)
-        throw new ExerciseNotFoundException();
-      if (error instanceof ExerciseIsNotCustomError)
-        throw new ForbiddenException(error.message);
-
-      throw new CouldNotDeleteExerciseException();
+      throw new ConflictException(e.message);
     }
   }
 }
