@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Exercise } from 'src/model';
+import { UserService } from 'src/modules/user/service/user.service';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import { ExerciseRepository } from '../repository/exercise.repository';
 import ExercisesService from './exercises.service';
@@ -24,6 +25,12 @@ describe('ExerciseService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExercisesService,
+        {
+          provide: UserService,
+          useValue: {
+            getById: jest.fn(),
+          },
+        },
         {
           provide: exerciseRepoToken,
           useValue: {
