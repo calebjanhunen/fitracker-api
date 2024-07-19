@@ -49,21 +49,21 @@ describe('ExerciseService', () => {
     expect(mockExerciseRepo).toBeDefined();
   });
 
-  describe('test findAllExercises()', () => {
-    it('should fetch only specified fields if fields are provided', async () => {
-      const fields: (keyof Exercise)[] = ['id', 'name', 'primaryMuscle'];
+  //   describe('test findAllExercises()', () => {
+  //     it('should fetch only specified fields if fields are provided', async () => {
+  //       const fields: (keyof Exercise)[] = ['id', 'name', 'primaryMuscle'];
 
-      await exercisesService.findAllExercises('user-id', fields);
+  //       await exercisesService.findAllExercises('user-id', fields);
 
-      expect(mockQueryBuilder.select).toBeCalled();
-      expect(mockQueryBuilder.select).toBeCalledWith([
-        'exercise.id',
-        'exercise.name',
-        'exercise.primaryMuscle',
-      ]);
-      expect(mockQueryBuilder.getMany).toBeCalled();
-    });
-  });
+  //       expect(mockQueryBuilder.select).toBeCalled();
+  //       expect(mockQueryBuilder.select).toBeCalledWith([
+  //         'exercise.id',
+  //         'exercise.name',
+  //         'exercise.primaryMuscle',
+  //       ]);
+  //       expect(mockQueryBuilder.getMany).toBeCalled();
+  //     });
+  //   });
 });
 
 // function getExerciseModel(): Exercise {

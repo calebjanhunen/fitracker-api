@@ -54,12 +54,11 @@ export class WorkoutSeederService {
 
   private async insertWorkoutsForUser(userId: string, numExercises: number) {
     const user = await this.userService.getById(userId);
-    const allExercises =
-      await this.exerciseService.getDefaultAndUserCreatedExercises(
-        user,
-        1,
-        numExercises,
-      );
+    const allExercises = await this.exerciseService.getExercisesForUser(
+      user.id,
+      1,
+      numExercises,
+    );
 
     const numWorkoutsToInsert = this.getRandomNumber(1, 3);
     for (let i = 0; i < numWorkoutsToInsert; i++) {

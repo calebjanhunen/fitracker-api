@@ -1,54 +1,60 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
 
 import { CollectionModel, Exercise, User } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
+import { UserService } from 'src/modules/user/service/user.service';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import { ExerciseForWorkout } from '../interfaces/exercise-for-workout.interface';
 import { ExerciseUsage } from '../interfaces/exercise-usage.interface';
 import { ExerciseRepository } from '../repository/exercise.repository';
-import { ExerciseDoesNotBelongToUser } from './exceptions/exercise-does-not-belong-to-user.exception';
 import { ExerciseNotFoundException } from './exceptions/exercise-not-found.exception';
 
 @Injectable()
 export default class ExercisesService {
-  private exerciseRepo: Repository<Exercise>;
-
   constructor(
-    @InjectRepository(Exercise) exerciseRepo: Repository<Exercise>,
-    private customExerciseRepo: ExerciseRepository,
-  ) {
-    this.exerciseRepo = exerciseRepo;
+    private userService: UserService,
+    private exerciseRepo: ExerciseRepository,
+  ) {}
+
+  /**
+   * Creates a custom exercise
+   * @param {Exercise} exercise
+   * @param {string} userId
+   * @returns {Exercise}
+   */
+  async createExercise(exercise: Exercise, userId: string): Promise<Exercise> {
+    const user = await this.userService.getById(userId);
+    exercise.user = user;
+
+    const createdExercise = await this.exerciseRepo.create(exercise);
+    return createdExercise;
   }
 
   /**
-   * Gets the default exercises and user created exercises form the database
+   * Gets all exercises for a user (default and custom) in paginated format
    *
-   * @param {User} user
+   * @param {string} userId
    * @param {number} page
    * @param {number} limit
    * @returns {CollectionModel<Exercise>}
    */
-  async getDefaultAndUserCreatedExercises(
-    user: User,
+  async getExercisesForUser(
+    userId: string,
     page: number,
     limit: number,
   ): Promise<CollectionModel<Exercise>> {
+    await this.userService.getById(userId);
+
     const exerciseCollectionModel = new CollectionModel<Exercise>();
     const offset = limit * (page - 1);
 
-    const [exercises, totalCount] = await this.exerciseRepo.findAndCount({
-      where: [{ isCustom: false }, { user: { id: user.id } }],
+    const exercises = await this.exerciseRepo.getAll(userId, {
       take: limit,
       skip: offset,
-      order: {
-        name: 'ASC',
-      },
     });
 
     exerciseCollectionModel.listObjects = exercises;
-    exerciseCollectionModel.totalCount = totalCount;
+    exerciseCollectionModel.totalCount = exercises.length;
     exerciseCollectionModel.limit = limit;
     exerciseCollectionModel.offset = offset;
 
@@ -56,57 +62,16 @@ export default class ExercisesService {
   }
 
   /**
-   * Retrieves default and user created exercises based on the provided user ID and optional
-   * fields.
-   * @param {string} userId - A string that represents the unique identifier of the user for whom we want to find exercises.
-   * @param {(keyof Exercise)[]} [fields] - An optional array of fields from the `Exercise` entity. If provided, only the specified fields
-   * will be selected in the query result. If not provided, all fields of the `Exercise` entity will be
-   * selected.
-   *
-   * @returns {Exercise[]} - An array of Exercise objects.
+   * Retrieves exercises by their IDs for a specific user.
+   * @param {string[]} ids - An array of strings representing the IDs of the exercises to retrieve.
+   * @param {User} user
+   * @returns {Exercise[]}
    */
-  public async findAllExercises(
-    userId: string,
-    fields?: (keyof Exercise)[],
-  ): Promise<Exercise[]> {
-    const query = this.exerciseRepo.createQueryBuilder('exercise');
-
-    if (fields && fields.length > 0) {
-      const selectQuery = fields.map((field) => `exercise.${field}`);
-      query.select(selectQuery);
-    }
-
-    query.where('exercise.is_custom = false or exercise.user_id = :userId', {
-      userId,
-    });
-
-    query.orderBy('exercise.name', 'ASC');
-
-    const result = await query.getMany();
-    return result;
-  }
-
   public async getExercisesByIds(
     ids: string[],
     user: User,
   ): Promise<Exercise[]> {
-    const exercises = await this.exerciseRepo.find({
-      where: [
-        { id: In(ids), user },
-        { id: In(ids), isCustom: false },
-      ],
-    });
-    return exercises;
-  }
-
-  /**
-   * Creates a custom exercise
-   * @param {Exercise} exercise
-   * @returns {Exercise}
-   */
-  async createCustomExercise(exercise: Exercise): Promise<Exercise> {
-    const createdExercise = await this.exerciseRepo.save(exercise);
-    return createdExercise;
+    return await this.exerciseRepo.getByIds(ids, user);
   }
 
   /**
@@ -115,24 +80,29 @@ export default class ExercisesService {
    * @param {string} userId
    * @returns {Exercise}
    *
+   * @throws {ExerciseNotFoundException}
    * @throws {ResourceNotFoundException}
-   * @throws {ExerciseUserDoesNotMatchUserInRequestError}
+   * @throws {EntityNotFoundError}
    */
-  async getById(exerciseId: string, userId: string): Promise<Exercise> {
-    const exercise = await this.exerciseRepo.findOne({
-      where: { id: exerciseId },
-      relations: { user: true },
-    });
+  public async getSingleExerciseById(
+    exerciseId: string,
+    userId: string,
+  ): Promise<Exercise> {
+    await this.userService.getById(userId);
 
-    if (!exercise) {
-      throw new ExerciseNotFoundException();
-    }
+    const exercise = await this.exerciseRepo.getById(exerciseId, userId);
 
-    this.assertExerciseBelongsToUser(exercise, userId);
+    if (!exercise) throw new ExerciseNotFoundException();
 
     return exercise;
   }
 
+  /**
+   * Retrieves exercises for a workout, including information on usage
+   * frequency and recent sets.
+   * @param {string} userId
+   * @returns {ExerciseForWorkout[]}
+   */
   public async getExercisesForWorkout(
     userId: string,
   ): Promise<ExerciseForWorkout[]> {
@@ -142,11 +112,9 @@ export default class ExercisesService {
 
     // Get all exercises for user
     try {
-      allExercises = await this.customExerciseRepo.getAll(userId, [
-        'id',
-        'name',
-        'primaryMuscle',
-      ]);
+      allExercises = await this.exerciseRepo.getAll(userId, {
+        fields: ['id', 'name', 'primaryMuscle'],
+      });
     } catch (e) {
       // TODO: Log error
       throw new Error('Could not get exercises');
@@ -154,7 +122,7 @@ export default class ExercisesService {
 
     // Get number of times each exercise was used
     try {
-      exerciseUsages = await this.customExerciseRepo.getExerciseUsages(userId);
+      exerciseUsages = await this.exerciseRepo.getExerciseUsages(userId);
     } catch (e) {
       // TODO: Log error
       throw new Error('Could not number of times exercises were used');
@@ -162,8 +130,7 @@ export default class ExercisesService {
 
     // Get the most recent usage of each exercise (sets from most recent workout)
     try {
-      recentSets =
-        await this.customExerciseRepo.getRecentSetsForExercises(userId);
+      recentSets = await this.exerciseRepo.getRecentSetsForExercises(userId);
     } catch (e) {
       // TODO: Log error
       throw new Error('Could not get recent sets for exercises');
@@ -189,54 +156,52 @@ export default class ExercisesService {
 
   /**
    * Updates the exercise
-   * @param {string} id
-   * @param {User} user
+   * @param {string} exerciseId
+   * @param {Exercise} exercise
+   * @param {User} userId
    * @returns {Exercise}
    *
    * @throws {ExerciseNotFoundException}
    * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
-  async update(id: string, exercise: Exercise, user: User): Promise<Exercise> {
-    const existingExercise = await this.getById(id, user.id);
+  async updateExercise(
+    exerciseId: string,
+    exercise: Exercise,
+    userId: string,
+  ): Promise<Exercise> {
+    const user = await this.userService.getById(userId);
+
+    const existingExercise = await this.getSingleExerciseById(
+      exerciseId,
+      userId,
+    );
     this.assertExerciseIsCustom(existingExercise);
 
     exercise.user = user;
-    exercise.id = id;
-    const updatedExercise = await this.exerciseRepo.save(exercise);
+    exercise.id = exerciseId;
+    const updatedExercise = await this.exerciseRepo.update(exercise);
     return updatedExercise;
   }
 
   /**
    * Deletes an exercise from the db
-   * @param {string} id
-   * @param {User} user
+   * @param {string} exerciseId
+   * @param {string} userId
    *
    * @throws {ExerciseNotFoundException}
    * @throws {ExerciseDoesNotBelongToUser}
    * @throws {ExerciseIsNotCustomError}
    */
-  public async deleteById(id: string, user: User): Promise<void> {
-    const exercise = await this.getById(id, user.id);
+  public async deleteExercise(
+    exerciseId: string,
+    userId: string,
+  ): Promise<void> {
+    const exercise = await this.getSingleExerciseById(exerciseId, userId);
     this.assertExerciseIsCustom(exercise);
-    await this.exerciseRepo.remove(exercise);
+    await this.exerciseRepo.delete(exercise);
   }
 
-  /**
-   * Checks if the exercise belongs to the user that requested it
-   * @param {Exercise} exercise
-   * @param {string} userId
-   *
-   * @throws {ExerciseDoesNotBelongToUser}
-   */
-  private assertExerciseBelongsToUser(
-    exercise: Exercise,
-    userId: string,
-  ): void {
-    if (exercise.user && exercise.user.id !== userId) {
-      throw new ExerciseDoesNotBelongToUser();
-    }
-  }
   /**
    * Checks if the exercise is a custom exercise, throws error if it's default
    * @param {Exercise} exercise
