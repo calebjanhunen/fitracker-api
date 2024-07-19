@@ -8,10 +8,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { UserNotFoundException } from 'src/common/http-exceptions/user-not-found.exception';
-import { CollectionModel, Exercise, User } from 'src/model';
+import { CollectionModel } from 'src/common/models';
 import { SkillLevel } from 'src/modules/auth/enums/skill-level';
+import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import { EntityNotFoundError, TypeORMError } from 'typeorm';
+import { Exercise } from '../models/exercise.entity';
 import ExercisesService from '../services/exercises.service';
 import ExercisesController from './exercises.controller';
 
