@@ -1,5 +1,5 @@
-import { User } from 'src/model';
 import { BaseEntity } from 'src/model/base.entity';
+import { User } from 'src/modules/user/models/user.entity';
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { WorkoutExercise } from './workout-exercises.entity';
 

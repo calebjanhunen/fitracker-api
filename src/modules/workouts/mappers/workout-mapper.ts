@@ -1,4 +1,5 @@
-import { Exercise, User } from 'src/model';
+import { Exercise } from 'src/model';
+import { User } from 'src/modules/user/models/user.entity';
 import { CreateWorkoutRequestDTO } from '../dtos/create-workout-request.dto';
 import {
   ExerciseInWorkoutResponseDto,
