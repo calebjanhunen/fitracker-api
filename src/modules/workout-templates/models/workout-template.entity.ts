@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/model/base.entity';
+import { BaseEntity } from 'src/common/models';
 import { Column, Entity, OneToMany } from 'typeorm';
 import { WorkoutTemplateExercise } from './workout-template-exercise.entity';
 

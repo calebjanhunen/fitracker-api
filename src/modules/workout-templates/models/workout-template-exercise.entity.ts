@@ -1,4 +1,4 @@
-import { Exercise } from 'src/model';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { WorkoutTemplateSet } from './workout-template-set.entity';
 import { WorkoutTemplate } from './workout-template.entity';
