@@ -1,4 +1,4 @@
-import { Exercise } from 'src/model';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Set } from './set.entity';
 import { Workout } from './workout.entity';

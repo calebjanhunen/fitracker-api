@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { CollectionModel, Exercise } from 'src/model';
+import { CollectionModel } from 'src/model';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';

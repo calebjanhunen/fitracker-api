@@ -1,7 +1,7 @@
 import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
 import { User } from 'src/modules/user/models/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { BaseEntity } from './base.entity';
+import { BaseEntity } from '../../../model/base.entity';
 
 @Entity('exercises')
 export class Exercise extends BaseEntity {
