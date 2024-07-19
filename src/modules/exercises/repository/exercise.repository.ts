@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Exercise, User } from 'src/model';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
+import { User } from 'src/modules/user/models/user.entity';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
 import { In, Repository } from 'typeorm';
 import { ExerciseUsage } from '../interfaces/exercise-usage.interface';

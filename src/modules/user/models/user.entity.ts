@@ -1,3 +1,4 @@
+import { SkillLevel } from 'src/modules/auth/enums/skill-level';
 import {
   Column,
   CreateDateColumn,
@@ -5,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SkillLevel } from '../modules/auth/enums/skill-level';
 
 @Entity('users')
 export class User {

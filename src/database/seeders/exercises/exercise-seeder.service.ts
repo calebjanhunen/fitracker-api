@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Exercise, User } from 'src/model';
 import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
+import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import { Repository } from 'typeorm';
 

@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Exercise } from 'src/model';
 import { UserService } from 'src/modules/user/service/user.service';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { Exercise } from '../models/exercise.entity';
 import { ExerciseRepository } from '../repository/exercise.repository';
 import ExercisesService from './exercises.service';
 

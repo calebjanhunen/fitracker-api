@@ -1,9 +1,9 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from 'src/model/user.entity';
 import { SkillLevel } from 'src/modules/auth/enums/skill-level';
 import * as passwordHelper from 'src/modules/auth/helpers/password-helper';
+import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import { AuthService } from './auth.service';
 

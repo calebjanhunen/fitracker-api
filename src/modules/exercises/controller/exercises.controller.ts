@@ -15,11 +15,12 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { CollectionModel } from 'src/common/models';
 import { PaginationParams } from 'src/common/requests/pagination-params.request';
 import { ListResponse } from 'src/common/responses/list.response';
-import { CollectionModel, Exercise } from 'src/model';
 import { ExerciseForWorkoutResponseDTO } from 'src/modules/exercises/dtos/exercises-for-workout-response.dto';
 import { ExerciseIsNotCustomError } from 'src/modules/exercises/internal-errors/exercise-is-not-custom.error';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
 import { ExerciseMapper } from '../mappers/exercise.mapper';

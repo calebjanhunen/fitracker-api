@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Exercise, User } from 'src/model';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
   CreateWorkoutRequestDTO,

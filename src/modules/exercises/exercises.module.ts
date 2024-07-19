@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Exercise } from 'src/model';
+import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { UserModule } from '../user/user.module';
 import { WorkoutExercise } from '../workouts/models/workout-exercises.entity';
 import ExercisesController from './controller/exercises.controller';

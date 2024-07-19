@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { User } from '../../../model/user.entity';
+import { User } from '../models/user.entity';
 
 @Injectable()
 export class UserService {
