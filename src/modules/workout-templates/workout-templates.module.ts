@@ -4,6 +4,7 @@ import { UserModule } from '../user/user.module';
 import { WorkoutTemplateExercise } from './models/workout-template-exercise.entity';
 import { WorkoutTemplateSet } from './models/workout-template-set.entity';
 import { WorkoutTemplate } from './models/workout-template.entity';
+import { WorkoutTemplateRepository } from './repository/workout-template.repository';
 
 @Module({
   imports: [
@@ -14,8 +15,8 @@ import { WorkoutTemplate } from './models/workout-template.entity';
     ]),
     UserModule,
   ],
-  providers: [],
+  providers: [WorkoutTemplateRepository],
   controllers: [],
-  exports: [],
+  exports: [WorkoutTemplateRepository],
 })
 export class WorkoutTemplatesModule {}
