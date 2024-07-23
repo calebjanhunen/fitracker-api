@@ -16,13 +16,14 @@ export class WorkoutTemplateSet {
 
   @Column({
     type: 'integer',
+    nullable: false,
   })
   order: number;
 
   @ManyToOne(
     () => WorkoutTemplateExercise,
     (workoutTemplateExercise) => workoutTemplateExercise.sets,
-    { onDelete: 'CASCADE' },
+    { onDelete: 'CASCADE', nullable: false },
   )
   workoutTemplateExercise: WorkoutTemplateExercise;
 }

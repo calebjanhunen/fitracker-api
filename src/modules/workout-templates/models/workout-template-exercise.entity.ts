@@ -1,5 +1,11 @@
 import { Exercise } from 'src/modules/exercises/models/exercise.entity';
-import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { WorkoutTemplateSet } from './workout-template-set.entity';
 import { WorkoutTemplate } from './workout-template.entity';
 
@@ -8,20 +14,29 @@ export class WorkoutTemplateExercise {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({
+    type: 'integer',
+  })
+  order: number;
+
   @ManyToOne(
     () => WorkoutTemplate,
     (workoutTemplate) => workoutTemplate.workoutTemplateExercises,
     {
       onDelete: 'CASCADE',
+      nullable: false,
     },
   )
-  workout: WorkoutTemplate;
+  workoutTemplate: WorkoutTemplate;
 
   @ManyToOne(() => Exercise, (exercise) => exercise.workoutExercise, {
     onDelete: 'CASCADE',
+    nullable: false,
   })
   exercise: Exercise;
 
-  @OneToMany(() => WorkoutTemplateSet, (set) => set.workoutTemplateExercise)
+  @OneToMany(() => WorkoutTemplateSet, (set) => set.workoutTemplateExercise, {
+    cascade: ['insert'],
+  })
   sets: WorkoutTemplateSet[];
 }
