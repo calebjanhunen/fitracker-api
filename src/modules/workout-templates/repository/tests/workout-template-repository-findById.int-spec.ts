@@ -5,7 +5,7 @@ import {
 } from 'test/utils/integration-environment-setup';
 import { WorkoutTemplateRepository } from '../workout-template.repository';
 
-describe('findById()', () => {
+describe('WorkoutTemplate Repository: findById()', () => {
   let workoutTemplateRepo: WorkoutTemplateRepository;
   let module: TestingModule;
 

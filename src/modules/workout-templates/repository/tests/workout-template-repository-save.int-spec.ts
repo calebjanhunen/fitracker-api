@@ -1,59 +1,39 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { SetType } from 'src/common/enums/set-type.enum';
-import { SkillLevel } from 'src/modules/auth/enums/skill-level';
-import { ExerciseDifficultyLevel } from 'src/modules/exercises/enums/exercise-difficulty-level';
-import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { ExerciseRepository } from 'src/modules/exercises/repository/exercise.repository';
 import { User } from 'src/modules/user/models/user.entity';
-import { UserService } from 'src/modules/user/service/user.service';
-import { IntegrationTestModule } from 'test/integration/jest-integration.module';
+import {
+  setupTestEnvironment,
+  teardownTestEnvironment,
+} from 'test/utils/integration-environment-setup';
+import { Repository } from 'typeorm';
 import { WorkoutTemplateExercise } from '../../models/workout-template-exercise.entity';
 import { WorkoutTemplateSet } from '../../models/workout-template-set.entity';
 import { WorkoutTemplate } from '../../models/workout-template.entity';
 import { WorkoutTemplateRepository } from '../workout-template.repository';
 
-describe('WorkoutTemplate Repository Integration Tests', () => {
+describe('WorkoutTemplate Repository: save()', () => {
   let workoutTemplateRepo: WorkoutTemplateRepository;
-  let userService: UserService;
   let exerciseRepo: ExerciseRepository;
-  let user: User;
-  let exercise: Exercise;
+  let userRepo: Repository<User>;
+  let module: TestingModule;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [IntegrationTestModule],
-    }).compile();
+    module = await setupTestEnvironment(
+      'modules/workout-templates/repository/tests/db-files/testing-save.json',
+    );
 
     workoutTemplateRepo = module.get(WorkoutTemplateRepository);
-    userService = module.get(UserService);
     exerciseRepo = module.get(ExerciseRepository);
+    userRepo = module.get(getRepositoryToken(User));
+  });
+  afterAll(async () => {
+    await teardownTestEnvironment(module);
   });
 
   it('should be defined', () => {
     expect(workoutTemplateRepo).toBeDefined();
-    expect(userService).toBeDefined();
-    expect(exerciseRepo).toBeDefined();
-  });
-
-  it('should create user', async () => {
-    const entity = new User();
-    entity.username = 'testuser';
-    entity.firstName = 'Test';
-    entity.lastName = 'User';
-    entity.password = '123';
-    entity.skillLevel = SkillLevel.advanced;
-    entity.email = 'testuser@test.com';
-    user = await userService.createUser(entity);
-  });
-  it('should create exercise', async () => {
-    const entity = new Exercise();
-    entity.name = 'Test Exercise';
-    entity.equipment = 'dumbbells';
-    entity.instructions = ['step 1', 'step 2'];
-    entity.isCustom = false;
-    entity.primaryMuscle = 'chest';
-    entity.difficultyLevel = ExerciseDifficultyLevel.beginner;
-    exercise = await exerciseRepo.create(entity);
   });
 
   describe('save()', () => {
@@ -61,8 +41,15 @@ describe('WorkoutTemplate Repository Integration Tests', () => {
       const wt = new WorkoutTemplate();
       wt.name = 'Test Template';
       wt.workoutTemplateExercises = [];
-      wt.user = user;
+      wt.user = await userRepo.findOneByOrFail({
+        id: '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8',
+      });
 
+      const exercise = await exerciseRepo.getById(
+        '3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81',
+        '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8',
+      );
+      if (!exercise) throw new Error('No exercise');
       const wtExercise = new WorkoutTemplateExercise();
       wtExercise.exercise = exercise;
       wtExercise.order = 1;
@@ -76,13 +63,12 @@ describe('WorkoutTemplate Repository Integration Tests', () => {
       wt.workoutTemplateExercises.push(wtExercise);
 
       const createdWT = await workoutTemplateRepo.save(wt);
-      console.log(createdWT.workoutTemplateExercises[0].sets[0]);
       expect(createdWT).toBeDefined();
       expect(createdWT.workoutTemplateExercises.length).toBe(1);
       expect(createdWT.workoutTemplateExercises[0].exercise.id).toBe(
-        exercise.id,
+        '3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81',
       );
-      expect(createdWT.user.id).toBe(user.id);
+      expect(createdWT.user.id).toBe('4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8');
       expect(createdWT.workoutTemplateExercises[0].sets.length).toBe(1);
       expect(
         createdWT.workoutTemplateExercises[0].sets[0].workoutTemplateExercise

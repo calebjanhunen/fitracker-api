@@ -12,11 +12,11 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export const integrationTypeOrmConfig: TypeOrmModuleOptions = {
   type: 'postgres',
-  port: parseInt(process.env.POSTGRES_PORT as string),
-  host: process.env.POSTGRES_HOST,
-  username: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DATABASE,
+  port: 5433,
+  host: String(process.env.POSTGRES_HOST),
+  username: String(process.env.POSTGRES_USER),
+  password: String(process.env.POSTGRES_PASSWORD),
+  database: String(process.env.POSTGRES_DATABASE),
   namingStrategy: new SnakeNamingStrategy(),
   synchronize: true,
   entities: [
@@ -29,9 +29,22 @@ export const integrationTypeOrmConfig: TypeOrmModuleOptions = {
     WorkoutTemplateExercise,
     WorkoutTemplateSet,
   ],
+  autoLoadEntities: true,
   dropSchema: true,
 };
 
-export const integrationDataSource = new DataSource({
-  ...(integrationTypeOrmConfig as DataSourceOptions),
-});
+let integrationDataSourceInstance: DataSource | null;
+
+export async function getIntegrationDataSourceInstance(): Promise<DataSource> {
+  if (!integrationDataSourceInstance) {
+    integrationDataSourceInstance = new DataSource({
+      ...(integrationTypeOrmConfig as DataSourceOptions),
+    });
+  }
+
+  if (!integrationDataSourceInstance.isInitialized) {
+    await integrationDataSourceInstance.initialize();
+  }
+
+  return integrationDataSourceInstance;
+}

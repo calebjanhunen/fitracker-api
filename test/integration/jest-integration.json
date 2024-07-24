@@ -7,5 +7,5 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "modulePaths": ["<rootDir>"],
-  "globalSetup": "./test/./integration/jest-integration-setup.js"
+  "globalSetup": "./test/integration/jest-integration-setup.js"
 }

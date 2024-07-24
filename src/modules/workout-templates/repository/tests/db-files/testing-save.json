@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "id": "4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8",
+      "username": "testuser1",
+      "password": "123",
+      "email": "testuser1@test.com",
+      "first_name": "Test1",
+      "last_name": "User1",
+      "skill_level": "beginner"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81",
+      "name": "Exercise",
+      "equipment": "dumbbells",
+      "primary_muscle": "chest",
+      "difficulty_level": "beginner",
+      "instructions": ["step1", "step2"]
+    }
+  ]
+}
