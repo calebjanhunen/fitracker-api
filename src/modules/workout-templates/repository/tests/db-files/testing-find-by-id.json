@@ -2,11 +2,20 @@
   "users": [
     {
       "id": "4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8",
-      "username": "username",
+      "username": "testuser1",
       "password": "123",
-      "email": "testuser@test.com",
-      "first_name": "Test",
-      "last_name": "User",
+      "email": "testuser1@test.com",
+      "first_name": "Test1",
+      "last_name": "User1",
+      "skill_level": "beginner"
+    },
+    {
+      "id": "f9610720-0b25-4e1f-8d09-714b5ffaef4b",
+      "username": "testuser2",
+      "password": "123",
+      "email": "testuser2@test.com",
+      "first_name": "Test2",
+      "last_name": "User2",
       "skill_level": "beginner"
     }
   ],
