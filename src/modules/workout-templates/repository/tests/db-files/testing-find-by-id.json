@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "id": "4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8",
+      "username": "username",
+      "password": "123",
+      "email": "testuser@test.com",
+      "first_name": "Test",
+      "last_name": "User",
+      "skill_level": "beginner"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81",
+      "name": "Exercise",
+      "equipment": "dumbbells",
+      "primary_muscle": "chest",
+      "difficulty_level": "beginner",
+      "instructions": ["step1", "step2"]
+    }
+  ],
+  "workoutTemplates": [
+    {
+      "id": "81622181-0768-45e1-943f-86099cd91961",
+      "name": "Test Workout Template",
+      "user_id": "4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8"
+    }
+  ],
+  "workoutTemplateExercises": [
+    {
+      "id": "37eb6e1e-c26e-46e3-8732-e8874a1d2df1",
+      "exercise_id": "3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81",
+      "workout_template_id": "81622181-0768-45e1-943f-86099cd91961",
+      "order": 1
+    }
+  ],
+  "workoutTemplateSets": [
+    {
+      "id": "f889d89c-5611-4fbb-9b8d-5cb1ba9a83cd",
+      "type": "working",
+      "order": 1,
+      "workout_template_exercise_id": "37eb6e1e-c26e-46e3-8732-e8874a1d2df1"
+    }
+  ]
+}
