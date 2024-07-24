@@ -1,0 +1,44 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['main']
+
+jobs:
+  integration-tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      integration-test-postgres-db:
+        container-name: integration-test-db
+        image: postgres:15
+        restart: always
+        environment:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - '5433:5432'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+      - uses: actions/setup-node@v3
+      - with:
+        node-version: 20.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run integration tests
+        run: npm run test:int
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+          POSTGRES_HOST: localhost
+          POSTGRES_POST: 5433
