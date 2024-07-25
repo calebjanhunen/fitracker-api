@@ -11,6 +11,6 @@ import ExercisesService from './services/exercises.service';
   imports: [TypeOrmModule.forFeature([Exercise, WorkoutExercise]), UserModule],
   controllers: [ExercisesController],
   providers: [ExercisesService, ExerciseRepository],
-  exports: [ExercisesService],
+  exports: [ExercisesService, ExerciseRepository],
 })
 export class ExerciseModule {}

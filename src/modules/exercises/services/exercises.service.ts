@@ -77,6 +77,26 @@ export default class ExercisesService {
   }
 
   /**
+   * Checks if each exercise exists in the database.
+   *
+   * @param   {string[]}      ids     The id of each exercise to check
+   * @param   {User}          user    The user that is doing the request
+   * @returns {Exercise[]}            Array of exercises
+   *
+   * @throws {Error}
+   */
+  public async validateExercisesExist(
+    ids: string[],
+    user: User,
+  ): Promise<Exercise[]> {
+    const exercises = await this.exerciseRepo.getByIds(ids, user);
+    if (exercises.length !== ids.length)
+      throw new Error('One or more exercises do not exist');
+
+    return exercises;
+  }
+
+  /**
    * Gets an exercise by its id
    * @param {string} exerciseId
    * @param {string} userId

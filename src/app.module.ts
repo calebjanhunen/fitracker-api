@@ -7,6 +7,7 @@ import { typeormConfig } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
+import { WorkoutTemplatesModule } from './modules/workout-templates/workout-templates.module';
 import { WorkoutsModule } from './modules/workouts/workouts.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
     UserModule,
     AuthModule,
     WorkoutsModule,
+    WorkoutTemplatesModule,
   ],
   controllers: [],
   providers: [],
