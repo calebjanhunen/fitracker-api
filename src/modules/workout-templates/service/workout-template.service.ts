@@ -5,6 +5,7 @@ import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
+import { WorkoutTemplateNotFoundException } from './exceptions/workout-template-not-found.exception';
 
 @Injectable()
 export class WorkoutTemplateService {
@@ -14,6 +15,12 @@ export class WorkoutTemplateService {
     private userService: UserService,
   ) {}
 
+  /**
+   * Creates a workout template for a given user
+   * @param {CreateWorkoutTemplateDto} workoutTemplateDto
+   * @param {string} userId
+   * @returns {WorkoutTemplateResponseDto}
+   */
   public async createWorkoutTemplate(
     workoutTemplateDto: CreateWorkoutTemplateDto,
     userId: string,
@@ -37,5 +44,28 @@ export class WorkoutTemplateService {
     );
 
     return WorkoutTemplateMapper.fromEntityToDto(createdWorkoutTemplate);
+  }
+
+  /**
+   * Gets a workout template using the id and user id
+   *
+   * @param {string} id
+   * @param {string} userId
+   * @returns {WorkoutTemplateResponseDto}
+   *
+   * @throws {ResourceNotFoundException}
+   * @throws {WorkoutTemplateNotFoundException}
+   */
+  public async getSingleWorkoutTemplate(
+    id: string,
+    userId: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    await this.userService.getById(userId);
+
+    const workoutTemplate = await this.workoutTemplateRepo.findById(id, userId);
+
+    if (!workoutTemplate) throw new WorkoutTemplateNotFoundException(id);
+
+    return WorkoutTemplateMapper.fromEntityToDto(workoutTemplate);
   }
 }

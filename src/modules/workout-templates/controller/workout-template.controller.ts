@@ -2,8 +2,10 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   Headers,
   NotFoundException,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -30,6 +32,22 @@ export class WorkoutTemplateController {
           userId,
         );
       return createdWorkoutTemplate;
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Get(':id')
+  public async getSingleWorkoutTemplate(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    try {
+      const workoutTemplate =
+        await this.workoutTemplateService.getSingleWorkoutTemplate(id, userId);
+      return workoutTemplate;
     } catch (e) {
       if (e instanceof ResourceNotFoundException)
         throw new NotFoundException(e.message);
