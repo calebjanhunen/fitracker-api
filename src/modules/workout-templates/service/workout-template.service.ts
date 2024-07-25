@@ -4,7 +4,6 @@ import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
-import { WorkoutTemplate } from '../models/workout-template.entity';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
 
 @Injectable()
@@ -15,7 +14,7 @@ export class WorkoutTemplateService {
     private userService: UserService,
   ) {}
 
-  public async saveWorkoutTemplate(
+  public async createWorkoutTemplate(
     workoutTemplateDto: CreateWorkoutTemplateDto,
     userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
