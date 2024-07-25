@@ -20,6 +20,8 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     const qb = this.repo.createQueryBuilder('wt');
 
     qb.leftJoinAndSelect('wt.workoutTemplateExercises', 'wte')
+      .leftJoin('wte.exercise', 'e')
+      .addSelect(['e.id', 'e.name'])
       .leftJoinAndSelect('wte.sets', 'sets')
       .where('wt.id = :id', { id })
       .andWhere('wt.user_id = :userId', { userId });
