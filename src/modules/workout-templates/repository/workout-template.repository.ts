@@ -24,7 +24,9 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       .addSelect(['e.id', 'e.name'])
       .leftJoinAndSelect('wte.sets', 'sets')
       .where('wt.id = :id', { id })
-      .andWhere('wt.user_id = :userId', { userId });
+      .andWhere('wt.user_id = :userId', { userId })
+      .orderBy('wte.order', 'ASC')
+      .addOrderBy('sets.order', 'ASC');
 
     return await qb.getOne();
   }
@@ -36,8 +38,9 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       .leftJoin('wte.exercise', 'e')
       .addSelect(['e.id', 'e.name'])
       .leftJoinAndSelect('wte.sets', 'sets')
-      .where('wt.user_id = :userId', { userId });
-
+      .where('wt.user_id = :userId', { userId })
+      .orderBy('wte.order', 'ASC')
+      .addOrderBy('sets.order', 'ASC');
     return await qb.getMany();
   }
 }
