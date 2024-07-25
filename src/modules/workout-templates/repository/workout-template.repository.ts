@@ -43,4 +43,8 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       .addOrderBy('sets.order', 'ASC');
     return await qb.getMany();
   }
+
+  public async delete(entity: WorkoutTemplate): Promise<void> {
+    await this.repo.remove(entity);
+  }
 }
