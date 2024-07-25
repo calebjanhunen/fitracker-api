@@ -54,4 +54,19 @@ export class WorkoutTemplateController {
       throw new ConflictException(e.message);
     }
   }
+
+  @Get()
+  public async getWorkoutTemplates(
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutTemplateResponseDto[]> {
+    try {
+      const workoutTemplates =
+        await this.workoutTemplateService.getAllWorkoutTemplates(userId);
+      return workoutTemplates;
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      throw new ConflictException(e.message);
+    }
+  }
 }
