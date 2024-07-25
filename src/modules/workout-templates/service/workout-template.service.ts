@@ -5,6 +5,7 @@ import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
+import { CouldNotDeleteWorkoutTemplateException } from './exceptions/could-not-delete-workout-template.exception';
 import { WorkoutTemplateNotFoundException } from './exceptions/workout-template-not-found.exception';
 
 @Injectable()
@@ -84,5 +85,36 @@ export class WorkoutTemplateService {
     return workoutTemplates.map((wt) =>
       WorkoutTemplateMapper.fromEntityToDto(wt),
     );
+  }
+
+  /**
+   * Deletes a workout template given the id.
+   *
+   * @param {string} id
+   * @param {string} userId
+   *
+   * @throws {ResourceNotFoundException}
+   * @throws {WorkoutTemplateNotFoundException}
+   * @throws {CouldNotDeleteWorkoutTemplateException}
+   */
+  public async deleteWorkoutTemplate(
+    id: string,
+    userId: string,
+  ): Promise<void> {
+    await this.userService.getById(userId);
+
+    const workoutTemplateToDelete = await this.workoutTemplateRepo.findById(
+      id,
+      userId,
+    );
+
+    if (!workoutTemplateToDelete)
+      throw new WorkoutTemplateNotFoundException(id);
+
+    try {
+      await this.workoutTemplateRepo.delete(workoutTemplateToDelete);
+    } catch (e) {
+      throw new CouldNotDeleteWorkoutTemplateException(e.message);
+    }
   }
 }
