@@ -28,4 +28,16 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
 
     return await qb.getOne();
   }
+
+  public async findMany(userId: string): Promise<WorkoutTemplate[]> {
+    const qb = this.repo.createQueryBuilder('wt');
+
+    qb.leftJoinAndSelect('wt.workoutTemplateExercises', 'wte')
+      .leftJoin('wte.exercise', 'e')
+      .addSelect(['e.id', 'e.name'])
+      .leftJoinAndSelect('wte.sets', 'sets')
+      .where('wt.user_id = :userId', { userId });
+
+    return await qb.getMany();
+  }
 }
