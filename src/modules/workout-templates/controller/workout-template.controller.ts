@@ -2,8 +2,11 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   Get,
   Headers,
+  HttpCode,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -11,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { CouldNotDeleteWorkoutException } from 'src/modules/workouts/internal-errors/could-not-delete-workout.exception';
 import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateService } from '../service/workout-template.service';
@@ -66,6 +70,23 @@ export class WorkoutTemplateController {
     } catch (e) {
       if (e instanceof ResourceNotFoundException)
         throw new NotFoundException(e.message);
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  public async deleteWorkoutTemplate(
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    try {
+      await this.workoutTemplateService.deleteWorkoutTemplate(id, userId);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof CouldNotDeleteWorkoutException)
+        throw new InternalServerErrorException(e.message);
       throw new ConflictException(e.message);
     }
   }
