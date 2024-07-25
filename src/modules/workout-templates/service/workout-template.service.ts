@@ -68,4 +68,21 @@ export class WorkoutTemplateService {
 
     return WorkoutTemplateMapper.fromEntityToDto(workoutTemplate);
   }
+
+  /**
+   * Gets all workout templates for a given user
+   * @param {string} userId
+   * @returns {WorkoutTemplateResponseDto[]}
+   *
+   * @throws {ResourceNotFoundException}
+   */
+  public async getAllWorkoutTemplates(
+    userId: string,
+  ): Promise<WorkoutTemplateResponseDto[]> {
+    await this.userService.getById(userId);
+    const workoutTemplates = await this.workoutTemplateRepo.findMany(userId);
+    return workoutTemplates.map((wt) =>
+      WorkoutTemplateMapper.fromEntityToDto(wt),
+    );
+  }
 }
