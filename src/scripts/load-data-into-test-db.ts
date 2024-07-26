@@ -6,6 +6,9 @@ import { User } from 'src/modules/user/models/user.entity';
 import { WorkoutTemplateExercise } from 'src/modules/workout-templates/models/workout-template-exercise.entity';
 import { WorkoutTemplateSet } from 'src/modules/workout-templates/models/workout-template-set.entity';
 import { WorkoutTemplate } from 'src/modules/workout-templates/models/workout-template.entity';
+import { Set } from 'src/modules/workouts/models/set.entity';
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import { Workout } from 'src/modules/workouts/models/workout.entity';
 import { DataSource } from 'typeorm';
 
 const entityMap: { [key: string]: EntityClassOrSchema } = {
@@ -14,6 +17,9 @@ const entityMap: { [key: string]: EntityClassOrSchema } = {
   workoutTemplates: WorkoutTemplate,
   workoutTemplateExercises: WorkoutTemplateExercise,
   workoutTemplateSets: WorkoutTemplateSet,
+  workouts: Workout,
+  workoutExercises: WorkoutExercise,
+  sets: Set,
 };
 
 export async function loadDataFromJsonIntoDb(
