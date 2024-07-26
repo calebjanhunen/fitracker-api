@@ -152,7 +152,10 @@ export default class ExercisesService {
 
     // Get the most recent usage of each exercise (sets from most recent workout)
     try {
-      recentSets = await this.exerciseRepo.getRecentSetsForExercises(userId);
+      recentSets = await this.exerciseRepo.getRecentSetsForExercises(
+        [],
+        userId,
+      );
     } catch (e) {
       // TODO: Log error
       throw new Error('Could not get recent sets for exercises');
