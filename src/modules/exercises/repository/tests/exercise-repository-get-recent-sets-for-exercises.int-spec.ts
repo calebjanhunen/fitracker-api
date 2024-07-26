@@ -28,7 +28,7 @@ describe('WorkoutTemplate Repository: findById()', () => {
     const exerciseIds = ['3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81'];
     const userId = '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8';
     const exercisesWithRecentSets =
-      await exerciseRepo.getRecentSetsForExercises(exerciseIds, userId);
+      await exerciseRepo.getRecentSetsForExercises(userId, exerciseIds);
 
     console.log(exercisesWithRecentSets);
 
@@ -42,7 +42,19 @@ describe('WorkoutTemplate Repository: findById()', () => {
     ];
     const userId = '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8';
     const exercisesWithRecentSets =
-      await exerciseRepo.getRecentSetsForExercises(exerciseIds, userId);
+      await exerciseRepo.getRecentSetsForExercises(userId, exerciseIds);
+
+    const exercises = await exerciseRepo.getAll(userId);
+    console.log(exercises);
+
+    expect(exercisesWithRecentSets.length).toBe(2);
+    expect(exercisesWithRecentSets[0].sets.length).toBe(2);
+    expect(exercisesWithRecentSets[1].sets.length).toBe(1);
+  });
+  it('should get all exercises when no exerciseIds are provided', async () => {
+    const userId = '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8';
+    const exercisesWithRecentSets =
+      await exerciseRepo.getRecentSetsForExercises(userId);
 
     const exercises = await exerciseRepo.getAll(userId);
     console.log(exercises);

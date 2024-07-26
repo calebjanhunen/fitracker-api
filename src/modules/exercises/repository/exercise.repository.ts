@@ -126,8 +126,8 @@ export class ExerciseRepository {
    * @returns {WorkoutExercise[]}
    */
   public async getRecentSetsForExercises(
-    exerciseIds: string[],
     userId: string,
+    exerciseIds?: string[],
   ): Promise<WorkoutExercise[]> {
     const query = this.workoutExerciseRepo.createQueryBuilder('we');
     query
@@ -156,10 +156,13 @@ export class ExerciseRepository {
         return 'w.created_at = ' + subQ;
       })
       .andWhere('w.user_id = :userId', { userId })
-      .andWhere('e.id IN (:...exerciseIds)', { exerciseIds })
       .orderBy('we.exercise_id')
       .addOrderBy('w.created_at')
       .addOrderBy('set.set_order');
+
+    if (exerciseIds && exerciseIds.length > 0) {
+      query.andWhere('e.id IN (:...exerciseIds)', { exerciseIds });
+    }
     const result = await query.getMany();
     return result;
   }
