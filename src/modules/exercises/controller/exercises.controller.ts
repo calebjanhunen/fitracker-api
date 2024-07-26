@@ -73,6 +73,21 @@ export default class ExercisesController {
     return response;
   }
 
+  @Get('exercises-for-workout')
+  async getExercisesForWorkout(
+    @Headers('user-id') userId: string,
+  ): Promise<ExerciseForWorkoutResponseDTO[]> {
+    try {
+      const exercisesForWorkout =
+        await this.exercisesService.getExercisesForWorkout(userId);
+      return exercisesForWorkout.map((exercise) =>
+        ExercisesForWorkoutMapper.fromEntityToDto(exercise),
+      );
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
+
   @Get(':id')
   async getSingleExercise(
     @Headers('user-id') userId: string,
@@ -89,21 +104,6 @@ export default class ExercisesController {
         throw new NotFoundException(e.message);
 
       throw new ConflictException('Error getting exercise');
-    }
-  }
-
-  @Get('exercises-for-workout')
-  async getExercisesForWorkout(
-    @Headers('user-id') userId: string,
-  ): Promise<ExerciseForWorkoutResponseDTO[]> {
-    try {
-      const exercisesForWorkout =
-        await this.exercisesService.getExercisesForWorkout(userId);
-      return exercisesForWorkout.map((exercise) =>
-        ExercisesForWorkoutMapper.fromEntityToDto(exercise),
-      );
-    } catch (e) {
-      throw new ConflictException(e.message);
     }
   }
 
