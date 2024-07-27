@@ -3,6 +3,8 @@ import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
+import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
+import { WorkoutTemplateWithRecentSetsMapper } from '../mappers/workout-template-with-recent-sets.mapper';
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
 import { CouldNotDeleteWorkoutTemplateException } from './exceptions/could-not-delete-workout-template.exception';
@@ -79,11 +81,21 @@ export class WorkoutTemplateService {
    */
   public async getAllWorkoutTemplates(
     userId: string,
-  ): Promise<WorkoutTemplateResponseDto[]> {
+  ): Promise<WorkoutTemplateWithRecentSetsResponseDto[]> {
     await this.userService.getById(userId);
     const workoutTemplates = await this.workoutTemplateRepo.findMany(userId);
+
+    // Get sets from recent workouts for each exercise in the workoutTemplates array
+    const exerciseIds = workoutTemplates
+      .map((wt) => wt.workoutTemplateExercises.map((e) => e.exercise.id))
+      .flat();
+    const recentSets = await this.exerciseService.getRecentSetsForExercises(
+      userId,
+      exerciseIds,
+    );
+
     return workoutTemplates.map((wt) =>
-      WorkoutTemplateMapper.fromEntityToDto(wt),
+      WorkoutTemplateWithRecentSetsMapper.fromEntityToDto(wt, recentSets),
     );
   }
 

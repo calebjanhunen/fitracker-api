@@ -17,6 +17,7 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { CouldNotDeleteWorkoutException } from 'src/modules/workouts/internal-errors/could-not-delete-workout.exception';
 import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
+import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
 import { WorkoutTemplateService } from '../service/workout-template.service';
 
 @Controller('api/workout-templates')
@@ -62,7 +63,7 @@ export class WorkoutTemplateController {
   @Get()
   public async getWorkoutTemplates(
     @Headers('user-id') userId: string,
-  ): Promise<WorkoutTemplateResponseDto[]> {
+  ): Promise<WorkoutTemplateWithRecentSetsResponseDto[]> {
     try {
       const workoutTemplates =
         await this.workoutTemplateService.getAllWorkoutTemplates(userId);
