@@ -1,3 +1,4 @@
+import { Set } from 'src/modules/workouts/models/set.entity';
 import { WorkoutTemplateResponseSetDto } from './workout-template-response.dto';
 
 export class WorkoutTemplateWithRecentSetsResponseDto {
@@ -13,12 +14,5 @@ export class WorkoutTemplateExerciseWithRecentSetsDto {
   name: string;
   order: number;
   sets: WorkoutTemplateResponseSetDto[];
-  previousSets: SetDto[];
-}
-
-export class SetDto {
-  weight: number;
-  reps: number;
-  rpe: number;
-  order: number;
+  previousSets: Set[];
 }

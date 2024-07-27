@@ -26,16 +26,8 @@ export class WorkoutTemplateWithRecentSetsMapper {
           setType: set.type,
         })),
         previousSets:
-          recentSets
-            .find((we) => we.exercise.id === wte.exercise.id)
-            ?.sets.map((set) => {
-              return {
-                order: set.setOrder,
-                weight: set.weight,
-                reps: set.reps,
-                rpe: set.rpe,
-              };
-            }) ?? [],
+          recentSets.find((we) => we.exercise.id === wte.exercise.id)?.sets ??
+          [],
       }));
     response.exercises = exercises;
 
