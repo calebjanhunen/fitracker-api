@@ -130,7 +130,6 @@ export default class ExercisesService {
   ): Promise<ExerciseForWorkout[]> {
     let allExercises: Exercise[];
     let exerciseUsages: ExerciseUsage[];
-    let recentSets: WorkoutExercise[];
 
     // Get all exercises for user
     try {
@@ -150,13 +149,7 @@ export default class ExercisesService {
       throw new Error('Could not number of times exercises were used');
     }
 
-    // Get the most recent usage of each exercise (sets from most recent workout)
-    try {
-      recentSets = await this.exerciseRepo.getRecentSetsForExercises(userId);
-    } catch (e) {
-      // TODO: Log error
-      throw new Error('Could not get recent sets for exercises');
-    }
+    const recentSets = await this.getRecentSetsForExercises(userId);
 
     // Convert array of exercise usages to map for time complexity efficiency
     const exerciseUsagesMap = new Map(
@@ -174,6 +167,31 @@ export default class ExercisesService {
     });
 
     return exercisesForWorkout;
+  }
+
+  /**
+   * Gets sets from most recent workout for exercises.
+   * Gets previous sets for exercises in exerciseIds if provided,
+   * if not it gets previous sets for all exercises.
+   *
+   * @param {string} userId
+   * @param {string[]} exerciseIds
+   * @returns {WorkoutExercise[]}
+   */
+  public async getRecentSetsForExercises(
+    userId: string,
+    exerciseIds?: string[],
+  ): Promise<WorkoutExercise[]> {
+    try {
+      const recentSets = await this.exerciseRepo.getRecentSetsForExercises(
+        userId,
+        exerciseIds,
+      );
+      return recentSets;
+    } catch (e) {
+      // TODO: Log error
+      throw new Error('Could not get recent sets for exercises');
+    }
   }
 
   /**

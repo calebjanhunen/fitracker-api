@@ -1,0 +1,44 @@
+import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
+import {
+  WorkoutTemplateExerciseWithRecentSetsDto,
+  WorkoutTemplateWithRecentSetsResponseDto,
+} from '../dto/workout-template-with-recent-sets-response.dto';
+import { WorkoutTemplate } from '../models/workout-template.entity';
+
+export class WorkoutTemplateWithRecentSetsMapper {
+  public static fromEntityToDto(
+    entity: WorkoutTemplate,
+    recentSets: WorkoutExercise[],
+  ): WorkoutTemplateWithRecentSetsResponseDto {
+    const response = new WorkoutTemplateWithRecentSetsResponseDto();
+    response.id = entity.id;
+    response.createdAt = entity.createdAt;
+    response.updatedAt = entity.updatedAt;
+    response.name = entity.name;
+
+    const exercises: WorkoutTemplateExerciseWithRecentSetsDto[] =
+      entity.workoutTemplateExercises.map((wte) => ({
+        id: wte.exercise.id,
+        order: wte.order,
+        name: wte.exercise.name,
+        sets: wte.sets.map((set) => ({
+          order: set.order,
+          setType: set.type,
+        })),
+        previousSets:
+          recentSets
+            .find((we) => we.exercise.id === wte.exercise.id)
+            ?.sets.map((set) => {
+              return {
+                order: set.setOrder,
+                weight: set.weight,
+                reps: set.reps,
+                rpe: set.rpe,
+              };
+            }) ?? [],
+      }));
+    response.exercises = exercises;
+
+    return response;
+  }
+}
