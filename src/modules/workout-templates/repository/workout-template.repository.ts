@@ -47,4 +47,8 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
   public async delete(entity: WorkoutTemplate): Promise<void> {
     await this.repo.remove(entity);
   }
+
+  public async update(entity: WorkoutTemplate): Promise<WorkoutTemplate> {
+    return await this.repo.save(entity);
+  }
 }
