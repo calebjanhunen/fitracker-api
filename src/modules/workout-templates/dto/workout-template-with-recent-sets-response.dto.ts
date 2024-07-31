@@ -11,6 +11,7 @@ export class WorkoutTemplateWithRecentSetsResponseDto {
 
 export class WorkoutTemplateExerciseWithRecentSetsDto {
   id: string;
+  exerciseId: string;
   name: string;
   order: number;
   sets: WorkoutTemplateResponseSetDto[];

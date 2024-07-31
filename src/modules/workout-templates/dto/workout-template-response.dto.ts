@@ -10,6 +10,7 @@ export class WorkoutTemplateResponseDto {
 
 export class WorkoutTemplateReponseExerciseDto {
   id: string;
+  exerciseId: string;
   name: string;
   order: number;
   sets: WorkoutTemplateResponseSetDto[];

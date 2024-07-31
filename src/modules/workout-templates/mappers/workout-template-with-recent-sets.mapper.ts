@@ -18,7 +18,8 @@ export class WorkoutTemplateWithRecentSetsMapper {
 
     const exercises: WorkoutTemplateExerciseWithRecentSetsDto[] =
       entity.workoutTemplateExercises.map((wte) => ({
-        id: wte.exercise.id,
+        id: wte.id,
+        exerciseId: wte.exercise.id,
         order: wte.order,
         name: wte.exercise.name,
         sets: wte.sets.map((set) => ({
