@@ -56,6 +56,7 @@ export class WorkoutTemplateMapper {
         order: wte.order,
         name: wte.exercise.name,
         sets: wte.sets.map((set) => ({
+          id: set.id,
           order: set.order,
           setType: set.type,
         })),

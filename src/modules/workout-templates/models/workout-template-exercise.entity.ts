@@ -36,7 +36,7 @@ export class WorkoutTemplateExercise {
   exercise: Exercise;
 
   @OneToMany(() => WorkoutTemplateSet, (set) => set.workoutTemplateExercise, {
-    cascade: ['insert', 'remove'],
+    cascade: ['insert', 'remove', 'update'],
   })
   sets: WorkoutTemplateSet[];
 }

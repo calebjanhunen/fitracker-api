@@ -17,6 +17,7 @@ export class WorkoutTemplateReponseExerciseDto {
 }
 
 export class WorkoutTemplateResponseSetDto {
+  id: string;
   order: number;
   setType: SetType;
 }
