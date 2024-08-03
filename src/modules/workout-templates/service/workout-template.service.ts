@@ -8,6 +8,7 @@ import { WorkoutTemplateWithRecentSetsMapper } from '../mappers/workout-template
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
 import { CouldNotDeleteWorkoutTemplateException } from './exceptions/could-not-delete-workout-template.exception';
+import { CouldNotUpdateWorkoutTemplateException } from './exceptions/could-not-update-workout-template.exception';
 import { WorkoutTemplateNotFoundException } from './exceptions/workout-template-not-found.exception';
 
 @Injectable()
@@ -31,14 +32,10 @@ export class WorkoutTemplateService {
     const user = await this.userService.getById(userId);
 
     const exerciseIds = workoutTemplateDto.exercises.map((e) => e.exerciseId);
-    const exercises = await this.exerciseService.validateExercisesExist(
-      exerciseIds,
-      user,
-    );
+    await this.exerciseService.validateExercisesExist(exerciseIds, user);
 
     const workoutTemplateEntity = WorkoutTemplateMapper.fromDtoToEntity(
       workoutTemplateDto,
-      exercises,
       user,
     );
 
@@ -127,6 +124,60 @@ export class WorkoutTemplateService {
       await this.workoutTemplateRepo.delete(workoutTemplateToDelete);
     } catch (e) {
       throw new CouldNotDeleteWorkoutTemplateException(e.message);
+    }
+  }
+
+  /**
+   * Updates the workout template
+   * @param {string} workoutTemplateId
+   * @param {WorkoutTemplateRequestDto} updateWorkoutTemplateDto
+   * @param {string} userId
+   * @returns {WorkoutTemplateResponseDto}
+   *
+   * @throws {ResourceNotFoundException}
+   * @throws {WorkoutTemplateNotFoundException}
+   * @throws {CouldNotUpdateWorkoutTemplateException}
+   */
+  public async updateWorkoutTemplate(
+    workoutTemplateId: string,
+    updateWorkoutTemplateDto: WorkoutTemplateRequestDto,
+    userId: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    const user = await this.userService.getById(userId);
+
+    // Check if workout template exists
+    const existingWorkoutTemplate = await this.workoutTemplateRepo.findById(
+      workoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate)
+      throw new WorkoutTemplateNotFoundException(workoutTemplateId);
+
+    // Check if exercises in request exist in the database for the user
+    const exerciseIds = updateWorkoutTemplateDto.exercises.map(
+      (e) => e.exerciseId,
+    );
+    await this.exerciseService.validateExercisesExist(exerciseIds, user);
+
+    // Map the dto to entity
+    const workoutTemplateEntity = WorkoutTemplateMapper.fromDtoToEntity(
+      updateWorkoutTemplateDto,
+      user,
+    );
+
+    try {
+      const updatedWorkoutTemplate = await this.workoutTemplateRepo.update(
+        workoutTemplateEntity,
+        existingWorkoutTemplate,
+        userId,
+      );
+      if (!updatedWorkoutTemplate)
+        throw new WorkoutTemplateNotFoundException(workoutTemplateId);
+
+      return WorkoutTemplateMapper.fromEntityToDto(updatedWorkoutTemplate);
+    } catch (e) {
+      if (e instanceof WorkoutTemplateNotFoundException) throw e;
+      throw new CouldNotUpdateWorkoutTemplateException(workoutTemplateId);
     }
   }
 }

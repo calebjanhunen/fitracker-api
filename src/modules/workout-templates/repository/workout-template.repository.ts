@@ -49,6 +49,16 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     await this.repo.remove(entity);
   }
 
+  /**
+   * Updates a workout template - Deletes exercises and sets that were removed
+   * from the workout template and inserts new exercises and sets that were
+   * added to the workout template.
+   *
+   * @param {WorkoutTemplate} updateEntity
+   * @param {WorkoutTemplate} existingEntity
+   * @param {string} userId
+   * @returns {WorkoutTemplate | null}
+   */
   public async update(
     updateEntity: WorkoutTemplate,
     existingEntity: WorkoutTemplate,

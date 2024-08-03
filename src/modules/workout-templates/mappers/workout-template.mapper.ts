@@ -12,7 +12,6 @@ import { WorkoutTemplate } from '../models/workout-template.entity';
 export class WorkoutTemplateMapper {
   public static fromDtoToEntity(
     dto: WorkoutTemplateRequestDto,
-    exercises: Exercise[],
     user: User,
   ): WorkoutTemplate {
     const workoutTemplate = new WorkoutTemplate();
