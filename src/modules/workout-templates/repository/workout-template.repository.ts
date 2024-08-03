@@ -122,14 +122,15 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       );
       await queryRunner.manager.remove(setsToDelete);
 
-      // Delete exercises in existingWorkoutTemplate but not in updatedEntity
-      const workoutTemplateExerciseIds =
+      // Delete exercises in existingEntity but not in updateEntity
+      const updateWorkoutTemplateExerciseIds =
         updateEntity.workoutTemplateExercises.map((e) => e.id);
-      for (const existingWorkoutExercise of existingEntity.workoutTemplateExercises) {
-        if (!workoutTemplateExerciseIds.includes(existingWorkoutExercise.id)) {
-          await queryRunner.manager.remove(existingWorkoutExercise);
-        }
-      }
+      const exercisesToDelete = existingEntity.workoutTemplateExercises.filter(
+        (existingExercise) =>
+          !updateWorkoutTemplateExerciseIds.includes(existingExercise.id),
+      );
+      await queryRunner.manager.remove(exercisesToDelete);
+
       await queryRunner.commitTransaction();
     } catch (e) {
       if (queryRunner.isTransactionActive)
