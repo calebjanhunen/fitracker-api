@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from 'src/common/repository/base.repository';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { WorkoutTemplate } from '../models/workout-template.entity';
 
 @Injectable()
@@ -59,33 +59,10 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     await queryRunner.startTransaction();
 
     try {
-      // Delete sets in existingEntity but not in updateEntity
-      const setsToDelete = existingEntity.workoutTemplateExercises.flatMap(
-        (existingExercise) => {
-          // Find exercise in updateEntity - if it doesnt exist, return all sets to delete
-          const updateExercise = updateEntity.workoutTemplateExercises.find(
-            (updateE) => updateE.id === existingExercise.id,
-          );
-          if (!updateExercise) return existingExercise.sets;
+      await this.deleteSets(updateEntity, existingEntity, queryRunner);
+      await this.deleteExercises(updateEntity, existingEntity, queryRunner);
 
-          // If exercise does exist, return sets that don't exist in updateExercise
-          const updateSetIds = updateExercise.sets.map((set) => set.id);
-          return existingExercise.sets.filter(
-            (existingSet) => !updateSetIds.includes(existingSet.id),
-          );
-        },
-      );
-      await queryRunner.manager.remove(setsToDelete);
-
-      // Delete exercises in existingEntity but not in updateEntity
-      const updateWorkoutTemplateExerciseIds =
-        updateEntity.workoutTemplateExercises.map((e) => e.id);
-      const exercisesToDelete = existingEntity.workoutTemplateExercises.filter(
-        (existingExercise) =>
-          !updateWorkoutTemplateExerciseIds.includes(existingExercise.id),
-      );
-      await queryRunner.manager.remove(exercisesToDelete);
-
+      // Upsert workoutTemplate (insert new exercises and sets)
       await queryRunner.manager.save(updateEntity);
       await queryRunner.commitTransaction();
     } catch (e) {
@@ -97,5 +74,60 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     }
 
     return await this.findById(existingEntity.id, userId);
+  }
+
+  /**
+   * Deletes workoutTemplateSets that are in existingEntity but not in updateEntity
+   * @param {WorkoutTemplate} updateEntity
+   * @param {WorkoutTemplate} existingEntity
+   * @param {QueryRunner} queryRunner
+   */
+  private async deleteSets(
+    updateEntity: WorkoutTemplate,
+    existingEntity: WorkoutTemplate,
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    // Loop through existing exercises and return the sets to delete
+    const setsToDelete = existingEntity.workoutTemplateExercises.flatMap(
+      (existingExercise) => {
+        // Find exercise in updateEntity - if it doesnt exist, return all sets to delete
+        const updateExercise = updateEntity.workoutTemplateExercises.find(
+          (updateE) => updateE.id === existingExercise.id,
+        );
+        if (!updateExercise) return existingExercise.sets;
+
+        // If exercise does exist, return sets that don't exist in updateExercise
+        const updateSetIds = updateExercise.sets.map((set) => set.id);
+        return existingExercise.sets.filter(
+          (existingSet) => !updateSetIds.includes(existingSet.id),
+        );
+      },
+    );
+
+    await queryRunner.manager.remove(setsToDelete);
+  }
+
+  /**
+   * Deletes workoutTemplateExercises that are in existingEntity but not in updateEntity
+   * @param {WorkoutTemplate} updateEntity
+   * @param {WorkoutTemplate} existingEntity
+   * @param {QueryRunner} queryRunner
+   */
+  private async deleteExercises(
+    updateEntity: WorkoutTemplate,
+    existingEntity: WorkoutTemplate,
+    queryRunner: QueryRunner,
+  ): Promise<void> {
+    // Get each exercise id from updateEntity
+    const updateWorkoutTemplateExerciseIds =
+      updateEntity.workoutTemplateExercises.map((e) => e.id);
+
+    // Filter exercises that aren't in updateEntity
+    const exercisesToDelete = existingEntity.workoutTemplateExercises.filter(
+      (existingExercise) =>
+        !updateWorkoutTemplateExerciseIds.includes(existingExercise.id),
+    );
+
+    await queryRunner.manager.remove(exercisesToDelete);
   }
 }
