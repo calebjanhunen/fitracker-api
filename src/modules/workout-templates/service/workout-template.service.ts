@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
+import { WorkoutTemplateRequestDto } from '../dto/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
 import { WorkoutTemplateWithRecentSetsMapper } from '../mappers/workout-template-with-recent-sets.mapper';
@@ -20,17 +20,17 @@ export class WorkoutTemplateService {
 
   /**
    * Creates a workout template for a given user
-   * @param {CreateWorkoutTemplateDto} workoutTemplateDto
+   * @param {WorkoutTemplateRequestDto} workoutTemplateDto
    * @param {string} userId
    * @returns {WorkoutTemplateResponseDto}
    */
   public async createWorkoutTemplate(
-    workoutTemplateDto: CreateWorkoutTemplateDto,
+    workoutTemplateDto: WorkoutTemplateRequestDto,
     userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
     const user = await this.userService.getById(userId);
 
-    const exerciseIds = workoutTemplateDto.exercises.map((e) => e.id);
+    const exerciseIds = workoutTemplateDto.exercises.map((e) => e.exerciseId);
     const exercises = await this.exerciseService.validateExercisesExist(
       exerciseIds,
       user,

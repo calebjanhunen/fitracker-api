@@ -15,7 +15,7 @@ import {
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { CouldNotDeleteWorkoutException } from 'src/modules/workouts/internal-errors/could-not-delete-workout.exception';
-import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
+import { WorkoutTemplateRequestDto } from '../dto/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
 import { WorkoutTemplateService } from '../service/workout-template.service';
@@ -27,7 +27,7 @@ export class WorkoutTemplateController {
 
   @Post()
   public async createWorkoutTemplate(
-    @Body() createWorkoutTemplateDto: CreateWorkoutTemplateDto,
+    @Body() createWorkoutTemplateDto: WorkoutTemplateRequestDto,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
     try {
