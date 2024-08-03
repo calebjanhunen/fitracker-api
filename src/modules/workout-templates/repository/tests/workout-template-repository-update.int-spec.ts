@@ -40,9 +40,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     newWorkoutTemplate.name = 'Test Workout Template NEW';
 
@@ -62,9 +64,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     // New workout template exercise
     const newWorkoutTemplateExercise = new WorkoutTemplateExercise();
@@ -106,9 +110,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     newWorkoutTemplate.workoutTemplateExercises[0].order = 2;
     newWorkoutTemplate.workoutTemplateExercises[1].order = 1;
@@ -136,9 +142,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     const newSet = new WorkoutTemplateSet();
     newSet.order = 2;
@@ -162,9 +170,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     newWorkoutTemplate.workoutTemplateExercises[0].sets[0].type =
       SetType.WARMUP;
@@ -186,9 +196,11 @@ describe('WorkoutTemplate Repository: update()', () => {
       existingWorkoutTemplateId,
       userId,
     );
-    if (!existingWorkoutTemplate) return;
-
-    const newWorkoutTemplate = { ...existingWorkoutTemplate }; // Create shallow copy
+    const newWorkoutTemplate = await workoutTemplateRepo.findById(
+      existingWorkoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate || !newWorkoutTemplate) return;
 
     newWorkoutTemplate.workoutTemplateExercises =
       existingWorkoutTemplate.workoutTemplateExercises.filter(

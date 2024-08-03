@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BaseRepository } from 'src/common/repository/base.repository';
 import { DataSource, Repository } from 'typeorm';
-import { WorkoutTemplateExercise } from '../models/workout-template-exercise.entity';
-import { WorkoutTemplateSet } from '../models/workout-template-set.entity';
 import { WorkoutTemplate } from '../models/workout-template.entity';
 
 @Injectable()
@@ -56,54 +54,11 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     existingEntity: WorkoutTemplate,
     userId: string,
   ): Promise<WorkoutTemplate | null> {
-    console.time('Update Workout Template');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      await queryRunner.manager
-        .createQueryBuilder()
-        .update(WorkoutTemplate)
-        .set({ name: updateEntity.name })
-        .where('id = :id', { id: existingEntity.id })
-        .execute();
-
-      for (const workoutTemplateExercise of updateEntity.workoutTemplateExercises) {
-        if (!workoutTemplateExercise.id) {
-          // Create workout template exercise
-          await queryRunner.manager.save(workoutTemplateExercise);
-        } else {
-          // Update workout template exercise
-          await queryRunner.manager
-            .createQueryBuilder()
-            .update(WorkoutTemplateExercise)
-            .set({
-              order: workoutTemplateExercise.order,
-            })
-            .where('id = :id', { id: workoutTemplateExercise.id })
-            .execute();
-
-          for (const workoutTemplateSet of workoutTemplateExercise.sets) {
-            if (!workoutTemplateSet.id) {
-              // Create workout template set
-              await queryRunner.manager.save(workoutTemplateSet);
-            } else {
-              // Update workout template set
-              await queryRunner.manager
-                .createQueryBuilder()
-                .update(WorkoutTemplateSet)
-                .set({
-                  order: workoutTemplateSet.order,
-                  type: workoutTemplateSet.type,
-                })
-                .where('id = :id', { id: workoutTemplateSet.id })
-                .execute();
-            }
-          }
-        }
-      }
-
       // Delete sets in existingEntity but not in updateEntity
       const setsToDelete = existingEntity.workoutTemplateExercises.flatMap(
         (existingExercise) => {
@@ -131,6 +86,7 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       );
       await queryRunner.manager.remove(exercisesToDelete);
 
+      await queryRunner.manager.save(updateEntity);
       await queryRunner.commitTransaction();
     } catch (e) {
       if (queryRunner.isTransactionActive)
@@ -139,7 +95,7 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     } finally {
       await queryRunner.release();
     }
-    console.timeEnd('Update Workout Template');
+
     return await this.findById(existingEntity.id, userId);
   }
 }
