@@ -52,23 +52,11 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
   }
 
   public async update(
-    entity: WorkoutTemplate,
+    updateEntity: WorkoutTemplate,
     existingEntity: WorkoutTemplate,
     userId: string,
   ): Promise<WorkoutTemplate | null> {
-    // update workout template entity (name)
-    /*
-    update workout template exercises
-      insert any new workoutTemplateExercises that are in the updatedEntity bu arent in the existingEntity
-      delete any workoutTemplateExercises that are in the existingEntity but arent in the updatedEntity
-      update existing workoutTemplateExercises that are both in the updatedEntity and existingEntity (order)
-
-      update workoutTemplateSets for each exercise
-        insert any new workoutTemplateSets
-        delete any workoutTemplateSets not in updatedEntity
-        update existing sets (type, order)
-    */
-
+    console.time('Update Workout Template');
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -77,11 +65,11 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
       await queryRunner.manager
         .createQueryBuilder()
         .update(WorkoutTemplate)
-        .set({ name: entity.name })
+        .set({ name: updateEntity.name })
         .where('id = :id', { id: existingEntity.id })
         .execute();
 
-      for (const workoutTemplateExercise of entity.workoutTemplateExercises) {
+      for (const workoutTemplateExercise of updateEntity.workoutTemplateExercises) {
         if (!workoutTemplateExercise.id) {
           // Create workout template exercise
           await queryRunner.manager.save(workoutTemplateExercise);
@@ -113,29 +101,30 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
                 .execute();
             }
           }
-
-          // delete sets that are in existing workout template exercise but not in updatedEntity exercise
-          const existingWorkoutTemplateExercise =
-            existingEntity.workoutTemplateExercises.find(
-              (e) => e.id === workoutTemplateExercise.id,
-            )!;
-          const workoutTemplateSetIds = workoutTemplateExercise.sets.map(
-            (set) => set.id,
-          );
-          for (const existingWorkoutTemplateSet of existingWorkoutTemplateExercise.sets) {
-            if (
-              !workoutTemplateSetIds.includes(existingWorkoutTemplateSet.id)
-            ) {
-              await queryRunner.manager.remove(existingWorkoutTemplateSet);
-            }
-          }
         }
       }
 
-      // Delete exercises in existingWorkoutTemplate but not in updatedEntity
-      const workoutTemplateExerciseIds = entity.workoutTemplateExercises.map(
-        (e) => e.id,
+      // Delete sets in existingEntity but not in updateEntity
+      const setsToDelete = existingEntity.workoutTemplateExercises.flatMap(
+        (existingExercise) => {
+          // Find exercise in updateEntity - if it doesnt exist, return all sets to delete
+          const updateExercise = updateEntity.workoutTemplateExercises.find(
+            (updateE) => updateE.id === existingExercise.id,
+          );
+          if (!updateExercise) return existingExercise.sets;
+
+          // If exercise does exist, return sets that don't exist in updateExercise
+          const updateSetIds = updateExercise.sets.map((set) => set.id);
+          return existingExercise.sets.filter(
+            (existingSet) => !updateSetIds.includes(existingSet.id),
+          );
+        },
       );
+      await queryRunner.manager.remove(setsToDelete);
+
+      // Delete exercises in existingWorkoutTemplate but not in updatedEntity
+      const workoutTemplateExerciseIds =
+        updateEntity.workoutTemplateExercises.map((e) => e.id);
       for (const existingWorkoutExercise of existingEntity.workoutTemplateExercises) {
         if (!workoutTemplateExerciseIds.includes(existingWorkoutExercise.id)) {
           await queryRunner.manager.remove(existingWorkoutExercise);
@@ -149,6 +138,7 @@ export class WorkoutTemplateRepository extends BaseRepository<WorkoutTemplate> {
     } finally {
       await queryRunner.release();
     }
+    console.timeEnd('Update Workout Template');
     return await this.findById(existingEntity.id, userId);
   }
 }
