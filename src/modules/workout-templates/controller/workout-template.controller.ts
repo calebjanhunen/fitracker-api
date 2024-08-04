@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -19,6 +20,7 @@ import { CouldNotDeleteWorkoutException } from 'src/modules/workouts/internal-er
 import { WorkoutTemplateRequestDto } from '../dto/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
+import { InvalidOrderException } from '../service/exceptions/invalid-order.exception';
 import { WorkoutTemplateService } from '../service/workout-template.service';
 
 @Controller('api/workout-templates')
@@ -108,8 +110,10 @@ export class WorkoutTemplateController {
         );
       return updatedWorkoutTemplate;
     } catch (e) {
-      if (e instanceof ResourceNotFoundException || e instanceof Error)
+      if (e instanceof ResourceNotFoundException)
         throw new NotFoundException(e.message);
+      if (e instanceof InvalidOrderException)
+        throw new BadRequestException(e.message);
       throw new ConflictException(e.message);
     }
   }
