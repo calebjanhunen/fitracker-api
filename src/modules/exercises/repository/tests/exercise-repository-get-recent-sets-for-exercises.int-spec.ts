@@ -1,11 +1,12 @@
 import { TestingModule } from '@nestjs/testing';
 import {
+  resetDatabase,
   setupTestEnvironment,
   teardownTestEnvironment,
 } from 'test/utils/integration-environment-setup';
 import { ExerciseRepository } from '../exercise.repository';
 
-describe('WorkoutTemplate Repository: findById()', () => {
+describe('Exercise Repository: getRecentSetsForExercises()', () => {
   let exerciseRepo: ExerciseRepository;
   let module: TestingModule;
 
@@ -15,7 +16,9 @@ describe('WorkoutTemplate Repository: findById()', () => {
     );
     exerciseRepo = module.get(ExerciseRepository);
   });
-
+  beforeEach(async () => {
+    await resetDatabase();
+  });
   afterAll(async () => {
     await teardownTestEnvironment(module);
   });
@@ -30,8 +33,6 @@ describe('WorkoutTemplate Repository: findById()', () => {
     const exercisesWithRecentSets =
       await exerciseRepo.getRecentSetsForExercises(userId, exerciseIds);
 
-    console.log(exercisesWithRecentSets);
-
     expect(exercisesWithRecentSets.length).toBe(1);
     expect(exercisesWithRecentSets[0].sets.length).toBe(2);
   });
@@ -44,9 +45,6 @@ describe('WorkoutTemplate Repository: findById()', () => {
     const exercisesWithRecentSets =
       await exerciseRepo.getRecentSetsForExercises(userId, exerciseIds);
 
-    const exercises = await exerciseRepo.getAll(userId);
-    console.log(exercises);
-
     expect(exercisesWithRecentSets.length).toBe(2);
     expect(exercisesWithRecentSets[0].sets.length).toBe(2);
     expect(exercisesWithRecentSets[1].sets.length).toBe(1);
@@ -55,9 +53,6 @@ describe('WorkoutTemplate Repository: findById()', () => {
     const userId = '4e06c1c0-a0d6-4f0c-be74-4eb8678a70e8';
     const exercisesWithRecentSets =
       await exerciseRepo.getRecentSetsForExercises(userId);
-
-    const exercises = await exerciseRepo.getAll(userId);
-    console.log(exercises);
 
     expect(exercisesWithRecentSets.length).toBe(2);
     expect(exercisesWithRecentSets[0].sets.length).toBe(2);

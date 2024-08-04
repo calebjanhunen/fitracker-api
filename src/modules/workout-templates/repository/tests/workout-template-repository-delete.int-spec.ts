@@ -1,6 +1,7 @@
 import { TestingModule } from '@nestjs/testing';
 import { getIntegrationDataSourceInstance } from 'test/integration/integration-test-datasource';
 import {
+  resetDatabase,
   setupTestEnvironment,
   teardownTestEnvironment,
 } from 'test/utils/integration-environment-setup';
@@ -19,6 +20,9 @@ describe('WorkoutTemplate Repository: delete()', () => {
 
     workoutTemplateRepo = module.get(WorkoutTemplateRepository);
     dataSource = await getIntegrationDataSourceInstance();
+  });
+  beforeEach(async () => {
+    await resetDatabase();
   });
   afterAll(async () => {
     await teardownTestEnvironment(module);
