@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { User } from 'src/modules/user/models/user.entity';
 import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ExerciseUsage } from '../interfaces/exercise-usage.interface';
 
 @Injectable()
@@ -70,12 +70,11 @@ export class ExerciseRepository {
    * @returns {Exercise[]}
    */
   public async getByIds(ids: string[], user: User): Promise<Exercise[]> {
-    return await this.exerciseRepo.find({
-      where: [
-        { id: In(ids), user },
-        { id: In(ids), isCustom: false },
-      ],
-    });
+    const qb = this.exerciseRepo.createQueryBuilder();
+
+    qb.where('id IN(:...ids) AND user_id = :userId', { ids, userId: user.id });
+    qb.orWhere('id IN(:...ids) AND is_custom = false', { ids });
+    return await qb.getMany();
   }
 
   /**
