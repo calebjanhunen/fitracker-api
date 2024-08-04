@@ -13,8 +13,10 @@ export class WorkoutTemplateMapper {
   public static fromDtoToEntity(
     dto: WorkoutTemplateRequestDto,
     user: User,
+    workoutTemplateId?: string,
   ): WorkoutTemplate {
     const workoutTemplate = new WorkoutTemplate();
+    if (workoutTemplateId) workoutTemplate.id = workoutTemplateId;
     workoutTemplate.name = dto.name;
     workoutTemplate.user = user;
 

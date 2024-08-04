@@ -10,6 +10,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
@@ -88,6 +89,27 @@ export class WorkoutTemplateController {
         throw new NotFoundException(e.message);
       if (e instanceof CouldNotDeleteWorkoutException)
         throw new InternalServerErrorException(e.message);
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Put(':id')
+  public async updateWorkoutTemplate(
+    @Body() workoutTemplateDto: WorkoutTemplateRequestDto,
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    try {
+      const updatedWorkoutTemplate =
+        await this.workoutTemplateService.updateWorkoutTemplate(
+          id,
+          workoutTemplateDto,
+          userId,
+        );
+      return updatedWorkoutTemplate;
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException || e instanceof Error)
+        throw new NotFoundException(e.message);
       throw new ConflictException(e.message);
     }
   }

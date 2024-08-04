@@ -163,6 +163,7 @@ export class WorkoutTemplateService {
     const workoutTemplateEntity = WorkoutTemplateMapper.fromDtoToEntity(
       updateWorkoutTemplateDto,
       user,
+      workoutTemplateId,
     );
 
     try {
