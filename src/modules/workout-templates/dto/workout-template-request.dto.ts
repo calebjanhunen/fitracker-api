@@ -19,11 +19,11 @@ export class WorkoutTemplateRequestDto {
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => UpdateWorkoutTemplateRequestExerciseDto)
-  public exercises: UpdateWorkoutTemplateRequestExerciseDto[];
+  @Type(() => WorkoutTemplateRequestExerciseDto)
+  public exercises: WorkoutTemplateRequestExerciseDto[];
 }
 
-export class UpdateWorkoutTemplateRequestExerciseDto {
+export class WorkoutTemplateRequestExerciseDto {
   @IsUUID()
   @IsOptional()
   public id?: string;
@@ -38,11 +38,11 @@ export class UpdateWorkoutTemplateRequestExerciseDto {
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => UpdateWorkoutTemplateRequestSetDto)
-  public sets: UpdateWorkoutTemplateRequestSetDto[];
+  @Type(() => WorkoutTemplateRequestSetDto)
+  public sets: WorkoutTemplateRequestSetDto[];
 }
 
-export class UpdateWorkoutTemplateRequestSetDto {
+export class WorkoutTemplateRequestSetDto {
   @IsUUID()
   @IsOptional()
   public id?: string;
