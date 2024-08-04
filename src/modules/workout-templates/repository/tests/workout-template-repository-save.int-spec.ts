@@ -4,6 +4,7 @@ import { SetType } from 'src/common/enums/set-type.enum';
 import { ExerciseRepository } from 'src/modules/exercises/repository/exercise.repository';
 import { User } from 'src/modules/user/models/user.entity';
 import {
+  resetDatabase,
   setupTestEnvironment,
   teardownTestEnvironment,
 } from 'test/utils/integration-environment-setup';
@@ -31,7 +32,9 @@ describe('WorkoutTemplate Repository: save()', () => {
   afterAll(async () => {
     await teardownTestEnvironment(module);
   });
-
+  beforeEach(async () => {
+    await resetDatabase();
+  });
   it('should be defined', () => {
     expect(workoutTemplateRepo).toBeDefined();
   });

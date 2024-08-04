@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -10,14 +11,16 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { CouldNotDeleteWorkoutException } from 'src/modules/workouts/internal-errors/could-not-delete-workout.exception';
-import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
+import { WorkoutTemplateRequestDto } from '../dto/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
+import { InvalidOrderException } from '../service/exceptions/invalid-order.exception';
 import { WorkoutTemplateService } from '../service/workout-template.service';
 
 @Controller('api/workout-templates')
@@ -27,7 +30,7 @@ export class WorkoutTemplateController {
 
   @Post()
   public async createWorkoutTemplate(
-    @Body() createWorkoutTemplateDto: CreateWorkoutTemplateDto,
+    @Body() createWorkoutTemplateDto: WorkoutTemplateRequestDto,
     @Headers('user-id') userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
     try {
@@ -88,6 +91,29 @@ export class WorkoutTemplateController {
         throw new NotFoundException(e.message);
       if (e instanceof CouldNotDeleteWorkoutException)
         throw new InternalServerErrorException(e.message);
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Put(':id')
+  public async updateWorkoutTemplate(
+    @Body() workoutTemplateDto: WorkoutTemplateRequestDto,
+    @Headers('user-id') userId: string,
+    @Param('id') id: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    try {
+      const updatedWorkoutTemplate =
+        await this.workoutTemplateService.updateWorkoutTemplate(
+          id,
+          workoutTemplateDto,
+          userId,
+        );
+      return updatedWorkoutTemplate;
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof InvalidOrderException)
+        throw new BadRequestException(e.message);
       throw new ConflictException(e.message);
     }
   }

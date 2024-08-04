@@ -13,9 +13,25 @@
   "exercises": [
     {
       "id": "3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81",
-      "name": "Exercise",
+      "name": "Test Exercise 1",
       "equipment": "dumbbells",
       "primary_muscle": "chest",
+      "difficulty_level": "beginner",
+      "instructions": ["step1", "step2"]
+    },
+    {
+      "id": "8ad0015a-7141-4ca6-b0bc-49ce36115df8",
+      "name": "Test Exercise 2",
+      "equipment": "machine",
+      "primary_muscle": "legs",
+      "difficulty_level": "beginner",
+      "instructions": ["step1", "step2"]
+    },
+    {
+      "id": "fe1dce22-e402-4752-922a-c31eacefbe46",
+      "name": "Test Exercise 3",
+      "equipment": "machine",
+      "primary_muscle": "legs",
       "difficulty_level": "beginner",
       "instructions": ["step1", "step2"]
     }
@@ -33,6 +49,12 @@
       "exercise_id": "3668e2ee-1aaf-4ebe-b5de-9896e6ad3f81",
       "workout_template_id": "81622181-0768-45e1-943f-86099cd91961",
       "order": 1
+    },
+    {
+      "id": "c2d89d2e-1ff5-4992-82b8-2bbccdbeeb78",
+      "exercise_id": "8ad0015a-7141-4ca6-b0bc-49ce36115df8",
+      "workout_template_id": "81622181-0768-45e1-943f-86099cd91961",
+      "order": 2
     }
   ],
   "workoutTemplateSets": [
@@ -41,6 +63,18 @@
       "type": "working",
       "order": 1,
       "workout_template_exercise_id": "37eb6e1e-c26e-46e3-8732-e8874a1d2df1"
+    },
+    {
+      "id": "a64c290b-a294-4062-ae3a-2bf88d4848d3",
+      "type": "working",
+      "order": 1,
+      "workout_template_exercise_id": "c2d89d2e-1ff5-4992-82b8-2bbccdbeeb78"
+    },
+    {
+      "id": "05ff5432-24a9-4775-8805-fbfa529092a5",
+      "type": "working",
+      "order": 2,
+      "workout_template_exercise_id": "c2d89d2e-1ff5-4992-82b8-2bbccdbeeb78"
     }
   ]
 }

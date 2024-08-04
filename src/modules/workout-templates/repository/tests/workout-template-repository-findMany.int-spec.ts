@@ -1,5 +1,6 @@
 import { TestingModule } from '@nestjs/testing';
 import {
+  resetDatabase,
   setupTestEnvironment,
   teardownTestEnvironment,
 } from 'test/utils/integration-environment-setup';
@@ -15,7 +16,9 @@ describe('WorkoutTemplate Repository: findById()', () => {
     );
     workoutTemplateRepo = module.get(WorkoutTemplateRepository);
   });
-
+  beforeEach(async () => {
+    await resetDatabase();
+  });
   afterAll(async () => {
     await teardownTestEnvironment(module);
   });

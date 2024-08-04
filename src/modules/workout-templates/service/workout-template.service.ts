@@ -1,13 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import ExercisesService from 'src/modules/exercises/services/exercises.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
+import {
+  WorkoutTemplateRequestDto,
+  WorkoutTemplateRequestExerciseDto,
+} from '../dto/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from '../dto/workout-template-response.dto';
 import { WorkoutTemplateWithRecentSetsResponseDto } from '../dto/workout-template-with-recent-sets-response.dto';
 import { WorkoutTemplateWithRecentSetsMapper } from '../mappers/workout-template-with-recent-sets.mapper';
 import { WorkoutTemplateMapper } from '../mappers/workout-template.mapper';
 import { WorkoutTemplateRepository } from '../repository/workout-template.repository';
 import { CouldNotDeleteWorkoutTemplateException } from './exceptions/could-not-delete-workout-template.exception';
+import { CouldNotUpdateWorkoutTemplateException } from './exceptions/could-not-update-workout-template.exception';
+import { InvalidOrderException } from './exceptions/invalid-order.exception';
 import { WorkoutTemplateNotFoundException } from './exceptions/workout-template-not-found.exception';
 
 @Injectable()
@@ -20,25 +25,21 @@ export class WorkoutTemplateService {
 
   /**
    * Creates a workout template for a given user
-   * @param {CreateWorkoutTemplateDto} workoutTemplateDto
+   * @param {WorkoutTemplateRequestDto} workoutTemplateDto
    * @param {string} userId
    * @returns {WorkoutTemplateResponseDto}
    */
   public async createWorkoutTemplate(
-    workoutTemplateDto: CreateWorkoutTemplateDto,
+    workoutTemplateDto: WorkoutTemplateRequestDto,
     userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
     const user = await this.userService.getById(userId);
 
-    const exerciseIds = workoutTemplateDto.exercises.map((e) => e.id);
-    const exercises = await this.exerciseService.validateExercisesExist(
-      exerciseIds,
-      user,
-    );
+    const exerciseIds = workoutTemplateDto.exercises.map((e) => e.exerciseId);
+    await this.exerciseService.validateExercisesExist(exerciseIds, user);
 
     const workoutTemplateEntity = WorkoutTemplateMapper.fromDtoToEntity(
       workoutTemplateDto,
-      exercises,
       user,
     );
 
@@ -127,6 +128,85 @@ export class WorkoutTemplateService {
       await this.workoutTemplateRepo.delete(workoutTemplateToDelete);
     } catch (e) {
       throw new CouldNotDeleteWorkoutTemplateException(e.message);
+    }
+  }
+
+  /**
+   * Updates the workout template
+   * @param {string} workoutTemplateId
+   * @param {WorkoutTemplateRequestDto} updateWorkoutTemplateDto
+   * @param {string} userId
+   * @returns {WorkoutTemplateResponseDto}
+   *
+   * @throws {ResourceNotFoundException}
+   * @throws {WorkoutTemplateNotFoundException}
+   * @throws {CouldNotUpdateWorkoutTemplateException}
+   * @throws {InvalidOrderException}
+   */
+  public async updateWorkoutTemplate(
+    workoutTemplateId: string,
+    updateWorkoutTemplateDto: WorkoutTemplateRequestDto,
+    userId: string,
+  ): Promise<WorkoutTemplateResponseDto> {
+    const user = await this.userService.getById(userId);
+
+    // Check if workout template exists
+    const existingWorkoutTemplate = await this.workoutTemplateRepo.findById(
+      workoutTemplateId,
+      userId,
+    );
+    if (!existingWorkoutTemplate)
+      throw new WorkoutTemplateNotFoundException(workoutTemplateId);
+
+    // Check if exercises in request exist in the database for the user
+    const exerciseIds = updateWorkoutTemplateDto.exercises.map(
+      (e) => e.exerciseId,
+    );
+    await this.exerciseService.validateExercisesExist(exerciseIds, user);
+
+    this.validateSequentialOrder(updateWorkoutTemplateDto.exercises);
+
+    // Map the dto to entity
+    const workoutTemplateEntity = WorkoutTemplateMapper.fromDtoToEntity(
+      updateWorkoutTemplateDto,
+      user,
+      workoutTemplateId,
+    );
+
+    try {
+      const updatedWorkoutTemplate = await this.workoutTemplateRepo.update(
+        workoutTemplateEntity,
+        existingWorkoutTemplate,
+        userId,
+      );
+      if (!updatedWorkoutTemplate)
+        throw new WorkoutTemplateNotFoundException(workoutTemplateId);
+
+      return WorkoutTemplateMapper.fromEntityToDto(updatedWorkoutTemplate);
+    } catch (e) {
+      if (e instanceof WorkoutTemplateNotFoundException) throw e;
+      throw new CouldNotUpdateWorkoutTemplateException(workoutTemplateId);
+    }
+  }
+
+  /**
+   * Validates that exercises and sets order starts from 1 and increases sequentially by 1
+   * @param {WorkoutTemplateRequestExerciseDto[]} exercises
+   *
+   * @throws {InvalidOrderException}
+   */
+  private validateSequentialOrder(
+    exercises: WorkoutTemplateRequestExerciseDto[],
+  ): void {
+    for (let i = 0; i < exercises.length; i++) {
+      if (exercises[i].order !== i + 1)
+        throw new InvalidOrderException('Exercise', exercises[i].order, i);
+
+      const sets = exercises[i].sets;
+      for (let j = 0; j < sets.length; j++) {
+        if (sets[j].order !== j + 1)
+          throw new InvalidOrderException('Set', sets[j].order, j);
+      }
     }
   }
 }

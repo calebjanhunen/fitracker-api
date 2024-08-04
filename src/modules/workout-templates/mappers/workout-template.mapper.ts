@@ -1,6 +1,6 @@
 import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { User } from 'src/modules/user/models/user.entity';
-import { CreateWorkoutTemplateDto } from '../dto/create-workout-template.dto';
+import { WorkoutTemplateRequestDto } from '../dto/workout-template-request.dto';
 import {
   WorkoutTemplateReponseExerciseDto,
   WorkoutTemplateResponseDto,
@@ -11,31 +11,38 @@ import { WorkoutTemplate } from '../models/workout-template.entity';
 
 export class WorkoutTemplateMapper {
   public static fromDtoToEntity(
-    dto: CreateWorkoutTemplateDto,
-    exercises: Exercise[],
+    dto: WorkoutTemplateRequestDto,
     user: User,
+    workoutTemplateId?: string,
   ): WorkoutTemplate {
     const workoutTemplate = new WorkoutTemplate();
+    if (workoutTemplateId) workoutTemplate.id = workoutTemplateId;
     workoutTemplate.name = dto.name;
     workoutTemplate.user = user;
 
-    workoutTemplate.workoutTemplateExercises = dto.exercises.map((e) => {
-      const workoutTemplateExercise = new WorkoutTemplateExercise();
-      const foundExercise = exercises.find((ex) => ex.id === e.id);
-      if (!foundExercise) throw new Error(`Exercise with ${e.id} not found`);
+    workoutTemplate.workoutTemplateExercises = dto.exercises.map(
+      (workoutTemplateExerciseDto) => {
+        const workoutTemplateExerciseEntity = new WorkoutTemplateExercise();
+        const exerciseEntity = new Exercise();
+        exerciseEntity.id = workoutTemplateExerciseDto.exerciseId;
 
-      workoutTemplateExercise.exercise = foundExercise;
-      workoutTemplateExercise.workoutTemplate = workoutTemplate;
-      workoutTemplateExercise.order = e.order;
-      workoutTemplateExercise.sets = e.sets.map((set) => {
-        const setEntity = new WorkoutTemplateSet();
-        setEntity.order = set.order;
-        setEntity.type = set.setType;
-        setEntity.workoutTemplateExercise = workoutTemplateExercise;
-        return setEntity;
-      });
-      return workoutTemplateExercise;
-    });
+        if (workoutTemplateExerciseDto.id)
+          workoutTemplateExerciseEntity.id = workoutTemplateExerciseDto.id;
+        workoutTemplateExerciseEntity.exercise = exerciseEntity;
+        workoutTemplateExerciseEntity.workoutTemplate = workoutTemplate;
+        workoutTemplateExerciseEntity.order = workoutTemplateExerciseDto.order;
+        workoutTemplateExerciseEntity.sets =
+          workoutTemplateExerciseDto.sets.map((setDto) => {
+            const setEntity = new WorkoutTemplateSet();
+            if (setDto.id) setEntity.id = setDto.id;
+            setEntity.order = setDto.order;
+            setEntity.type = setDto.setType;
+            setEntity.workoutTemplateExercise = workoutTemplateExerciseEntity;
+            return setEntity;
+          });
+        return workoutTemplateExerciseEntity;
+      },
+    );
 
     return workoutTemplate;
   }

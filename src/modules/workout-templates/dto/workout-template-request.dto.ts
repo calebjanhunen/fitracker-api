@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Min,
@@ -11,21 +12,25 @@ import {
 } from 'class-validator';
 import { SetType } from 'src/common/enums/set-type.enum';
 
-export class CreateWorkoutTemplateDto {
+export class WorkoutTemplateRequestDto {
   @IsString()
   @IsNotEmpty()
   public name: string;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => CreateWorkoutTemplateExerciseDto)
-  public exercises: CreateWorkoutTemplateExerciseDto[];
+  @Type(() => WorkoutTemplateRequestExerciseDto)
+  public exercises: WorkoutTemplateRequestExerciseDto[];
 }
 
-export class CreateWorkoutTemplateExerciseDto {
+export class WorkoutTemplateRequestExerciseDto {
+  @IsUUID()
+  @IsOptional()
+  public id?: string;
+
   @IsUUID()
   @IsNotEmpty()
-  public id: string;
+  public exerciseId: string;
 
   @IsInt()
   @Min(1)
@@ -33,11 +38,15 @@ export class CreateWorkoutTemplateExerciseDto {
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => CreateWorkoutTemplateSetDto)
-  public sets: CreateWorkoutTemplateSetDto[];
+  @Type(() => WorkoutTemplateRequestSetDto)
+  public sets: WorkoutTemplateRequestSetDto[];
 }
 
-export class CreateWorkoutTemplateSetDto {
+export class WorkoutTemplateRequestSetDto {
+  @IsUUID()
+  @IsOptional()
+  public id?: string;
+
   @IsInt()
   @Min(1)
   public order: number;
