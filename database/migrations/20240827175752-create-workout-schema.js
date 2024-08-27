@@ -22,11 +22,11 @@ exports.up = async function (db) {
     ifNotExists: true,
     columns: {
       id: {
-        type: 'int',
+        type: 'uuid',
         primaryKey: true,
         notNull: true,
         unique: true,
-        autoIncrement: true,
+        defaultValue: new String('uuid_generate_v4()'),
       },
       created_at: {
         type: 'datetime',
@@ -42,6 +42,19 @@ exports.up = async function (db) {
         type: 'string',
         length: 100,
         notNull: true,
+      },
+      user_id: {
+        type: 'uuid',
+        notNull: false,
+        foreignKey: {
+          name: 'fk_user_workout',
+          table: 'user',
+          mapping: 'id',
+          rules: {
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+          },
+        },
       },
     },
   });
@@ -59,18 +72,18 @@ exports.up = async function (db) {
     ifNotExists: true,
     columns: {
       id: {
-        type: 'int',
+        type: 'uuid',
         primaryKey: true,
         notNull: true,
         unique: true,
-        autoIncrement: true,
+        defaultValue: new String('uuid_generate_v4()'),
       },
       order: {
         type: 'int',
         notNull: true,
       },
       workout_id: {
-        type: 'int',
+        type: 'uuid',
         notNull: true,
         foreignKey: {
           name: 'fk_workout_workout_exercise',
@@ -83,7 +96,7 @@ exports.up = async function (db) {
         },
       },
       exercise_id: {
-        type: 'int',
+        type: 'uuid',
         notNull: true,
         foreignKey: {
           name: 'fk_exercise_workout_exercise',
@@ -98,19 +111,34 @@ exports.up = async function (db) {
     },
   });
 
+  // Add unique index for combination of workout_id and exercise_id so multiple of same exercise in a workout is not allowed
+  await db.addIndex(
+    'workout_exercise',
+    'workout_exercise_unique',
+    ['workout_id', 'exercise_id'],
+    true,
+  );
+  // Add a unique index on order and workout_id so order value is unique for each workout
+  await db.addIndex(
+    'workout_exercise',
+    'exercise_order_unique',
+    ['order', 'workout_id'],
+    true,
+  );
+
   // Create workout_set table
   await db.createTable('workout_set', {
     ifNotExists: true,
     columns: {
       id: {
-        type: 'int',
+        type: 'uuid',
         primaryKey: true,
         notNull: true,
         unique: true,
-        autoIncrement: true,
+        defaultValue: new String('uuid_generate_v4()'),
       },
       workout_exercise_id: {
-        type: 'int',
+        type: 'uuid',
         notNull: true,
         foreignKey: {
           name: 'fk_workout_exercise_set',
@@ -139,6 +167,14 @@ exports.up = async function (db) {
       },
     },
   });
+
+  // Add unique index on order and workout_exercise_id so order value is unique for each workout_exercise
+  await db.addIndex(
+    'workout_set',
+    'set_order_unique',
+    ['order', 'workout_exercise_id'],
+    true,
+  );
 };
 
 exports.down = async function (db) {

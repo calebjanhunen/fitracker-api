@@ -57,11 +57,11 @@ exports.up = async function (db) {
   await db.createTable('exercise', {
     columns: {
       id: {
-        type: 'int',
+        type: 'uuid',
         primaryKey: true,
         notNull: true,
         unique: true,
-        autoIncrement: true,
+        defaultValue: new String('uuid_generate_v4()'),
       },
       created_at: {
         type: 'datetime',

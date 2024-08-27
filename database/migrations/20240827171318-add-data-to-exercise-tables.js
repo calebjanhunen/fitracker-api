@@ -36,53 +36,53 @@ exports.up = async function (db) {
   // Insert into exercise table
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [1, 'bench press', 4, 1, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Bench Press', 4, 1, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [2, 'squat', 7, 1, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Squat', 7, 1, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [3, 'deadlift', 5, 1, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Deadlift', 5, 1, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [4, 'shoulder press', 3, 2, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Shoulder Press', 3, 2, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [5, 'bicep curl', 1, 2, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Bicep Curl', 1, 2, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [6, 'tricep dips', 2, 5, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Tricep Dips', 2, 5, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [7, 'lat pulldown', 5, 3, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Lat Pulldown', 5, 3, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [8, 'leg press', 7, 4, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Leg Press', 7, 4, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [9, 'plank', 6, 5, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Plank', 6, 5, false, null],
   );
   await db.insert(
     'exercise',
-    ['id', 'name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
-    [10, 'pull-up', 5, 5, false, null],
+    ['name', 'body_part_id', 'equipment_id', 'is_custom', 'user_id'],
+    ['Pull-Up', 5, 5, false, null],
   );
 };
 

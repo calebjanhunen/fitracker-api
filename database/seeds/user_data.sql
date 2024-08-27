@@ -3,3 +3,4 @@ INSERT INTO "user"
 VALUES 
     ('e12f815c-a8dd-4552-a5cb-d982b9b8435d', 'caleb_test', '$2b$10$/FqWaHKHVnCDv2Eih.KZVeCSEDnkFbxbnAYw0zzfI9CSwXvNK09Cy', 'caleb@test.com', 'caleb', 'test'),
     ('48c5d74a-4a4b-455f-9554-fa32e399282c', 'test_user', '$2b$10$/FqWaHKHVnCDv2Eih.KZVeCSEDnkFbxbnAYw0zzfI9CSwXvNK09Cy', 'testuser@test.com', 'test', 'user')
+ON CONFLICT (id) DO NOTHING
