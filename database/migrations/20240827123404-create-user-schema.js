@@ -16,50 +16,53 @@ exports.setup = function (options, seedLink) {
 
 exports.up = async function (db) {
   await db.createTable('user', {
-    id: {
-      type: 'uuid',
-      primaryKey: true,
-      notNull: true,
-      unique: true,
-      defaultValue: new String('uuid_generate_v4()'),
+    columns: {
+      id: {
+        type: 'uuid',
+        primaryKey: true,
+        notNull: true,
+        unique: true,
+        defaultValue: new String('uuid_generate_v4()'),
+      },
+      created_at: {
+        type: 'datetime',
+        notNull: true,
+        defaultValue: new String('CURRENT_TIMESTAMP'),
+      },
+      updated_at: {
+        type: 'datetime',
+        notNull: true,
+        defaultValue: new String('CURRENT_TIMESTAMP'),
+      },
+      username: {
+        type: 'string',
+        length: 50,
+        notNull: true,
+        unique: true,
+      },
+      password: {
+        type: 'string',
+        length: 255,
+        notNull: true,
+      },
+      email: {
+        type: 'string',
+        length: 255,
+        notNull: true,
+        unique: true,
+      },
+      first_name: {
+        type: 'string',
+        length: 255,
+        notNull: true,
+      },
+      last_name: {
+        type: 'string',
+        length: 255,
+        notNull: true,
+      },
     },
-    created_at: {
-      type: 'datetime',
-      notNull: true,
-      defaultValue: new String('CURRENT_TIMESTAMP'),
-    },
-    updated_at: {
-      type: 'datetime',
-      notNull: true,
-      defaultValue: new String('CURRENT_TIMESTAMP'),
-    },
-    username: {
-      type: 'string',
-      length: 50,
-      notNull: true,
-      unique: true,
-    },
-    password: {
-      type: 'string',
-      length: 255,
-      notNull: true,
-    },
-    email: {
-      type: 'string',
-      length: 255,
-      notNull: true,
-      unique: true,
-    },
-    first_name: {
-      type: 'string',
-      length: 255,
-      notNull: true,
-    },
-    last_name: {
-      type: 'string',
-      length: 255,
-      notNull: true,
-    },
+    ifNotExists: true,
   });
   await db.runSql(`
       CREATE TRIGGER update_user_updated_at

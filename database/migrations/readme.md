@@ -34,3 +34,8 @@ BINARY: 'binary',
 BOOLEAN: 'boolean',
 DECIMAL: 'decimal'
 ```
+
+## Foreign Key Constraint Naming Conention
+
+- Naming foreign keys should follow the following convention: `fk_<target_table>_<source_table>`
+- Example: if the current table is `exercise` and the target table is `body_part` the foreign key constraint would be: `fk_body_part_exercise`
