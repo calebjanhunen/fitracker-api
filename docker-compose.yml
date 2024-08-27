@@ -1,8 +1,7 @@
 version: '3.9'
 
 services:
-  db:
-    container_name: fitracker-postgres
+  fitracker-db:
     image: postgres:15
     restart: always
     environment:
@@ -21,14 +20,13 @@ services:
   #     POSTGRES_USER: testuser
   #     POSTGRES_PASSWORD: testpassword
   #     POSTGRES_DB: testdb
-  #   ports:
+  #   ports:@#@
   #     - '5433:5432'
 
-  app:
+  fitracker-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fitracker-nestjs
     command: npm run start:debug
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -40,11 +38,25 @@ services:
       - '3000:3000'
       - '9229:9229' # debug port
     depends_on:
-      - db
+      - fitracker-db
     # Mount host directory to docker container (for hot reloading)
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
+
+  seed:
+    image: postgres:15
+    depends_on:
+      - fitracker-db
+    environment:
+      PGHOST: fitracker-db
+      PGUSER: ${POSTGRES_USER}
+      PGDATABASE: ${POSTGRES_DATABASE}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./database/seeds:/database/seeds
+      - ./scripts/run-seeds.sh:/scripts/run-seeds.sh
+    entrypoint: ['sh', '/scripts/run-seeds.sh']
 
 volumes:
   pgdata:

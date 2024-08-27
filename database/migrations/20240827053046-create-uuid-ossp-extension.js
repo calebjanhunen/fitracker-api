@@ -19,7 +19,7 @@ exports.up = function (db) {
 };
 
 exports.down = function (db) {
-  return db.runSql('DROP EXTENSION IF EXISTS "uuid-ossp');
+  return db.runSql('DROP EXTENSION IF EXISTS "uuid-ossp"');
 };
 
 exports._meta = {
