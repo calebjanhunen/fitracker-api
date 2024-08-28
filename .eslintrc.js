@@ -19,6 +19,7 @@ module.exports = {
     '.eslintrc.js',
     'test/integration/jest-integration.globalSetup.ts',
     'test/integration/jest-integration.globalTeardown.ts',
+    'database/migrations/*.js',
   ],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',
