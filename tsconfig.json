@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": true,
     "allowJs": true
   },
+  "include": ["src/**/*", "global.d.ts"],
   "watchOptions": {
     // Use dynamic polling instead of system's native events for file changes
     "watchFile": "dynamicPriorityPolling",

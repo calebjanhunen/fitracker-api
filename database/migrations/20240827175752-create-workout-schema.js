@@ -111,21 +111,6 @@ exports.up = async function (db) {
     },
   });
 
-  // Add unique index for combination of workout_id and exercise_id so multiple of same exercise in a workout is not allowed
-  await db.addIndex(
-    'workout_exercise',
-    'workout_exercise_unique',
-    ['workout_id', 'exercise_id'],
-    true,
-  );
-  // Add a unique index on order and workout_id so order value is unique for each workout
-  await db.addIndex(
-    'workout_exercise',
-    'exercise_order_unique',
-    ['order', 'workout_id'],
-    true,
-  );
-
   // Create workout_set table
   await db.createTable('workout_set', {
     ifNotExists: true,
@@ -167,14 +152,6 @@ exports.up = async function (db) {
       },
     },
   });
-
-  // Add unique index on order and workout_exercise_id so order value is unique for each workout_exercise
-  await db.addIndex(
-    'workout_set',
-    'set_order_unique',
-    ['order', 'workout_exercise_id'],
-    true,
-  );
 };
 
 exports.down = async function (db) {
