@@ -13,7 +13,7 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
     ConfigModule.forRoot({ isGlobal: true }),
     // UserModule,
     // AuthModule,
-    DbModule,
+    // DbModule,
   ],
   controllers: [],
   providers: [],
