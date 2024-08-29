@@ -1,7 +1,0 @@
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-
-export class ExerciseNotFoundException extends ResourceNotFoundException {
-  constructor() {
-    super('Exercise not found');
-  }
-}
