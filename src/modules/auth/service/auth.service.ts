@@ -1,12 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { comparePasswords } from 'src/modules/auth/helpers/password-helper';
 import { UserService } from '../../user/service/user.service';
-import { LoginResponseDto } from '../dto/login-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,17 +14,19 @@ export class AuthService {
     this.jwtService = jwtService;
   }
 
-  async signIn(username: string, password: string): Promise<LoginResponseDto> {
+  async signIn(username: string, password: string): Promise<string> {
     try {
       const user = await this.userService.findByUsername(username);
       if (!user) {
-        throw new NotFoundException();
+        throw new ResourceNotFoundException(
+          `User not found with username: ${username}`,
+        );
       }
 
       const doPasswordsMatch = await comparePasswords(password, user.password);
 
       if (!doPasswordsMatch) {
-        throw new UnauthorizedException();
+        throw new Error();
       }
 
       const accessToken = await this.jwtService.signAsync({
@@ -36,14 +34,7 @@ export class AuthService {
         username: user.username,
       });
 
-      return {
-        accessToken,
-        user: {
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        },
-      };
+      return accessToken;
     } catch (error) {
       throw error;
     }

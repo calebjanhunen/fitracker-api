@@ -5,9 +5,10 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { LoginResponseDto } from '../dto/login-response.dto';
 import { UserLoginDto } from '../dto/user-signin.dto';
 import { AuthService } from '../service/auth.service';
-import { LoginResponseDto } from '../dto/login-response.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,8 +22,9 @@ export class AuthController {
   async login(@Body() userLoginDto: UserLoginDto): Promise<LoginResponseDto> {
     const { username, password } = userLoginDto;
     try {
-      const result = await this.authService.signIn(username, password);
-      return result;
+      const accessToken = await this.authService.signIn(username, password);
+      const response = plainToInstance(LoginResponseDto, { accessToken });
+      return response;
     } catch (error) {
       throw new HttpException('Login failed', HttpStatus.CONFLICT);
     }

@@ -11,7 +11,7 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     // UserModule,
-    // AuthModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
