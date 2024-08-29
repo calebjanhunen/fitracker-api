@@ -19,7 +19,7 @@ jobs:
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DB: testdb
         ports:
-          - '5433:5432'
+          - '5434:5432'
 
     steps:
       - uses: actions/checkout@v3
@@ -45,4 +45,4 @@ jobs:
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DATABASE: testdb
           POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5433
+          POSTGRES_PORT: 5434
