@@ -1,23 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DB_CONNECTION } from 'src/database/constants';
 import { UserRepository } from '../user.repository';
 
 describe('UserRepository: findById()', () => {
   const pool = global.getDbPool();
   let userRepository: UserRepository;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserRepository,
-        {
-          provide: DB_CONNECTION,
-          useValue: pool,
-        },
-      ],
-    }).compile();
-
-    userRepository = module.get<UserRepository>(UserRepository);
+  beforeAll(async () => {
+    userRepository = new UserRepository(global.dbService);
   });
 
   beforeEach(async () => {

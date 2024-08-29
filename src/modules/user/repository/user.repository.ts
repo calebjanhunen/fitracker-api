@@ -8,8 +8,6 @@ export class UserRepository {
   constructor(private readonly db: DbService) {}
 
   public async create(user: InsertUserModel): Promise<UserModel> {
-    const queryName = 'CreateUser';
-
     const query = `
         INSERT INTO "user" (username, password, first_name, last_name, email)
         VALUES ($1, $2, $3, $4, $5)
@@ -24,11 +22,11 @@ export class UserRepository {
     ];
 
     try {
-      const { result, elapsedTime } = await this.db.query<UserModel>(
+      const result = await this.db.query<UserModel>(
+        'CreateUser',
         query,
         values,
       );
-      console.log(`Total time for ${queryName} query: ${elapsedTime}ms`);
 
       return UserModel.fromDbQuery(result.rows[0]);
     } catch (e) {
@@ -37,8 +35,6 @@ export class UserRepository {
   }
 
   public async findByUsername(username: string): Promise<UserModel | null> {
-    const queryName = 'FindUserByUsername';
-
     const query = `
         SELECT
           id,
@@ -52,11 +48,11 @@ export class UserRepository {
     const values = [username];
 
     try {
-      const { result, elapsedTime } = await this.db.query<UserModel>(
+      const result = await this.db.query<UserModel>(
+        'FindUserByUsername',
         query,
         values,
       );
-      console.log(`Total time for ${queryName} query: ${elapsedTime}ms`);
 
       if (result.rows.length === 0) {
         return null;
@@ -68,8 +64,6 @@ export class UserRepository {
   }
 
   public async findByEmail(email: string): Promise<UserModel | null> {
-    const queryName = 'FindUserByEmail';
-
     const query = `
     SELECT
       id,
@@ -83,11 +77,11 @@ export class UserRepository {
     const values = [email];
 
     try {
-      const { result, elapsedTime } = await this.db.query<UserModel>(
+      const result = await this.db.query<UserModel>(
+        'FindUserByEmail',
         query,
         values,
       );
-      console.log(`Total time for ${queryName} query: ${elapsedTime}ms`);
 
       if (result.rows.length === 0) {
         return null;

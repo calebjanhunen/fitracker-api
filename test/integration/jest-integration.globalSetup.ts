@@ -1,7 +1,9 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { exec, spawn } from 'child_process';
-// import path from 'path';
 import { Pool } from 'pg';
 import { promisify } from 'util';
+import { DbModule } from '../../src/common/database/database.module';
+import { DbService } from '../../src/common/database/database.service';
 /* eslint-disable @typescript-eslint/no-var-requires */
 const dotenv = require('dotenv');
 const path = require('path');
@@ -20,6 +22,7 @@ async function globalSetup() {
   }
 
   const pool = createPostgresPool();
+  global.dbService = new DbService();
 
   try {
     await waitForDbConnection(pool);

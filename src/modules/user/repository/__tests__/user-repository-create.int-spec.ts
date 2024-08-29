@@ -1,5 +1,3 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { DB_CONNECTION } from 'src/database/constants';
 import { InsertUserModel } from '../../models/insert-user.model';
 import { UserRepository } from '../user.repository';
 
@@ -7,27 +5,17 @@ describe('UserRepository: create()', () => {
   const pool = global.getDbPool();
   let userRepository: UserRepository;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserRepository,
-        {
-          provide: DB_CONNECTION,
-          useValue: pool,
-        },
-      ],
-    }).compile();
-
-    userRepository = module.get<UserRepository>(UserRepository);
+  beforeAll(async () => {
+    userRepository = new UserRepository(global.dbService);
   });
 
-  it('should be defined', () => {
-    expect(userRepository).toBeDefined();
+  afterEach(async () => {
+    await pool.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;');
   });
 
   it('should successfully create user', async () => {
     const userModel = new InsertUserModel(
-      'test_user',
+      'test_user1',
       '123',
       'test',
       'user',
@@ -35,7 +23,7 @@ describe('UserRepository: create()', () => {
     );
     const user = await userRepository.create(userModel);
     expect(user.email).toBe('test@test.com');
-    expect(user.username).toBe('test_user');
+    expect(user.username).toBe('test_user1');
     expect(user.firstName).toBe('test');
     expect(user.lastName).toBe('user');
   });
