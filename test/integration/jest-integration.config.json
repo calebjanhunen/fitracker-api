@@ -1,0 +1,12 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": "../../",
+  "testEnvironment": "node",
+  "testRegex": ".int-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "modulePaths": ["<rootDir>"],
+  "globalSetup": "./test/integration/jest-integration.globalSetup.ts",
+  "globalTeardown": "./test/integration/jest-integration.globalTeardown.ts"
+}

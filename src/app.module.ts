@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-
-import { typeormConfig } from './config/typeorm.config';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
@@ -13,12 +10,8 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot(typeormConfig),
-    ExerciseModule,
-    UserModule,
+    // UserModule,
     AuthModule,
-    WorkoutsModule,
-    WorkoutTemplatesModule,
   ],
   controllers: [],
   providers: [],

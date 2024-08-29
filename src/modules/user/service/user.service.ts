@@ -1,45 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { InsertUserModel } from '../models/insert-user.model';
 import { User } from '../models/user.entity';
+import { UserModel } from '../models/user.model';
+import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserService {
-  private usersRepository: Repository<User>;
+  constructor(private readonly userRepo: UserRepository) {}
 
-  constructor(@InjectRepository(User) usersRepository: Repository<User>) {
-    this.usersRepository = usersRepository;
+  public async create(user: InsertUserModel): Promise<UserModel> {
+    return this.userRepo.create(user);
   }
 
-  async createUser(user: User): Promise<User> {
-    return await this.usersRepository.save(user);
+  public async findByUsername(username: string): Promise<UserModel | null> {
+    return this.userRepo.findByUsername(username);
   }
 
-  async getByUsername(username: string): Promise<User | null> {
-    try {
-      const user = await this.usersRepository.findOne({
-        where: { username },
-      });
-
-      return user;
-    } catch (error) {
-      throw error;
-    }
+  async findByEmail(email: string): Promise<UserModel | null> {
+    return this.userRepo.findByEmail(email);
   }
 
   /**
-   * Gets user by id
-   *
-   * @param {string} userId
-   * @returns {User}
-   *
-   * @throws {EntityNotFoundError}
+   * @deprecated Do not use
    */
-  async getById(userId: string): Promise<User> {
-    const user = await this.usersRepository.findOneBy({ id: userId });
-    if (!user) throw new ResourceNotFoundException('User not found');
-    return user;
+  async getById(id: string): Promise<User> {
+    return new User();
   }
 }
