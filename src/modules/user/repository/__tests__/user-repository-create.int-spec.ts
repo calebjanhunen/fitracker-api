@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DB_CONNECTION } from 'src/database/constants';
-import { UserModel } from '../../models/user.model';
+import { InsertUserModel } from '../../models/insert-user.model';
 import { UserRepository } from '../user.repository';
 
 describe('UserRepository: create()', () => {
@@ -26,10 +26,17 @@ describe('UserRepository: create()', () => {
   });
 
   it('should successfully create user', async () => {
-    const userModel = new UserModel();
-    userModel.email = '22';
+    const userModel = new InsertUserModel(
+      'test_user',
+      '123',
+      'test',
+      'user',
+      'test@test.com',
+    );
     const user = await userRepository.create(userModel);
-    console.log(user);
-    expect(user).toBeDefined();
+    expect(user.email).toBe('test@test.com');
+    expect(user.username).toBe('test_user');
+    expect(user.firstName).toBe('test');
+    expect(user.lastName).toBe('user');
   });
 });

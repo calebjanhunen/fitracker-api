@@ -20,7 +20,7 @@ export class AuthService {
 
   async signIn(username: string, password: string): Promise<LoginResponseDto> {
     try {
-      const user = await this.userService.getByUsername(username);
+      const user = await this.userService.findByUsername(username);
       if (!user) {
         throw new NotFoundException();
       }

@@ -5,6 +5,8 @@ const execAsync = promisify(exec);
 async function globalTeardown() {
   console.log('Running global teardown...');
   try {
+    const pool = global.getDbPool();
+    await pool.end();
     await execAsync('docker-compose down test-db');
     console.log('Docker container stopped and removed successfully.');
   } catch (error) {
