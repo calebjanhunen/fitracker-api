@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { DbModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
@@ -13,7 +12,6 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
     ConfigModule.forRoot({ isGlobal: true }),
     // UserModule,
     // AuthModule,
-    // DbModule,
   ],
   controllers: [],
   providers: [],
