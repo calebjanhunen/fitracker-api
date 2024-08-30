@@ -27,6 +27,9 @@ export class DbService implements OnModuleDestroy {
     });
   }
 
+  /**
+   * @deprecated Use queryV2
+   */
   public async query<T extends QueryResultRow>(
     queryName: string,
     query: string,
@@ -42,12 +45,44 @@ export class DbService implements OnModuleDestroy {
       if (process.env.NODE_ENV !== 'test') {
         this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
       }
-
       return result;
     } catch (e) {
       this.logger.error(`Query: ${queryName} failed: `, e);
       throw new DatabaseException(e.message);
     }
+  }
+
+  public async queryV2<T extends QueryResultRow>(
+    queryName: string,
+    query: string,
+    parameters: (string | number | boolean | null)[],
+  ): Promise<T[]> {
+    try {
+      const startTime = Date.now();
+      const result = await this.pool.query<T>(query, parameters);
+      const endTime = Date.now();
+
+      if (process.env.NODE_ENV !== 'test') {
+        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      }
+      return this.toCamelCase(result.rows);
+    } catch (e) {
+      this.logger.error(`Query: ${queryName} failed: `, e);
+      throw new DatabaseException(e.message);
+    }
+  }
+
+  private toCamelCase(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map((v) => this.toCamelCase(v));
+    } else if (obj !== null && obj.constructor === Object) {
+      return Object.keys(obj).reduce((result, key) => {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        result[camelKey] = this.toCamelCase(obj[key]);
+        return result;
+      }, {} as any);
+    }
+    return obj;
   }
 
   public async closePool() {

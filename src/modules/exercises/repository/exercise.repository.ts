@@ -26,12 +26,21 @@ export class ExerciseRepository {
       exercise.userId,
     ];
 
-    const result = await this.db.query<ExerciseModel>(
+    const result = await this.db.queryV2<ExerciseModel>(
       'CreateExercise',
       query,
       values,
     );
-    return ExerciseModel.fromDbQuery(result.rows[0]);
+    if (result.length === 0) {
+      throw new Error('Could not create exercise');
+    }
+
+    const createdExercise = await this.findById(result[0].id, result[0].userId);
+    if (!createdExercise) {
+      throw new Error('Could not find created exercise');
+    }
+
+    return createdExercise;
   }
 
   /**
@@ -58,8 +67,12 @@ export class ExerciseRepository {
     `;
     const params = [userId];
 
-    const result = await this.db.query('FindAllExercises', query, params);
-    return result.rows.map((e) => ExerciseModel.fromDbQuery(e));
+    const result = await this.db.queryV2<ExerciseModel>(
+      'FindAllExercises',
+      query,
+      params,
+    );
+    return result;
   }
 
   /**
@@ -91,11 +104,31 @@ export class ExerciseRepository {
     `;
     const params = [exerciseId, userId];
 
-    const result = await this.db.query('FindExerciseById', query, params);
-    if (result.rows.length === 0) {
+    const result = await this.db.queryV2<ExerciseModel>(
+      'FindExerciseById',
+      query,
+      params,
+    );
+    if (result.length === 0) {
       return null;
     }
-    return ExerciseModel.fromDbQuery(result.rows[0]);
+
+    return result[0];
+  }
+
+  /**
+   * Deletes an existing exercise.
+   * @param {Exercise} exercise
+   */
+  public async delete(exerciseId: string, userId: string): Promise<void> {
+    const query = `
+      DELETE FROM exercise
+      WHERE
+        id = $1 AND user_id = $2
+    `;
+    const params = [exerciseId, userId];
+
+    await this.db.queryV2('DeleteExercise', query, params);
   }
 
   // /**
@@ -188,13 +221,5 @@ export class ExerciseRepository {
   //  */
   // public async update(exercise: Exercise): Promise<Exercise> {
   //   return await this.exerciseRepo.save(exercise);
-  // }
-
-  // /**
-  //  * Deletes an existing exercise.
-  //  * @param {Exercise} exercise
-  //  */
-  // public async delete(exercise: Exercise): Promise<void> {
-  //   await this.exerciseRepo.remove(exercise);
   // }
 }

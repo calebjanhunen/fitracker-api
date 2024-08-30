@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { BodyPartService } from 'src/modules/body-part/service/body-part.service';
 import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
+import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
+import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import { ExerciseModel } from '../models/exerise.model';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseRepository } from '../repository/exercise.repository';
@@ -52,7 +54,9 @@ export class ExerciseService {
    * Gets all exercises for a user (default and custom)
    *
    * @param {string} userId
-   * @returns {ExerciseModel[]}
+   * @returns {ExerciseModel[]}\
+   *
+   * @throws {ExerciseNotFoundException}
    */
   public async findAll(userId: string): Promise<ExerciseModel[]> {
     return this.exerciseRepo.findAll(userId);
@@ -64,12 +68,31 @@ export class ExerciseService {
   ): Promise<ExerciseModel> {
     const exercise = await this.exerciseRepo.findById(exerciseId, userId);
     if (!exercise) {
-      throw new ResourceNotFoundException(
-        `Exercise not found with id: ${exerciseId}`,
-      );
+      throw new ExerciseNotFoundException(exerciseId);
     }
 
     return exercise;
+  }
+
+  /**
+   * Deletes an exercise
+   * @param {string} exerciseId
+   * @param {string} userId
+   *
+   * @throws {ExerciseNotFoundException}
+   * @throws {ExerciseIsNotCustomError}
+   */
+  public async delete(exerciseId: string, userId: string): Promise<void> {
+    const exercise = await this.exerciseRepo.findById(exerciseId, userId);
+    if (!exercise) {
+      throw new ExerciseNotFoundException(exerciseId);
+    }
+
+    if (!exercise.isCustom) {
+      throw new ExerciseIsNotCustomException();
+    }
+
+    await this.exerciseRepo.delete(exercise.id, userId);
   }
 
   //   /**
@@ -208,24 +231,6 @@ export class ExerciseService {
   //     exercise.id = exerciseId;
   //     const updatedExercise = await this.exerciseRepo.update(exercise);
   //     return updatedExercise;
-  //   }
-
-  //   /**
-  //    * Deletes an exercise from the db
-  //    * @param {string} exerciseId
-  //    * @param {string} userId
-  //    *
-  //    * @throws {ExerciseNotFoundException}
-  //    * @throws {ExerciseDoesNotBelongToUser}
-  //    * @throws {ExerciseIsNotCustomError}
-  //    */
-  //   public async deleteExercise(
-  //     exerciseId: string,
-  //     userId: string,
-  //   ): Promise<void> {
-  //     const exercise = await this.getSingleExerciseById(exerciseId, userId);
-  //     this.assertExerciseIsCustom(exercise);
-  //     await this.exerciseRepo.delete(exercise);
   //   }
 
   //   /**

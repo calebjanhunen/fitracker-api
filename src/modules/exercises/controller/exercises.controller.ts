@@ -2,8 +2,12 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
+  ForbiddenException,
   Get,
   Headers,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -14,6 +18,8 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
+import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
+import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseService } from '../services/exercise.service';
 
@@ -71,6 +77,24 @@ export default class ExercisesController {
     }
   }
 
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') exerciseId: string,
+  ): Promise<void> {
+    try {
+      await this.exerciseService.delete(exerciseId, userId);
+    } catch (e) {
+      if (e instanceof ExerciseNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof ExerciseIsNotCustomException)
+        throw new ForbiddenException(e.message);
+
+      throw new ConflictException(e.message);
+    }
+  }
+
   // @Get('exercises-for-workout')
   // async getExercisesForWorkout(
   //   @Headers('user-id') userId: string,
@@ -101,23 +125,6 @@ export default class ExercisesController {
   //       userId,
   //     );
   //     return ExerciseMapper.fromEntityToDto(updatedExercise);
-  //   } catch (e) {
-  //     if (e instanceof ResourceNotFoundException)
-  //       throw new NotFoundException(e.message);
-  //     if (e instanceof ExerciseIsNotCustomError)
-  //       throw new ForbiddenException(e.message);
-
-  //     throw new ConflictException(e.message);
-  //   }
-  // }
-
-  // @Delete(':id')
-  // async deleteExercise(
-  //   @Headers('user-id') userId: string,
-  //   @Param('id') id: string,
-  // ): Promise<void> {
-  //   try {
-  //     await this.exercisesService.deleteExercise(id, userId);
   //   } catch (e) {
   //     if (e instanceof ResourceNotFoundException)
   //       throw new NotFoundException(e.message);
