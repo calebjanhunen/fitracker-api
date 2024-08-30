@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
-import { ExerciseModel } from '../models/exerise.model';
-import { InsertExerciseModel } from '../models/insert-exercise.model';
+import { ExerciseModel, InsertExerciseModel } from '../models';
 
 @Injectable()
 export class ExerciseRepository {
@@ -11,6 +10,8 @@ export class ExerciseRepository {
    * Creates a new exercise.
    * @param {InsertExerciseModel} exercise
    * @returns {ExerciseModel}
+   *
+   * @throws {DatabaseException}
    */
   public async create(exercise: InsertExerciseModel): Promise<ExerciseModel> {
     const query = `
@@ -47,6 +48,8 @@ export class ExerciseRepository {
    * This function gets all default exercises and custom exercises for a user
    * @param {string} userId   ID of the user
    * @returns {Exercise[]}    Array of exercises
+   *
+   * @throws {DatabaseException}
    */
   public async findAll(userId: string): Promise<ExerciseModel[]> {
     const query = `
@@ -80,6 +83,8 @@ export class ExerciseRepository {
    * @param {string} exerciseId
    * @param {string} userId
    * @returns {ExerciseModel | null}
+   *
+   * @throws {DatabaseException}
    */
   public async findById(
     exerciseId: string,
@@ -118,7 +123,10 @@ export class ExerciseRepository {
 
   /**
    * Deletes an existing exercise.
-   * @param {Exercise} exercise
+   * @param {string} exerciseId
+   * @param {string} userId
+   *
+   * @throws {DatabaseException}
    */
   public async delete(exerciseId: string, userId: string): Promise<void> {
     const query = `
@@ -129,6 +137,50 @@ export class ExerciseRepository {
     const params = [exerciseId, userId];
 
     await this.db.queryV2('DeleteExercise', query, params);
+  }
+
+  /**
+   * Updates an exercise.
+   * @param {string} exerciseId
+   * @param {InsertExerciseModel} exercise
+   * @param {string} userId
+   * @returns {ExerciseModel}
+   *
+   * @throws {DatabaseException}
+   */
+  public async update(
+    exerciseId: string,
+    exercise: InsertExerciseModel,
+    userId: string,
+  ): Promise<ExerciseModel> {
+    const query = `
+      UPDATE exercise
+      SET
+        name = $2,
+        body_part_id = $3,
+        equipment_id = $4
+      WHERE
+        id = $1 AND user_id = $5
+      RETURNING id;
+    `;
+    const params = [
+      exerciseId,
+      exercise.name,
+      exercise.bodyPartId,
+      exercise.equipmentId,
+      userId,
+    ];
+
+    const result = await this.db.queryV2<ExerciseModel>(
+      'UpdateExercise',
+      query,
+      params,
+    );
+    const updatedExercise = await this.findById(result[0].id, userId);
+    if (!updatedExercise) {
+      throw new Error('Could not find updated exercise');
+    }
+    return updatedExercise;
   }
 
   // /**
@@ -212,14 +264,5 @@ export class ExerciseRepository {
   //   }
   //   const result = await query.getMany();
   //   return result;
-  // }
-
-  // /**
-  //  * Updates an existing exercise.
-  //  * @param {Exercise} exercise
-  //  * @returns {Exercise}
-  //  */
-  // public async update(exercise: Exercise): Promise<Exercise> {
-  //   return await this.exerciseRepo.save(exercise);
   // }
 }

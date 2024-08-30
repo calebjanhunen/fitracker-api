@@ -5,8 +5,7 @@ import { BodyPartService } from 'src/modules/body-part/service/body-part.service
 import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
-import { ExerciseModel } from '../models/exerise.model';
-import { InsertExerciseModel } from '../models/insert-exercise.model';
+import { ExerciseModel, InsertExerciseModel } from '../models';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -29,21 +28,10 @@ export class ExerciseService {
     exercise: InsertExerciseModel,
     userId: string,
   ): Promise<ExerciseModel> {
-    const bodyPart = await this.bodyPartService.findById(exercise.bodyPartId);
-    if (!bodyPart) {
-      throw new ResourceNotFoundException(
-        `Body part with id, ${exercise.bodyPartId}, not found.`,
-      );
-    }
-
-    const equipment = await this.equipmentService.findById(
+    await this.validateBodyPartAndEquipmentExist(
+      exercise.bodyPartId,
       exercise.equipmentId,
     );
-    if (!equipment) {
-      throw new ResourceNotFoundException(
-        `Equipment with id, ${exercise.equipmentId}, not found.`,
-      );
-    }
 
     exercise.userId = userId;
     const createdExercise = await this.exerciseRepo.create(exercise);
@@ -93,6 +81,61 @@ export class ExerciseService {
     }
 
     await this.exerciseRepo.delete(exercise.id, userId);
+  }
+
+  /**
+   * Updates the exercise
+   * @param {string} exerciseId
+   * @param {InsertExerciseModel} exercise
+   * @param {string} userId
+   * @returns {ExerciseModel}
+   *
+   * @throws {ExerciseNotFoundException}
+   * @throws {ResourceNotFoundException}
+   * @throws {ExerciseIsNotCustomError}
+   */
+  public async update(
+    exerciseId: string,
+    exercise: InsertExerciseModel,
+    userId: string,
+  ): Promise<ExerciseModel> {
+    const existingExercise = await this.findById(exerciseId, userId);
+    await this.validateBodyPartAndEquipmentExist(
+      exercise.bodyPartId,
+      exercise.equipmentId,
+    );
+
+    if (!existingExercise.isCustom) {
+      throw new ExerciseIsNotCustomException();
+    }
+
+    return await this.exerciseRepo.update(exerciseId, exercise, userId);
+  }
+
+  /**
+   * Gets body part and equipment by id to see if they exist
+   * @param {number} bodyPartId
+   * @param {number} equipmentId
+   *
+   * @throws {ResourceNotFoundException}
+   */
+  private async validateBodyPartAndEquipmentExist(
+    bodyPartId: number,
+    equipmentId: number,
+  ): Promise<void> {
+    const bodyPart = await this.bodyPartService.findById(bodyPartId);
+    if (!bodyPart) {
+      throw new ResourceNotFoundException(
+        `Body part with id ${bodyPartId} not found.`,
+      );
+    }
+
+    const equipment = await this.equipmentService.findById(equipmentId);
+    if (!equipment) {
+      throw new ResourceNotFoundException(
+        `Equipment with id ${equipmentId} not found.`,
+      );
+    }
   }
 
   //   /**
@@ -200,48 +243,6 @@ export class ExerciseService {
   //     } catch (e) {
   //       // TODO: Log error
   //       throw new Error('Could not get recent sets for exercises');
-  //     }
-  //   }
-
-  //   /**
-  //    * Updates the exercise
-  //    * @param {string} exerciseId
-  //    * @param {Exercise} exercise
-  //    * @param {User} userId
-  //    * @returns {Exercise}
-  //    *
-  //    * @throws {ExerciseNotFoundException}
-  //    * @throws {ExerciseDoesNotBelongToUser}
-  //    * @throws {ExerciseIsNotCustomError}
-  //    */
-  //   async updateExercise(
-  //     exerciseId: string,
-  //     exercise: Exercise,
-  //     userId: string,
-  //   ): Promise<Exercise> {
-  //     const user = await this.userService.getById(userId);
-
-  //     const existingExercise = await this.getSingleExerciseById(
-  //       exerciseId,
-  //       userId,
-  //     );
-  //     this.assertExerciseIsCustom(existingExercise);
-
-  //     exercise.user = user;
-  //     exercise.id = exerciseId;
-  //     const updatedExercise = await this.exerciseRepo.update(exercise);
-  //     return updatedExercise;
-  //   }
-
-  //   /**
-  //    * Checks if the exercise is a custom exercise, throws error if it's default
-  //    * @param {Exercise} exercise
-  //    *
-  //    * @throws {ExerciseIsNotCustomError}
-  //    */
-  //   private assertExerciseIsCustom(exercise: Exercise): void {
-  //     if (!exercise.user) {
-  //       throw new ExerciseIsNotCustomError();
   //     }
   //   }
 }

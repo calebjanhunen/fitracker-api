@@ -11,6 +11,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
@@ -29,7 +30,7 @@ export default class ExercisesController {
   constructor(private exerciseService: ExerciseService) {}
 
   @Post()
-  async createExercise(
+  public async createExercise(
     @Headers('user-id') userId: string,
     @Body() createExerciseDto: ExerciseRequestDto,
   ): Promise<ExerciseResponseDto> {
@@ -50,7 +51,7 @@ export default class ExercisesController {
   }
 
   @Get()
-  async getAllExercises(
+  public async getAllExercises(
     @Headers('user-id') userId: string,
   ): Promise<ExerciseResponseDto[]> {
     try {
@@ -62,7 +63,7 @@ export default class ExercisesController {
   }
 
   @Get(':id')
-  async getExerciseById(
+  public async getExerciseById(
     @Headers('user-id') userId: string,
     @Param('id') exerciseId: string,
   ): Promise<ExerciseResponseDto> {
@@ -79,7 +80,7 @@ export default class ExercisesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteExercise(
+  public async deleteExercise(
     @Headers('user-id') userId: string,
     @Param('id') exerciseId: string,
   ): Promise<void> {
@@ -87,6 +88,33 @@ export default class ExercisesController {
       await this.exerciseService.delete(exerciseId, userId);
     } catch (e) {
       if (e instanceof ExerciseNotFoundException)
+        throw new NotFoundException(e.message);
+      if (e instanceof ExerciseIsNotCustomException)
+        throw new ForbiddenException(e.message);
+
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Put(':id')
+  public async updateExercise(
+    @Headers('user-id') userId: string,
+    @Param('id') exerciseId: string,
+    @Body() updateExerciseDto: ExerciseRequestDto,
+  ): Promise<ExerciseResponseDto> {
+    const updateExerciseModel = plainToInstance(
+      InsertExerciseModel,
+      updateExerciseDto,
+    );
+    try {
+      const updatedExercise = await this.exerciseService.update(
+        exerciseId,
+        updateExerciseModel,
+        userId,
+      );
+      return plainToInstance(ExerciseResponseDto, updatedExercise);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
         throw new NotFoundException(e.message);
       if (e instanceof ExerciseIsNotCustomException)
         throw new ForbiddenException(e.message);
@@ -106,31 +134,6 @@ export default class ExercisesController {
   //       ExercisesForWorkoutMapper.fromEntityToDto(exercise),
   //     );
   //   } catch (e) {
-  //     throw new ConflictException(e.message);
-  //   }
-  // }
-
-  // @Put(':id')
-  // async updateExercise(
-  //   @Headers('user-id') userId: string,
-  //   @Param('id') id: string,
-  //   @Body() updateExerciseDto: ExerciseRequestDto,
-  // ): Promise<ExerciseResponseDto> {
-  //   const exerciseEntity = ExerciseMapper.fromDtoToEntity(updateExerciseDto);
-
-  //   try {
-  //     const updatedExercise = await this.exercisesService.updateExercise(
-  //       id,
-  //       exerciseEntity,
-  //       userId,
-  //     );
-  //     return ExerciseMapper.fromEntityToDto(updatedExercise);
-  //   } catch (e) {
-  //     if (e instanceof ResourceNotFoundException)
-  //       throw new NotFoundException(e.message);
-  //     if (e instanceof ExerciseIsNotCustomError)
-  //       throw new ForbiddenException(e.message);
-
   //     throw new ConflictException(e.message);
   //   }
   // }
