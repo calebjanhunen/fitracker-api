@@ -17,7 +17,7 @@ export class ExerciseRepository {
     const query = `
         INSERT INTO exercise (name, body_part_id, equipment_id, is_custom, user_id)
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING *;
+        RETURNING id;
     `;
     const values = [
       exercise.name,
@@ -36,7 +36,7 @@ export class ExerciseRepository {
       throw new Error('Could not create exercise');
     }
 
-    const createdExercise = await this.findById(result[0].id, result[0].userId);
+    const createdExercise = await this.findById(result[0].id, exercise.userId);
     if (!createdExercise) {
       throw new Error('Could not find created exercise');
     }

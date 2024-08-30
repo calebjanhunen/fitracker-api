@@ -4,5 +4,4 @@ export class ExerciseModel {
   bodyPart: string;
   equipment: string;
   isCustom: boolean;
-  userId: string;
 }

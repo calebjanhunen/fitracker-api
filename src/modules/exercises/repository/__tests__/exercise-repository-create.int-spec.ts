@@ -30,6 +30,8 @@ describe('UserRepository: create()', () => {
     );
     const result = await exerciseRepo.create(model);
     expect(result.name).toBe('Test Exercise');
-    expect(result.userId).toBe('3781951f-bec1-45db-b8c6-e772258d8ddb');
+    expect(result.bodyPart).toBe('biceps');
+    expect(result.equipment).toBe('dumbbell');
+    expect(result.isCustom).toBe(true);
   });
 });
