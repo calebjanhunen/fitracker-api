@@ -7,9 +7,9 @@ export class ExerciseRequestDto {
 
   @IsNotEmpty()
   @IsInt()
-  public equipment: number;
+  public equipmentId: number;
 
   @IsNotEmpty()
   @IsInt()
-  public bodyPart: number;
+  public bodyPartId: number;
 }
