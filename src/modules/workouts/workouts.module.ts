@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DbModule } from 'src/common/database/database.module';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import { WorkoutsController } from './controller/workouts.controller';
@@ -14,6 +15,7 @@ import { WorkoutsService } from './service/workouts.service';
     TypeOrmModule.forFeature([Workout, WorkoutExercise, Set]),
     ExerciseModule,
     UserModule,
+    DbModule,
   ],
   providers: [WorkoutsService, WorkoutRepository],
   controllers: [WorkoutsController],
