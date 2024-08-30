@@ -53,8 +53,8 @@ services:
       PGDATABASE: ${POSTGRES_DATABASE}
       PGPASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./database/seeds:/database/seeds
       - ./scripts/run-seeds.sh:/scripts/run-seeds.sh
+      - ./database/seeds:/database/seeds
     entrypoint: ['sh', '/scripts/run-seeds.sh']
 
 volumes:
