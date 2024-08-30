@@ -54,8 +54,22 @@ export class ExerciseService {
    * @param {string} userId
    * @returns {ExerciseModel[]}
    */
-  async findAll(userId: string): Promise<ExerciseModel[]> {
+  public async findAll(userId: string): Promise<ExerciseModel[]> {
     return this.exerciseRepo.findAll(userId);
+  }
+
+  public async findById(
+    exerciseId: string,
+    userId: string,
+  ): Promise<ExerciseModel> {
+    const exercise = await this.exerciseRepo.findById(exerciseId, userId);
+    if (!exercise) {
+      throw new ResourceNotFoundException(
+        `Exercise not found with id: ${exerciseId}`,
+      );
+    }
+
+    return exercise;
   }
 
   //   /**
@@ -89,29 +103,6 @@ export class ExerciseService {
   //       throw new Error('One or more exercises do not exist');
 
   //     return exercises;
-  //   }
-
-  //   /**
-  //    * Gets an exercise by its id
-  //    * @param {string} exerciseId
-  //    * @param {string} userId
-  //    * @returns {Exercise}
-  //    *
-  //    * @throws {ExerciseNotFoundException}
-  //    * @throws {ResourceNotFoundException}
-  //    * @throws {EntityNotFoundError}
-  //    */
-  //   public async getSingleExerciseById(
-  //     exerciseId: string,
-  //     userId: string,
-  //   ): Promise<Exercise> {
-  //     await this.userService.getById(userId);
-
-  //     const exercise = await this.exerciseRepo.getById(exerciseId, userId);
-
-  //     if (!exercise) throw new ExerciseNotFoundException();
-
-  //     return exercise;
   //   }
 
   //   /**

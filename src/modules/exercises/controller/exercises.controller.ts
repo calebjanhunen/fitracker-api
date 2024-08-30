@@ -4,11 +4,14 @@ import {
   Controller,
   Get,
   Headers,
+  NotFoundException,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
@@ -41,7 +44,7 @@ export default class ExercisesController {
   }
 
   @Get()
-  async getExercises(
+  async getAllExercises(
     @Headers('user-id') userId: string,
   ): Promise<ExerciseResponseDto[]> {
     try {
@@ -49,6 +52,22 @@ export default class ExercisesController {
       return plainToInstance(ExerciseResponseDto, exercises);
     } catch (e) {
       throw new ConflictException(e.message);
+    }
+  }
+
+  @Get(':id')
+  async getExerciseById(
+    @Headers('user-id') userId: string,
+    @Param('id') exerciseId: string,
+  ): Promise<ExerciseResponseDto> {
+    try {
+      const exercise = await this.exerciseService.findById(exerciseId, userId);
+      return plainToInstance(ExerciseResponseDto, exercise);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+
+      throw new ConflictException('Error getting exercise');
     }
   }
 
@@ -64,25 +83,6 @@ export default class ExercisesController {
   //     );
   //   } catch (e) {
   //     throw new ConflictException(e.message);
-  //   }
-  // }
-
-  // @Get(':id')
-  // async getSingleExercise(
-  //   @Headers('user-id') userId: string,
-  //   @Param('id') id: string,
-  // ): Promise<ExerciseResponseDto> {
-  //   try {
-  //     const exercise = await this.exercisesService.getSingleExerciseById(
-  //       id,
-  //       userId,
-  //     );
-  //     return ExerciseMapper.fromEntityToDto(exercise);
-  //   } catch (e) {
-  //     if (e instanceof ResourceNotFoundException)
-  //       throw new NotFoundException(e.message);
-
-  //     throw new ConflictException('Error getting exercise');
   //   }
   // }
 

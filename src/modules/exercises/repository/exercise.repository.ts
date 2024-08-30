@@ -62,6 +62,42 @@ export class ExerciseRepository {
     return result.rows.map((e) => ExerciseModel.fromDbQuery(e));
   }
 
+  /**
+   * Gets an exercise by its id if it's default and id and userId if it's custom
+   * @param {string} exerciseId
+   * @param {string} userId
+   * @returns {ExerciseModel | null}
+   */
+  public async findById(
+    exerciseId: string,
+    userId: string,
+  ): Promise<ExerciseModel | null> {
+    const query = `
+      SELECT
+        e.id,
+        e.name,
+        bp.name as body_part,
+        eq.name as equipment,
+        e.is_custom
+      FROM exercise e
+      INNER JOIN body_part bp
+      ON bp.id = e.body_part_id
+      INNER JOIN equipment eq
+      ON eq.id = e.equipment_id
+      WHERE
+        (e.is_custom = false AND e.id = $1)
+      OR
+        (e.id = $1 AND e.user_id = $2)
+    `;
+    const params = [exerciseId, userId];
+
+    const result = await this.db.query('FindExerciseById', query, params);
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return ExerciseModel.fromDbQuery(result.rows[0]);
+  }
+
   // /**
   //  * Retrieves exercises by their IDs for a specific user, including both
   //  * custom and non-custom exercises.
@@ -75,27 +111,6 @@ export class ExerciseRepository {
   //   qb.where('id IN(:...ids) AND user_id = :userId', { ids, userId: user.id });
   //   qb.orWhere('id IN(:...ids) AND is_custom = false', { ids });
   //   return await qb.getMany();
-  // }
-
-  // /**
-  //  * Gets an exercise by its id and user id if custom
-  //  * @param {string} id
-  //  * @param {string} userId
-  //  * @returns {Exercise | null}
-  //  */
-  // public async getById(id: string, userId: string): Promise<Exercise | null> {
-  //   const query = this.exerciseRepo.createQueryBuilder('e');
-
-  //   query
-  //     .leftJoin('e.user', 'user')
-  //     .addSelect('user.id')
-  //     .where('e.id = :id AND (e.user_id = :userId OR e.user_id IS NULL)', {
-  //       id,
-  //       userId,
-  //     });
-
-  //   const result = await query.getOne();
-  //   return result;
   // }
 
   // /**
