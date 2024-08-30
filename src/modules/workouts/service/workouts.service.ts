@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import ExercisesService from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';

@@ -1,11 +1,4 @@
-import {
-  IsArray,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import { ExerciseDifficultyLevel } from '../enums/exercise-difficulty-level';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class ExerciseRequestDto {
   @IsNotEmpty()
@@ -13,23 +6,10 @@ export class ExerciseRequestDto {
   public name: string;
 
   @IsNotEmpty()
-  @IsEnum(ExerciseDifficultyLevel)
-  public difficultyLevel: ExerciseDifficultyLevel;
+  @IsInt()
+  public equipment: number;
 
   @IsNotEmpty()
-  @IsString()
-  public equipment: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  public instructions: string[];
-
-  @IsNotEmpty()
-  @IsString()
-  public primaryMuscle: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  public secondaryMuscles: string[];
+  @IsInt()
+  public bodyPart: number;
 }
