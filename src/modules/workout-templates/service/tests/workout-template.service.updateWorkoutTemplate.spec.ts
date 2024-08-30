@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SetType } from 'src/common/enums/set-type.enum';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { Exercise } from 'src/modules/exercises/models/exercise.entity';
-import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import ExercisesService from 'src/modules/exercises/services/exercise.service';
 import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import {

@@ -10,6 +10,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { Pool, QueryResult, QueryResultRow } from 'pg';
+import { DatabaseException } from '../internal-exceptions/database.exception';
 
 @Injectable()
 export class DbService implements OnModuleDestroy {
@@ -26,22 +27,62 @@ export class DbService implements OnModuleDestroy {
     });
   }
 
+  /**
+   * @deprecated Use queryV2
+   */
   public async query<T extends QueryResultRow>(
     queryName: string,
     query: string,
     parameters: (string | number | boolean | null)[],
   ): Promise<QueryResult<T>> {
-    const startTime = Date.now();
+    try {
+      const startTime = Date.now();
 
-    const result = await this.pool.query(query, parameters);
+      const result = await this.pool.query(query, parameters);
 
-    const endTime = Date.now();
+      const endTime = Date.now();
 
-    if (process.env.NODE_ENV !== 'test') {
-      this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      if (process.env.NODE_ENV !== 'test') {
+        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      }
+      return result;
+    } catch (e) {
+      this.logger.error(`Query: ${queryName} failed: `, e);
+      throw new DatabaseException(e.message);
     }
+  }
 
-    return result;
+  public async queryV2<T extends QueryResultRow>(
+    queryName: string,
+    query: string,
+    parameters: (string | number | boolean | null)[],
+  ): Promise<T[]> {
+    try {
+      const startTime = Date.now();
+      const result = await this.pool.query<T>(query, parameters);
+      const endTime = Date.now();
+
+      if (process.env.NODE_ENV !== 'test') {
+        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      }
+      return this.toCamelCase(result.rows);
+    } catch (e) {
+      this.logger.error(`Query: ${queryName} failed: `, e);
+      throw new DatabaseException(e.message);
+    }
+  }
+
+  private toCamelCase(obj: any): any {
+    if (Array.isArray(obj)) {
+      return obj.map((v) => this.toCamelCase(v));
+    } else if (obj !== null && obj.constructor === Object) {
+      return Object.keys(obj).reduce((result, key) => {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        result[camelKey] = this.toCamelCase(obj[key]);
+        return result;
+      }, {} as any);
+    }
+    return obj;
   }
 
   public async closePool() {

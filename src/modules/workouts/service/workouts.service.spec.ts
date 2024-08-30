@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Exercise } from 'src/modules/exercises/models/exercise.entity';
 import { ExerciseNotFoundException } from 'src/modules/exercises/services/exceptions/exercise-not-found.exception';
-import ExercisesService from 'src/modules/exercises/services/exercises.service';
+import ExercisesService from 'src/modules/exercises/services/exercise.service';
 import { User } from 'src/modules/user/models/user.entity';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
