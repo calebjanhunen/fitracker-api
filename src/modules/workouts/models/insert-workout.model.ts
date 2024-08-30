@@ -1,4 +1,4 @@
-export class WorkoutModel {
+export class InsertWorkoutModel {
   name: string;
   exercises: InsertWorkoutExerciseModel[];
 }
