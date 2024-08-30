@@ -1,23 +1,23 @@
 export class ExerciseModel {
   id: string;
   name: string;
-  bodyPartId: number;
-  equipmentId: number;
+  bodyPart: string;
+  equipment: string;
   isCustom: boolean;
   userId: string;
 
   constructor(
     id: string,
     name: string,
-    bodyPartId: number,
-    equipmentId: number,
+    bodyPart: string,
+    equipment: string,
     isCustom: boolean,
     userId: string,
   ) {
     this.id = id;
     this.name = name;
-    this.bodyPartId = bodyPartId;
-    this.equipmentId = equipmentId;
+    this.bodyPart = bodyPart;
+    this.equipment = equipment;
     this.userId = userId;
     this.isCustom = isCustom;
   }
@@ -26,8 +26,8 @@ export class ExerciseModel {
     return new ExerciseModel(
       result.id,
       result.name,
-      result.body_part_id,
-      result.equipment_id,
+      result.body_part,
+      result.equipment,
       result.is_custom,
       result.user_id,
     );

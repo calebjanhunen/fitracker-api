@@ -10,6 +10,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { Pool, QueryResult, QueryResultRow } from 'pg';
+import { DatabaseException } from '../internal-exceptions/database.exception';
 
 @Injectable()
 export class DbService implements OnModuleDestroy {
@@ -31,17 +32,22 @@ export class DbService implements OnModuleDestroy {
     query: string,
     parameters: (string | number | boolean | null)[],
   ): Promise<QueryResult<T>> {
-    const startTime = Date.now();
+    try {
+      const startTime = Date.now();
 
-    const result = await this.pool.query(query, parameters);
+      const result = await this.pool.query(query, parameters);
 
-    const endTime = Date.now();
+      const endTime = Date.now();
 
-    if (process.env.NODE_ENV !== 'test') {
-      this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      if (process.env.NODE_ENV !== 'test') {
+        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
+      }
+
+      return result;
+    } catch (e) {
+      this.logger.error(`Query: ${queryName} failed: `, e);
+      throw new DatabaseException(e.message);
     }
-
-    return result;
   }
 
   public async closePool() {

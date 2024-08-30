@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   Headers,
   Post,
   UseGuards,
@@ -39,27 +40,17 @@ export default class ExercisesController {
     }
   }
 
-  // @Get()
-  // async getExercises(
-  //   @Headers('user-id') userId: string,
-  //   @Query() { page, limit }: PaginationParams,
-  // ): Promise<ListResponse<Exercise>> {
-  //   const response = new ListResponse<Exercise>();
-
-  //   let exercisesCollectionModel: CollectionModel<Exercise>;
-  //   try {
-  //     exercisesCollectionModel =
-  //       await this.exercisesService.getExercisesForUser(userId, page, limit);
-  //   } catch (error) {
-  //     throw new ConflictException();
-  //   }
-
-  //   response.resources = exercisesCollectionModel.listObjects;
-  //   response.totalRecords = exercisesCollectionModel.totalCount;
-  //   response.hasMore = exercisesCollectionModel.hasMore();
-
-  //   return response;
-  // }
+  @Get()
+  async getExercises(
+    @Headers('user-id') userId: string,
+  ): Promise<ExerciseResponseDto[]> {
+    try {
+      const exercises = await this.exerciseService.findAll(userId);
+      return plainToInstance(ExerciseResponseDto, exercises);
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
 
   // @Get('exercises-for-workout')
   // async getExercisesForWorkout(

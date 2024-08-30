@@ -1,11 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DbService } from 'src/common/database/database.service';
-import { Exercise } from 'src/modules/exercises/models/exercise.entity';
-import { User } from 'src/modules/user/models/user.entity';
-import { WorkoutExercise } from 'src/modules/workouts/models/workout-exercises.entity';
-import { Repository } from 'typeorm';
-import { ExerciseUsage } from '../interfaces/exercise-usage.interface';
 import { ExerciseModel } from '../models/exerise.model';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
 
@@ -40,44 +34,33 @@ export class ExerciseRepository {
     return ExerciseModel.fromDbQuery(result.rows[0]);
   }
 
-  // /**
-  //  * This function retrieves exercises based on specified options such as fields, pagination, and user
-  //  * ID.
-  //  * @param {string} userId   ID of the user
-  //  * @param options           Contains following properties: fields (Exercise fields),
-  //  *                          take (number of exercises to retrieve), skip (number of exercises to skip)
-  //  *
-  //  * @returns {Exercise[]}    Array of exercises
-  //  */
-  // public async getAll(
-  //   userId: string,
-  //   options: {
-  //     fields?: (keyof Exercise)[];
-  //     take?: number;
-  //     skip?: number;
-  //   } = {},
-  // ): Promise<Exercise[]> {
-  //   const query = this.exerciseRepo.createQueryBuilder('exercise');
+  /**
+   * This function gets all default exercises and custom exercises for a user
+   * @param {string} userId   ID of the user
+   * @returns {Exercise[]}    Array of exercises
+   */
+  public async findAll(userId: string): Promise<ExerciseModel[]> {
+    const query = `
+      SELECT
+        e.id,
+        e.name,
+        bp.name as body_part,
+        eq.name as equipment,
+        e.is_custom
+      FROM exercise e
+      INNER JOIN body_part bp
+      ON bp.id = e.body_part_id
+      INNER JOIN equipment eq
+      ON eq.id = e.equipment_id
+      WHERE is_custom = false
+      OR user_id = $1
+      ORDER BY e.name
+    `;
+    const params = [userId];
 
-  //   // Add fields to query if present
-  //   if (options.fields && options.fields.length > 0) {
-  //     const selectQuery = options.fields.map((field) => `exercise.${field}`);
-  //     query.select(selectQuery);
-  //   }
-
-  //   // add take and skip options to query if present (for pagination)
-  //   if (options.take) query.take(options.take);
-  //   if (options.skip) query.skip(options.skip);
-
-  //   query.where('exercise.is_custom = false or exercise.user_id = :userId', {
-  //     userId,
-  //   });
-
-  //   query.orderBy('exercise.name', 'ASC');
-
-  //   const result = await query.getMany();
-  //   return result;
-  // }
+    const result = await this.db.query('FindAllExercises', query, params);
+    return result.rows.map((e) => ExerciseModel.fromDbQuery(e));
+  }
 
   // /**
   //  * Retrieves exercises by their IDs for a specific user, including both

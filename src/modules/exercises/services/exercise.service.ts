@@ -48,36 +48,15 @@ export class ExerciseService {
     return createdExercise;
   }
 
-  //   /**
-  //    * Gets all exercises for a user (default and custom) in paginated format
-  //    *
-  //    * @param {string} userId
-  //    * @param {number} page
-  //    * @param {number} limit
-  //    * @returns {CollectionModel<Exercise>}
-  //    */
-  //   async getExercisesForUser(
-  //     userId: string,
-  //     page: number,
-  //     limit: number,
-  //   ): Promise<CollectionModel<Exercise>> {
-  //     await this.userService.getById(userId);
-
-  //     const exerciseCollectionModel = new CollectionModel<Exercise>();
-  //     const offset = limit * (page - 1);
-
-  //     const exercises = await this.exerciseRepo.getAll(userId, {
-  //       take: limit,
-  //       skip: offset,
-  //     });
-
-  //     exerciseCollectionModel.listObjects = exercises;
-  //     exerciseCollectionModel.totalCount = exercises.length;
-  //     exerciseCollectionModel.limit = limit;
-  //     exerciseCollectionModel.offset = offset;
-
-  //     return exerciseCollectionModel;
-  //   }
+  /**
+   * Gets all exercises for a user (default and custom)
+   *
+   * @param {string} userId
+   * @returns {ExerciseModel[]}
+   */
+  async findAll(userId: string): Promise<ExerciseModel[]> {
+    return this.exerciseRepo.findAll(userId);
+  }
 
   //   /**
   //    * Retrieves exercises by their IDs for a specific user.
