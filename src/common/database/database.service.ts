@@ -89,6 +89,12 @@ export class DbService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Runs the queries in the callback function in a transaction
+   * to ensure they get rolledback on any error
+   * @param {(client: PoolClient) => Promise<T>} callback
+   * @returns {T}
+   */
   public async transaction<T>(
     callback: (client: PoolClient) => Promise<T>,
   ): Promise<T> {
@@ -104,57 +110,6 @@ export class DbService implements OnModuleDestroy {
     } finally {
       client.release();
     }
-  }
-
-  /**
-   * Connects to a client in the pool to run transactions
-   *
-   * @returns {PoolClient}
-   */
-  public async connect(): Promise<PoolClient> {
-    this.poolClient = await this.pool.connect();
-    return this.poolClient;
-  }
-
-  /**
-   * Starts a transaction
-   */
-  public async startTransaction(): Promise<void> {
-    this.transactionStartTime = Date.now();
-    await this.poolClient.query('BEGIN');
-  }
-
-  /**
-   * Commits the queries in a transaction
-   *
-   * @param {string} queryName
-   */
-  public async commitTransaction(queryName: string): Promise<void> {
-    await this.poolClient.query('COMMIT');
-
-    if (process.env.NODE_ENV !== 'test') {
-      this.logger.log(
-        `${queryName} query took ${Date.now() - this.transactionStartTime}ms`,
-      );
-    }
-
-    this.transactionStartTime = 0;
-  }
-
-  /**
-   * Rollback queries in a transaction
-   */
-  public async rollbackTransaction(queryName: string, e: Error): Promise<void> {
-    await this.poolClient.query('ROLLBACK');
-    this.logger.log(`DB Query ${queryName} failed: ${e}`);
-    throw new DatabaseException(e.message);
-  }
-
-  /**
-   * Releases the pool client back to the pool
-   */
-  public async releaseClient(): Promise<void> {
-    this.poolClient.release();
   }
 
   /**
