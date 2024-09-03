@@ -3,22 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbModule } from 'src/common/database/database.module';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
-import { WorkoutsController } from './controller/workouts.controller';
+import { WorkoutController } from './controller/workout.controller';
 import { Set } from './models/set.entity';
 import { WorkoutExercise } from './models/workout-exercises.entity';
 import { Workout } from './models/workout.entity';
 import { WorkoutRepository } from './repository/workout.repository';
-import { WorkoutsService } from './service/workouts.service';
+import { WorkoutService } from './service/workout.service';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Workout, WorkoutExercise, Set]),
-    ExerciseModule,
-    UserModule,
-    DbModule,
-  ],
-  providers: [WorkoutsService, WorkoutRepository],
-  controllers: [WorkoutsController],
-  exports: [WorkoutsService],
+  imports: [ExerciseModule, UserModule, DbModule],
+  providers: [WorkoutService, WorkoutRepository],
+  controllers: [WorkoutController],
+  exports: [WorkoutService],
 })
-export class WorkoutsModule {}
+export class WorkoutModule {}

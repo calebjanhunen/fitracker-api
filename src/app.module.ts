@@ -5,7 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
 import { WorkoutTemplatesModule } from './modules/workout-templates/workout-templates.module';
-import { WorkoutsModule } from './modules/workouts/workouts.module';
+import { WorkoutModule } from './modules/workouts/workout.module';
 
 @Module({
   imports: [
@@ -13,6 +13,7 @@ import { WorkoutsModule } from './modules/workouts/workouts.module';
     // UserModule,
     AuthModule,
     ExerciseModule,
+    WorkoutModule,
   ],
   controllers: [],
   providers: [],

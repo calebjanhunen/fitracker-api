@@ -1,35 +1,39 @@
 import {
-  Body,
-  ConflictException,
   Controller,
-  Delete,
   Get,
   Headers,
-  HttpCode,
   NotFoundException,
   Param,
-  Post,
   UseGuards,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { UserService } from 'src/modules/user/service/user.service';
-import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
-import { EntityNotFoundError } from 'typeorm';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
-import { WorkoutMapper } from '../mappers/workout-mapper';
-import { GetSingleWorkoutParams } from '../request/get-single-workout-params.request';
-import { WorkoutsService } from '../service/workouts.service';
+import { WorkoutService } from '../service/workout.service';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
-export class WorkoutsController {
-  private workoutsService: WorkoutsService;
+export class WorkoutController {
+  private workoutService: WorkoutService;
   private userService: UserService;
 
-  constructor(workoutsService: WorkoutsService, userService: UserService) {
-    this.workoutsService = workoutsService;
+  constructor(workoutService: WorkoutService, userService: UserService) {
+    this.workoutService = workoutService;
     this.userService = userService;
+  }
+
+  @Get(':id')
+  async getWorkoutById(
+    @Headers('user-id') userId: string,
+    @Param('id') workoutId: string,
+  ): Promise<WorkoutResponseDto> {
+    try {
+      const workout = await this.workoutService.findById(workoutId, userId);
+      return plainToInstance(WorkoutResponseDto, workout);
+    } catch (e) {
+      throw new NotFoundException(e.message);
+    }
   }
 
   // @Post()
@@ -61,19 +65,6 @@ export class WorkoutsController {
   //   } catch (e) {
   //     if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
   //     throw new ConflictException('Could not get workouts.');
-  //   }
-  // }
-
-  // @Get(':id')
-  // async getSingleWorkout(
-  //   @Headers('user-id') userId: string,
-  //   @Param() { id }: GetSingleWorkoutParams,
-  // ): Promise<WorkoutResponseDto> {
-  //   try {
-  //     const workout = await this.workoutsService.getById(id, userId);
-  //     return WorkoutMapper.fromEntityToDto(workout);
-  //   } catch (err) {
-  //     throw new NotFoundException(err.message);
   //   }
   // }
 

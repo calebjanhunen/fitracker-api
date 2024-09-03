@@ -6,8 +6,7 @@ export class WorkoutModel {
 
 export class WorkoutExerciseModel {
   id: string;
-  workoutId: string;
-  exerciseId: string;
+  name: string;
   order: number;
   sets: WorkoutSetModel[];
 }

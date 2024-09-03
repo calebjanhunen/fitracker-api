@@ -1,20 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { CreateWorkoutRequestDTO } from 'src/modules/workouts/dtos/create-workout-request.dto';
-import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
-import { WorkoutMapper } from '../mappers/workout-mapper';
-import { Workout } from '../models/workout.entity';
+import { WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
 
 @Injectable()
-export class WorkoutsService {
+export class WorkoutService {
   constructor(
     private exercisesService: ExerciseService,
     private userService: UserService,
     private workoutRepo: WorkoutRepository,
   ) {}
+
+  /**
+   * Gets a workout by its id.
+   * @param {string} workoutId The id of the workout.
+   * @param {string} userId    The id of the user.
+   * @return {Workout}
+   *
+   * @throws {WorkoutNotFoundException}
+   */
+  async findById(workoutId: string, userId: string): Promise<WorkoutModel> {
+    const workout = await this.workoutRepo.findById(workoutId, userId);
+
+    if (!workout) throw new WorkoutNotFoundException();
+
+    return workout;
+  }
 
   // /**
   //  * Validates exercises exist, maps workout dto to entity
@@ -52,24 +65,6 @@ export class WorkoutsService {
   //   const createdWorkout = await this.workoutRepo.saveWorkout(workoutEntity);
 
   //   return createdWorkout;
-  // }
-
-  // /**
-  //  * Gets a workout by its id.
-  //  * @param {string} workoutId The id of the workout.
-  //  * @param {string} userId    The id of the user.
-  //  * @return {Workout}
-  //  *
-  //  * @throws {WorkoutNotFoundException}
-  //  */
-  // async getById(workoutId: string, userId: string): Promise<Workout> {
-  //   await this.userService.getById(userId);
-
-  //   const workout = await this.workoutRepo.getSingle(workoutId, userId);
-
-  //   if (!workout) throw new WorkoutNotFoundException();
-
-  //   return workout;
   // }
 
   // /**
