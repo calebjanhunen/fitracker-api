@@ -1,12 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DbModule } from 'src/common/database/database.module';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import { WorkoutController } from './controller/workout.controller';
-import { Set } from './models/set.entity';
-import { WorkoutExercise } from './models/workout-exercises.entity';
-import { Workout } from './models/workout.entity';
 import { WorkoutRepository } from './repository/workout.repository';
 import { WorkoutService } from './service/workout.service';
 

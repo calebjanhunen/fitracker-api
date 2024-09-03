@@ -4,7 +4,6 @@ export class InsertWorkoutModel {
 }
 
 export class InsertWorkoutExerciseModel {
-  workoutId: string;
   exerciseId: string;
   order: number;
   sets: InsertWorkoutSetModel[];
