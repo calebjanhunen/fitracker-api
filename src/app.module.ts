@@ -4,7 +4,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
-import { WorkoutTemplatesModule } from './modules/workout-templates/workout-templates.module';
 import { WorkoutModule } from './modules/workouts/workout.module';
 
 @Module({
