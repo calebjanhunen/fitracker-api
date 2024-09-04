@@ -25,6 +25,32 @@ interface RawWorkoutQueryResult {
 @Injectable()
 export class WorkoutRepository {
   private readonly NUM_SET_VALUES = 5;
+  private readonly COLUMNS_AND_JOINS = `
+        w.id as workout_id,
+        w.name as workout_name,
+        json_agg(json_build_object(
+        	'id', e.id,
+        	'name', e.name,
+          'order', we.order,
+        	'sets', (
+        		SELECT json_agg(json_build_object(
+                	'id', ws.id,
+                  'order', ws.order,
+                	'reps', ws.reps,
+                	'weight', ws.weight,
+                	'rpe', ws.rpe
+            	) ORDER BY ws.order)
+            	FROM workout_set ws
+            	WHERE ws.workout_exercise_id = we.id
+            )
+        ) ORDER BY we.order) as exercises
+      FROM
+        workout as w
+      LEFT JOIN
+	      workout_exercise as we ON we.workout_id = w.id
+      LEFT JOIN
+	      exercise as e ON e.id = we.exercise_id
+  `;
 
   constructor(private readonly dbService: DbService) {}
 
@@ -85,31 +111,14 @@ export class WorkoutRepository {
   ): Promise<WorkoutModel | null> {
     const query = `
       SELECT
-        w.id as workout_id,
-        w.name as workout_name,
-        e.id as exercise_id,
-        e.name as exercise_name,
-        we.order as exercise_order,
-	      ws.id as set_id,
-	      ws.reps,
-	      ws.weight,
-	      ws.rpe,
-        ws.order as set_order
-      FROM
-        workout as w
-      INNER JOIN
-	      workout_exercise as we ON we.workout_id = w.id
-      INNER JOIN
-	      exercise as e ON e.id = we.exercise_id
-      INNER JOIN
-	      workout_set as ws ON ws.workout_exercise_id = we.id
+        ${this.COLUMNS_AND_JOINS}
       WHERE w.user_id = $1 AND w.id = $2
-      ORDER BY we.order, ws.order;
+      GROUP BY w.id
     `;
     const params = [userId, workoutId];
 
-    const result = await this.dbService.queryV2<RawWorkoutQueryResult>(
-      'GetWorkoutById',
+    const result = await this.dbService.queryV2<WorkoutModel>(
+      'FindWorkoutById',
       query,
       params,
     );
@@ -117,12 +126,29 @@ export class WorkoutRepository {
     if (result.length === 0) {
       return null;
     }
-    return this.fromQueryToWorkoutModel(result);
+    return result[0];
   }
+
+  // public async findAll(userId: string): Promise<WorkoutModel[]> {
+  //   const query = `
+  //     SELECT
+  //       ${this.COLUMNS_AND_JOINS}
+  //     WHERE w.user_id = $1
+  //   `;
+  //   const params = [userId];
+
+  //   const result = await this.dbService.queryV2(
+  //     'GetAllWorkouts',
+  //     query,
+  //     params,
+  //   );
+
+  //   return;
+  // }
 
   /**
    * Inserts a Workout.
-   * @param {DbClient} client
+   * @param {DbClient} client Database client connection used for transactions
    * @param {InsertWorkoutModel} workout
    * @param {string} userId
    * @returns {string} Id of the inserted workout.
@@ -145,7 +171,7 @@ export class WorkoutRepository {
 
   /**
    * Inserts a workout exercise
-   * @param {DbClient} client
+   * @param {DbClient} client Database client connection used for transactions
    * @param {string} workoutId
    * @param {InsertWorkoutExerciseModel} exercise
    * @returns {string} Id of the workout exercise that was inserted.
@@ -174,7 +200,7 @@ export class WorkoutRepository {
 
   /**
    * Batch inserts the sets for an individual workout exercise.
-   * @param {DbClient} client
+   * @param {DbClient} client Database client connection used for transactions
    * @param {string} workoutExerciseId
    * @param {InsertWorkoutSetModel[]} sets
    */
@@ -250,24 +276,6 @@ export class WorkoutRepository {
       return acc;
     }, new WorkoutModel());
   }
-
-  // public async getMany(userId: string): Promise<Workout[]> {
-  //   const query = this.workoutRepo.createQueryBuilder('w');
-
-  //   query
-  //     .leftJoinAndSelect('w.workoutExercises', 'we')
-  //     .leftJoin('we.exercise', 'e')
-  //     .addSelect(['e.id', 'e.name'])
-  //     .leftJoin('we.sets', 'set')
-  //     .addSelect(['set.setOrder', 'set.reps', 'set.weight', 'set.rpe'])
-  //     .where('w.user_id = :userId', { userId })
-  //     .orderBy('w.created_at', 'DESC')
-  //     .addOrderBy('set.setOrder', 'ASC')
-  //     .getMany();
-
-  //   const workouts = await query.getMany();
-  //   return workouts;
-  // }
 
   // public async delete(workout: Workout): Promise<void> {
   //   const queryRunner = this.dataSource.createQueryRunner();
