@@ -129,22 +129,23 @@ export class WorkoutRepository {
     return result[0];
   }
 
-  // public async findAll(userId: string): Promise<WorkoutModel[]> {
-  //   const query = `
-  //     SELECT
-  //       ${this.COLUMNS_AND_JOINS}
-  //     WHERE w.user_id = $1
-  //   `;
-  //   const params = [userId];
+  public async findAll(userId: string): Promise<WorkoutModel[]> {
+    const query = `
+      SELECT
+        ${this.COLUMNS_AND_JOINS}
+      WHERE w.user_id = $1
+      GROUP BY w.id
+    `;
+    const params = [userId];
 
-  //   const result = await this.dbService.queryV2(
-  //     'GetAllWorkouts',
-  //     query,
-  //     params,
-  //   );
+    const result = await this.dbService.queryV2<WorkoutModel>(
+      'FindAllWorkouts',
+      query,
+      params,
+    );
 
-  //   return;
-  // }
+    return result;
+  }
 
   /**
    * Inserts a Workout.
