@@ -24,7 +24,7 @@ export class WorkoutService {
    * @throws {InvalidOrderException}
    * @throws {CouldNotSaveWorkoutException}
    */
-  async create(
+  public async create(
     workout: InsertWorkoutModel,
     userId: string,
   ): Promise<WorkoutModel> {
@@ -48,7 +48,10 @@ export class WorkoutService {
    *
    * @throws {WorkoutNotFoundException}
    */
-  async findById(workoutId: string, userId: string): Promise<WorkoutModel> {
+  public async findById(
+    workoutId: string,
+    userId: string,
+  ): Promise<WorkoutModel> {
     const workout = await this.workoutRepo.findById(workoutId, userId);
 
     if (!workout) throw new WorkoutNotFoundException();
@@ -61,8 +64,41 @@ export class WorkoutService {
    * @param {string} userId
    * @returns {WorkoutModel[]}
    */
-  async findAll(userId: string): Promise<WorkoutModel[]> {
+  public async findAll(userId: string): Promise<WorkoutModel[]> {
     return this.workoutRepo.findAll(userId);
+  }
+
+  /**
+   * Deletes a workout.
+   *
+   * @param {string} workoutId
+   * @param {string} userId
+   *
+   * @throws {CouldNotDeleteWorkoutException}
+   * @throws {WorkoutNotFoundException}
+   */
+  public async delete(workoutId: string, userId: string): Promise<void> {
+    await this.findById(workoutId, userId);
+
+    try {
+      await this.workoutRepo.delete(workoutId, userId);
+    } catch (e) {
+      throw new CouldNotDeleteWorkoutException(e.message);
+    }
+  }
+
+  public async update(
+    workoutId: string,
+    userId: string,
+    workout: InsertWorkoutModel,
+  ): Promise<WorkoutModel> {
+    await this.findById(workoutId, userId);
+
+    const exerciseIds = workout.exercises.map((e) => e.exerciseId);
+    await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+    this.validateOrderForExercisesAndSets(workout);
+
+    return await this.workoutRepo.update(workoutId, workout, userId);
   }
 
   /**
@@ -82,25 +118,6 @@ export class WorkoutService {
           throw new InvalidOrderException('set');
         }
       }
-    }
-  }
-
-  /**
-   * Deletes a workout.
-   *
-   * @param {string} workoutId
-   * @param {string} userId
-   *
-   * @throws {CouldNotDeleteWorkoutException}
-   * @throws {WorkoutNotFoundException}
-   */
-  async delete(workoutId: string, userId: string): Promise<void> {
-    await this.findById(workoutId, userId);
-
-    try {
-      await this.workoutRepo.delete(workoutId, userId);
-    } catch (e) {
-      throw new CouldNotDeleteWorkoutException(e.message);
     }
   }
 }

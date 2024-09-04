@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
@@ -87,6 +88,28 @@ export class WorkoutController {
         throw new NotFoundException(e.message);
       }
 
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Put(':id')
+  async updateWorkout(
+    @Headers('user-id') userId: string,
+    @Param('id') workoutId: string,
+    @Body() updateWorkoutDto: WorkoutRequestDto,
+  ): Promise<WorkoutResponseDto> {
+    const workoutModel = plainToInstance(InsertWorkoutModel, updateWorkoutDto);
+    try {
+      const updatedWorkout = await this.workoutService.update(
+        workoutId,
+        userId,
+        workoutModel,
+      );
+      return plainToInstance(WorkoutResponseDto, updatedWorkout);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
       throw new ConflictException(e.message);
     }
   }
