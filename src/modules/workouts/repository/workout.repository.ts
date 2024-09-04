@@ -4,23 +4,8 @@ import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
   InsertWorkoutSetModel,
-  WorkoutExerciseModel,
   WorkoutModel,
-  WorkoutSetModel,
 } from '../models';
-
-interface RawWorkoutQueryResult {
-  workoutId: string;
-  workoutName: string;
-  exerciseId: string;
-  exerciseName: string;
-  exerciseOrder: number;
-  setId: string;
-  reps: number;
-  weight: number;
-  rpe: number;
-  setOrder: number;
-}
 
 @Injectable()
 export class WorkoutRepository {
@@ -28,6 +13,7 @@ export class WorkoutRepository {
   private readonly COLUMNS_AND_JOINS = `
         w.id as workout_id,
         w.name as workout_name,
+        w.created_at,
         json_agg(json_build_object(
         	'id', e.id,
         	'name', e.name,
@@ -135,6 +121,7 @@ export class WorkoutRepository {
         ${this.COLUMNS_AND_JOINS}
       WHERE w.user_id = $1
       GROUP BY w.id
+      ORDER BY w.created_at DESC
     `;
     const params = [userId];
 
@@ -235,47 +222,6 @@ export class WorkoutRepository {
       workoutExerciseId,
     ]);
     await client.query(query, params);
-  }
-
-  private fromQueryToWorkoutModel(
-    workoutQuery: RawWorkoutQueryResult[],
-  ): WorkoutModel {
-    return workoutQuery.reduce((acc, currRow) => {
-      if (!acc.id) {
-        const workout = new WorkoutModel();
-        workout.name = currRow.workoutName;
-        workout.id = currRow.workoutId;
-        workout.exercises = [];
-        acc = workout;
-      }
-
-      const exercise = acc.exercises.find((e) => e.id === currRow.exerciseId);
-      if (!exercise) {
-        const newExercise = new WorkoutExerciseModel();
-        newExercise.id = currRow.exerciseId;
-        newExercise.name = currRow.exerciseName;
-        newExercise.order = currRow.exerciseOrder;
-        newExercise.sets = [];
-        const set = new WorkoutSetModel();
-        set.id = currRow.setId;
-        set.order = currRow.setOrder;
-        set.reps = currRow.reps;
-        set.weight = currRow.weight;
-        set.rpe = currRow.rpe;
-        newExercise.sets.push(set);
-        acc.exercises.push(newExercise);
-      } else {
-        const newSet = new WorkoutSetModel();
-        newSet.id = currRow.setId;
-        newSet.order = currRow.setOrder;
-        newSet.reps = currRow.reps;
-        newSet.weight = currRow.weight;
-        newSet.rpe = currRow.rpe;
-        exercise.sets.push(newSet);
-      }
-
-      return acc;
-    }, new WorkoutModel());
   }
 
   // public async delete(workout: Workout): Promise<void> {
