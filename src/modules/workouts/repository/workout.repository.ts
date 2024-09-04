@@ -145,6 +145,53 @@ export class WorkoutRepository {
     await this.dbService.queryV2('DeleteWorkout', query, params);
   }
 
+  public async update(
+    workoutId: string,
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): Promise<WorkoutModel> {
+    await this.dbService.transaction('UpdateWorkout', async (client) => {
+      // Update using kill and fill due to ability to remove and add sets & exercsies
+      // TODO: Change from kill and fill
+
+      // Update workout to maintain id, created_at & updated_at
+      const updateQuery = `
+        UPDATE workout
+        SET
+          name = $1
+        WHERE
+          id = $2 AND user_id = $3
+      `;
+      const updateParams = [workout.name, workoutId, userId];
+      await client.query(updateQuery, updateParams);
+
+      // Delete workout exercises & sets
+      const deleteQuery = `
+        DELETE FROM workout_exercise
+        WHERE
+          workout_id = $1
+      `;
+      const deleteParams = [workoutId];
+      await client.query(deleteQuery, deleteParams);
+
+      // Insert workout exercises and sets
+      for (const exercise of workout.exercises) {
+        const workoutExerciseId = await this.insertWorkoutExercise(
+          client,
+          workoutId,
+          exercise,
+        );
+        await this.insertExerciseSets(client, workoutExerciseId, exercise.sets);
+      }
+    });
+
+    const updatedWorkout = await this.findById(workoutId, userId);
+    if (!updatedWorkout) {
+      throw new Error('Could not find updated workout');
+    }
+    return updatedWorkout;
+  }
+
   /**
    * Inserts a Workout.
    * @param {DbClient} client Database client connection used for transactions
