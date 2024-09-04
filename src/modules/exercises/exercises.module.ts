@@ -11,6 +11,6 @@ import { ExerciseService } from './services/exercise.service';
   imports: [UserModule, EquipmentModule, BodyPartModule, DbModule],
   controllers: [ExercisesController],
   providers: [ExerciseService, ExerciseRepository],
-  exports: [ExerciseService, ExerciseRepository],
+  exports: [ExerciseService],
 })
 export class ExerciseModule {}
