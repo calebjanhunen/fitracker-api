@@ -134,6 +134,17 @@ export class WorkoutRepository {
     return result;
   }
 
+  public async delete(workoutId: string, userId: string): Promise<void> {
+    const query = `
+      DELETE FROM workout
+      WHERE
+        user_id = $1 AND id = $2
+    `;
+    const params = [userId, workoutId];
+
+    await this.dbService.queryV2('DeleteWorkout', query, params);
+  }
+
   /**
    * Inserts a Workout.
    * @param {DbClient} client Database client connection used for transactions
@@ -223,20 +234,4 @@ export class WorkoutRepository {
     ]);
     await client.query(query, params);
   }
-
-  // public async delete(workout: Workout): Promise<void> {
-  //   const queryRunner = this.dataSource.createQueryRunner();
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-
-  //   try {
-  //     await queryRunner.manager.remove(workout);
-  //     await queryRunner.commitTransaction();
-  //   } catch (e) {
-  //     await queryRunner.rollbackTransaction();
-  //     throw e;
-  //   } finally {
-  //     await queryRunner.release();
-  //   }
-  // }
 }
