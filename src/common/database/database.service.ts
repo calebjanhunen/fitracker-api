@@ -79,9 +79,7 @@ export class DbService implements OnModuleDestroy {
       const result = await this.pool.query<T>(query, parameters);
       const endTime = Date.now();
 
-      if (process.env.NODE_ENV !== 'test') {
-        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
-      }
+      this.logQueryElapsedTime(startTime, endTime, queryName);
       return this.toCamelCase(result.rows);
     } catch (e) {
       this.logger.error(`Query: ${queryName} failed: `, e);
@@ -96,19 +94,35 @@ export class DbService implements OnModuleDestroy {
    * @returns {T}
    */
   public async transaction<T>(
+    queryName: string,
     callback: (client: PoolClient) => Promise<T>,
   ): Promise<T> {
     const client = await this.pool.connect();
     try {
+      const startTime = Date.now();
+
       await client.query('BEGIN');
       const result = await callback(client);
       await client.query('COMMIT');
+
+      const endTime = Date.now();
+      this.logQueryElapsedTime(startTime, endTime, queryName);
       return result;
     } catch (e) {
       await client.query('ROLLBACK');
       throw new DatabaseException(e.message);
     } finally {
       client.release();
+    }
+  }
+
+  private logQueryElapsedTime(
+    startTime: number,
+    endTime: number,
+    queryName: string,
+  ): void {
+    if (process.env.NODE_ENV !== 'test') {
+      this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
     }
   }
 

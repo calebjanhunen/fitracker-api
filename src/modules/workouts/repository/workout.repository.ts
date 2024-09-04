@@ -40,6 +40,7 @@ export class WorkoutRepository {
     userId: string,
   ): Promise<WorkoutModel> {
     const workoutId = await this.dbService.transaction<string>(
+      'InsertWorkout',
       async (client) => {
         const insertedWorkoutId = await this.insertWorkout(
           client,
