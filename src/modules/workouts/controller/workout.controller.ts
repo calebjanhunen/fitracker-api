@@ -2,8 +2,10 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   Get,
   Headers,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -72,20 +74,20 @@ export class WorkoutController {
     }
   }
 
-  // @Delete(':id')
-  // @HttpCode(204)
-  // async deleteWorkout(
-  //   @Headers('user-id') userId: string,
-  //   @Param('id') id: string,
-  // ): Promise<void> {
-  //   try {
-  //     await this.workoutsService.deleteWorkout(id, userId);
-  //   } catch (err) {
-  //     if (err instanceof ResourceNotFoundException) {
-  //       throw new NotFoundException(err.message);
-  //     }
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteWorkout(
+    @Headers('user-id') userId: string,
+    @Param('id') workoutId: string,
+  ): Promise<void> {
+    try {
+      await this.workoutService.delete(workoutId, userId);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
 
-  //     throw new ConflictException(`Could not delete workout: ${id}`);
-  //   }
-  // }
+      throw new ConflictException(e.message);
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
+import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { InvalidOrderException } from '../internal-errors/invalid-order.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
@@ -84,24 +85,22 @@ export class WorkoutService {
     }
   }
 
-  // /**
-  //  * Deletes a workout given its id
-  //  *
-  //  * @param {string} workoutId
-  //  * @param {string} userId
-  //  *
-  //  * @throws {CouldNotDeleteWorkoutException}
-  //  * @throws {WorkoutNotFoundException}
-  //  */
-  // async deleteWorkout(workoutId: string, userId: string): Promise<void> {
-  //   await this.userService.getById(userId);
+  /**
+   * Deletes a workout.
+   *
+   * @param {string} workoutId
+   * @param {string} userId
+   *
+   * @throws {CouldNotDeleteWorkoutException}
+   * @throws {WorkoutNotFoundException}
+   */
+  async delete(workoutId: string, userId: string): Promise<void> {
+    await this.findById(workoutId, userId);
 
-  //   const workoutToDelete = await this.getById(workoutId, userId);
-
-  //   try {
-  //     await this.workoutRepo.delete(workoutToDelete);
-  //   } catch (e) {
-  //     throw new CouldNotDeleteWorkoutException();
-  //   }
-  // }
+    try {
+      await this.workoutRepo.delete(workoutId, userId);
+    } catch (e) {
+      throw new CouldNotDeleteWorkoutException(e.message);
+    }
+  }
 }
