@@ -67,6 +67,8 @@ export class ExerciseService {
    * @param {string[]} ids - An array of strings representing the IDs of the exercises to validate.
    * @param {string} userId
    * @returns {void}
+   *
+   * @throws {ResourceNotFoundException}
    */
   public async validateExercisesExist(
     ids: string[],

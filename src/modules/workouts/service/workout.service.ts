@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
-import { UserService } from 'src/modules/user/service/user.service';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
+import { InvalidOrderException } from '../internal-errors/invalid-order.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
@@ -10,7 +10,6 @@ import { WorkoutRepository } from '../repository/workout.repository';
 export class WorkoutService {
   constructor(
     private exerciseService: ExerciseService,
-    private userService: UserService,
     private workoutRepo: WorkoutRepository,
   ) {}
 
@@ -33,11 +32,12 @@ export class WorkoutService {
   /**
    * Validates exercises exist, maps workout dto to entity
    * and saves the workout
-   * @param {CreateWorkoutRequestDTO} workoutDto
+   * @param {InsertWorkoutModel} workout
    * @param {string} userId
    * @returns {WorkoutResponseDto} Created Workout
    *
-   * @throws {EntityNotFoundError}
+   * @throws {ResourceNotFoundException}
+   * @throws {InvalidOrderException}
    * @throws {CouldNotSaveWorkoutException}
    */
   async create(
@@ -46,12 +46,33 @@ export class WorkoutService {
   ): Promise<WorkoutModel> {
     const exerciseIds = workout.exercises.map((e) => e.exerciseId);
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+    this.validateOrderForExercisesAndSets(workout);
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
       return createdWorkout;
     } catch (e) {
       throw new CouldNotSaveWorkoutException(workout.name);
+    }
+  }
+
+  /**
+   * Loops through exercises and sets and validates that the order for each increase sequentially.
+   * @param {InsertWorkoutModel} workout
+   *
+   * @throws {InvalidOrderException}
+   */
+  private validateOrderForExercisesAndSets(workout: InsertWorkoutModel): void {
+    for (let i = 0; i < workout.exercises.length; i++) {
+      if (workout.exercises[i].order !== i + 1) {
+        throw new InvalidOrderException('exercise');
+      }
+      for (let j = 0; j < workout.exercises[i].sets.length; j++) {
+        const set = workout.exercises[i].sets[j];
+        if (set.order !== j + 1) {
+          throw new InvalidOrderException('set');
+        }
+      }
     }
   }
 
