@@ -11,8 +11,8 @@ import {
 export class WorkoutRepository {
   private readonly NUM_SET_VALUES = 5;
   private readonly COLUMNS_AND_JOINS = `
-        w.id as workout_id,
-        w.name as workout_name,
+        w.id,
+        w.name,
         w.created_at,
         json_agg(json_build_object(
         	'id', e.id,
