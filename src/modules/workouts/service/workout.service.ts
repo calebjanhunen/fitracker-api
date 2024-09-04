@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
+import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
-import { WorkoutModel } from '../models';
+import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
 
 @Injectable()
 export class WorkoutService {
   constructor(
-    private exercisesService: ExerciseService,
+    private exerciseService: ExerciseService,
     private userService: UserService,
     private workoutRepo: WorkoutRepository,
   ) {}
@@ -29,43 +30,30 @@ export class WorkoutService {
     return workout;
   }
 
-  // /**
-  //  * Validates exercises exist, maps workout dto to entity
-  //  * and saves the workout
-  //  * @param {CreateWorkoutRequestDTO} workoutDto
-  //  * @param {string} userId
-  //  * @returns {WorkoutResponseDto} Created Workout
-  //  *
-  //  * @throws {EntityNotFoundError}
-  //  * @throws {CouldNotSaveWorkoutException}
-  //  */
-  // async createWorkout(
-  //   workoutDto: CreateWorkoutRequestDTO,
-  //   userId: string,
-  // ): Promise<Workout> {
-  //   const user = await this.userService.getById(userId);
+  /**
+   * Validates exercises exist, maps workout dto to entity
+   * and saves the workout
+   * @param {CreateWorkoutRequestDTO} workoutDto
+   * @param {string} userId
+   * @returns {WorkoutResponseDto} Created Workout
+   *
+   * @throws {EntityNotFoundError}
+   * @throws {CouldNotSaveWorkoutException}
+   */
+  async create(
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): Promise<WorkoutModel> {
+    const exerciseIds = workout.exercises.map((e) => e.exerciseId);
+    await this.exerciseService.validateExercisesExist(exerciseIds, userId);
 
-  //   // Get existing exercises from db using ids in workout dto
-  //   const exerciseIds = workoutDto.exercises.map((e) => e.id);
-  //   const foundExercises = await this.exercisesService.getExercisesByIds(
-  //     exerciseIds,
-  //     user,
-  //   );
-
-  //   // assert all exercises in dto exist in db
-  //   if (foundExercises.length !== exerciseIds.length)
-  //     throw new Error('One or more exercises do not exist');
-
-  //   const workoutEntity = WorkoutMapper.fromDtoToEntity(
-  //     workoutDto,
-  //     foundExercises,
-  //     user,
-  //   );
-
-  //   const createdWorkout = await this.workoutRepo.saveWorkout(workoutEntity);
-
-  //   return createdWorkout;
-  // }
+    try {
+      const createdWorkout = await this.workoutRepo.create(workout, userId);
+      return createdWorkout;
+    } catch (e) {
+      throw new CouldNotSaveWorkoutException(workout.name);
+    }
+  }
 
   // /**
   //  * Gets all workouts for a given user

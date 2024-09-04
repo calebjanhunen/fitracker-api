@@ -146,7 +146,11 @@ export class ExerciseRepository {
     `;
     const params = [ids, userId];
 
-    return await this.db.queryV2('FindExercisesByIds', query, params);
+    return await this.db.queryV2<ExerciseModel>(
+      'FindExercisesByIds',
+      query,
+      params,
+    );
   }
 
   /**

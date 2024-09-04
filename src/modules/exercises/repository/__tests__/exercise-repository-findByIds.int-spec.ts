@@ -1,4 +1,3 @@
-import { InsertExerciseModel } from '../../models/insert-exercise.model';
 import { ExerciseRepository } from '../exercise.repository';
 
 describe('ExerciseRepository: findByIds', () => {

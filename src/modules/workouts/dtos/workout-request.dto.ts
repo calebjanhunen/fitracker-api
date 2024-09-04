@@ -11,29 +11,33 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class CreateWorkoutRequestDTO {
+export class WorkoutRequestDto {
   @IsString()
   @IsNotEmpty()
   public name: string;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => ExerciseDTO)
-  public exercises: ExerciseDTO[];
+  @Type(() => WorkoutExerciseRequestDto)
+  public exercises: WorkoutExerciseRequestDto[];
 }
 
-export class ExerciseDTO {
+export class WorkoutExerciseRequestDto {
   @IsUUID()
   @IsNotEmpty()
-  public id: string;
+  public exerciseId: string;
+
+  @IsInt()
+  @Min(1)
+  public order: number;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => SetDTO)
-  public sets: SetDTO[];
+  @Type(() => WorkoutSetRequestDto)
+  public sets: WorkoutSetRequestDto[];
 }
 
-export class SetDTO {
+export class WorkoutSetRequestDto {
   @IsNumber()
   @Min(1)
   public weight: number;
@@ -49,5 +53,5 @@ export class SetDTO {
 
   @IsInt()
   @Min(1)
-  public setOrder: number;
+  public order: number;
 }

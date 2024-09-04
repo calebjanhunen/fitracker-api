@@ -1,27 +1,26 @@
 import {
+  Body,
+  ConflictException,
   Controller,
   Get,
   Headers,
   NotFoundException,
   Param,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { UserService } from 'src/modules/user/service/user.service';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
+import { InsertWorkoutModel } from '../models';
 import { WorkoutService } from '../service/workout.service';
 
 @Controller('api/workouts')
 @UseGuards(AuthGuard)
 export class WorkoutController {
-  private workoutService: WorkoutService;
-  private userService: UserService;
-
-  constructor(workoutService: WorkoutService, userService: UserService) {
-    this.workoutService = workoutService;
-    this.userService = userService;
-  }
+  constructor(private readonly workoutService: WorkoutService) {}
 
   @Get(':id')
   async getWorkoutById(
@@ -36,24 +35,28 @@ export class WorkoutController {
     }
   }
 
-  // @Post()
-  // async create(
-  //   @Body() createWorkoutDto: CreateWorkoutRequestDTO,
-  //   @Headers('user-id') userId: string,
-  // ): Promise<WorkoutResponseDto> {
-  //   try {
-  //     const createdWorkout = await this.workoutsService.createWorkout(
-  //       createWorkoutDto,
-  //       userId,
-  //     );
-  //     return WorkoutMapper.fromEntityToDto(createdWorkout);
-  //   } catch (err) {
-  //     if (err instanceof ResourceNotFoundException) {
-  //       throw new NotFoundException(err.message);
-  //     }
-  //     throw new ConflictException(err.message);
-  //   }
-  // }
+  @Post()
+  async createWorkout(
+    @Body() createWorkoutDto: WorkoutRequestDto,
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutResponseDto> {
+    try {
+      const workoutModel = plainToInstance(
+        InsertWorkoutModel,
+        createWorkoutDto,
+      );
+      const createdWorkout = await this.workoutService.create(
+        workoutModel,
+        userId,
+      );
+      return plainToInstance(WorkoutResponseDto, createdWorkout);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
+      throw new ConflictException(e.message);
+    }
+  }
 
   // @Get()
   // async getWorkouts(
