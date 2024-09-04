@@ -14,24 +14,7 @@ export class WorkoutService {
   ) {}
 
   /**
-   * Gets a workout by its id.
-   * @param {string} workoutId The id of the workout.
-   * @param {string} userId    The id of the user.
-   * @return {Workout}
-   *
-   * @throws {WorkoutNotFoundException}
-   */
-  async findById(workoutId: string, userId: string): Promise<WorkoutModel> {
-    const workout = await this.workoutRepo.findById(workoutId, userId);
-
-    if (!workout) throw new WorkoutNotFoundException();
-
-    return workout;
-  }
-
-  /**
-   * Validates exercises exist, maps workout dto to entity
-   * and saves the workout
+   * Creates a workout.
    * @param {InsertWorkoutModel} workout
    * @param {string} userId
    * @returns {WorkoutResponseDto} Created Workout
@@ -57,6 +40,31 @@ export class WorkoutService {
   }
 
   /**
+   * Finds a workout by its id.
+   * @param {string} workoutId The id of the workout.
+   * @param {string} userId    The id of the user.
+   * @return {Workout}
+   *
+   * @throws {WorkoutNotFoundException}
+   */
+  async findById(workoutId: string, userId: string): Promise<WorkoutModel> {
+    const workout = await this.workoutRepo.findById(workoutId, userId);
+
+    if (!workout) throw new WorkoutNotFoundException();
+
+    return workout;
+  }
+
+  /**
+   * Finds all workouts for a user.
+   * @param {string} userId
+   * @returns {WorkoutModel[]}
+   */
+  async findAll(userId: string): Promise<WorkoutModel[]> {
+    return this.workoutRepo.findAll(userId);
+  }
+
+  /**
    * Loops through exercises and sets and validates that the order for each increase sequentially.
    * @param {InsertWorkoutModel} workout
    *
@@ -75,19 +83,6 @@ export class WorkoutService {
       }
     }
   }
-
-  // /**
-  //  * Gets all workouts for a given user
-  //  * @param {string} userId
-  //  * @returns {Workout[]}
-  //  */
-  // async getWorkouts(userId: string): Promise<Workout[]> {
-  //   await this.userService.getById(userId);
-
-  //   const workouts = await this.workoutRepo.getMany(userId);
-
-  //   return workouts;
-  // }
 
   // /**
   //  * Deletes a workout given its id

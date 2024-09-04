@@ -22,19 +22,6 @@ import { WorkoutService } from '../service/workout.service';
 export class WorkoutController {
   constructor(private readonly workoutService: WorkoutService) {}
 
-  @Get(':id')
-  async getWorkoutById(
-    @Headers('user-id') userId: string,
-    @Param('id') workoutId: string,
-  ): Promise<WorkoutResponseDto> {
-    try {
-      const workout = await this.workoutService.findById(workoutId, userId);
-      return plainToInstance(WorkoutResponseDto, workout);
-    } catch (e) {
-      throw new NotFoundException(e.message);
-    }
-  }
-
   @Post()
   async createWorkout(
     @Body() createWorkoutDto: WorkoutRequestDto,
@@ -58,18 +45,32 @@ export class WorkoutController {
     }
   }
 
-  // @Get()
-  // async getWorkouts(
-  //   @Headers('user-id') userId: string,
-  // ): Promise<WorkoutResponseDto[]> {
-  //   try {
-  //     const workouts = await this.workoutsService.getWorkouts(userId);
-  //     return workouts.map((workout) => WorkoutMapper.fromEntityToDto(workout));
-  //   } catch (e) {
-  //     if (e instanceof EntityNotFoundError) throw new NotFoundException(e);
-  //     throw new ConflictException('Could not get workouts.');
-  //   }
-  // }
+  @Get(':id')
+  async getWorkoutById(
+    @Headers('user-id') userId: string,
+    @Param('id') workoutId: string,
+  ): Promise<WorkoutResponseDto> {
+    try {
+      const workout = await this.workoutService.findById(workoutId, userId);
+      return plainToInstance(WorkoutResponseDto, workout);
+    } catch (e) {
+      throw new NotFoundException(e.message);
+    }
+  }
+
+  @Get()
+  async getAllWorkouts(
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutResponseDto[]> {
+    try {
+      const workouts = await this.workoutService.findAll(userId);
+      return workouts.map((workout) =>
+        plainToInstance(WorkoutResponseDto, workout),
+      );
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
 
   // @Delete(':id')
   // @HttpCode(204)
