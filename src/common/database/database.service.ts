@@ -72,7 +72,7 @@ export class DbService implements OnModuleDestroy {
   public async queryV2<T extends QueryResultRow>(
     queryName: string,
     query: string,
-    parameters: (string | number | boolean | null)[],
+    parameters: (string | string[] | number | boolean | null)[],
   ): Promise<T[]> {
     try {
       const startTime = Date.now();
