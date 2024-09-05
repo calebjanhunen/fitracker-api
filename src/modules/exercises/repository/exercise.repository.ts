@@ -4,6 +4,18 @@ import { ExerciseModel, InsertExerciseModel } from '../models';
 
 @Injectable()
 export class ExerciseRepository {
+  private readonly COLUMNS_AND_JOINS = `
+     e.id,
+        e.name,
+        bp.name as body_part,
+        eq.name as equipment,
+        e.is_custom
+      FROM exercise e
+      INNER JOIN body_part bp
+      ON bp.id = e.body_part_id
+      INNER JOIN equipment eq
+      ON eq.id = e.equipment_id
+  `;
   constructor(private readonly db: DbService) {}
 
   /**
@@ -121,6 +133,26 @@ export class ExerciseRepository {
     return result[0];
   }
 
+  public async findByIds(
+    ids: string[],
+    userId: string,
+  ): Promise<ExerciseModel[]> {
+    const query = `
+      SELECT
+        ${this.COLUMNS_AND_JOINS}
+      WHERE
+        e.id = ANY ($1::uuid[]) AND is_custom = false OR
+        e.id = ANY ($1::uuid[]) AND user_id = $2
+    `;
+    const params = [ids, userId];
+
+    return await this.db.queryV2<ExerciseModel>(
+      'FindExercisesByIds',
+      query,
+      params,
+    );
+  }
+
   /**
    * Deletes an existing exercise.
    * @param {string} exerciseId
@@ -182,21 +214,6 @@ export class ExerciseRepository {
     }
     return updatedExercise;
   }
-
-  // /**
-  //  * Retrieves exercises by their IDs for a specific user, including both
-  //  * custom and non-custom exercises.
-  //  * @param {string[]} ids
-  //  * @param {User} user
-  //  * @returns {Exercise[]}
-  //  */
-  // public async getByIds(ids: string[], user: User): Promise<Exercise[]> {
-  //   const qb = this.exerciseRepo.createQueryBuilder();
-
-  //   qb.where('id IN(:...ids) AND user_id = :userId', { ids, userId: user.id });
-  //   qb.orWhere('id IN(:...ids) AND is_custom = false', { ids });
-  //   return await qb.getMany();
-  // }
 
   // /**
   //  * Retrieves number of times each exercise is used along with its id.

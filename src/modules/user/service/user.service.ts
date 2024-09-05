@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { InsertUserModel } from '../models/insert-user.model';
-import { User } from '../models/user.entity';
 import { UserModel } from '../models/user.model';
 import { UserRepository } from '../repository/user.repository';
 
@@ -19,12 +18,5 @@ export class UserService {
 
   async findByEmail(email: string): Promise<UserModel | null> {
     return this.userRepo.findByEmail(email);
-  }
-
-  /**
-   * @deprecated Do not use
-   */
-  async getById(id: string): Promise<User> {
-    return new User();
   }
 }

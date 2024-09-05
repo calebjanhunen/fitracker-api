@@ -63,6 +63,25 @@ export class ExerciseService {
   }
 
   /**
+   * Validates if the exercises (ids) passed in exist in the database
+   * @param {string[]} ids - An array of strings representing the IDs of the exercises to validate.
+   * @param {string} userId
+   * @returns {void}
+   *
+   * @throws {ResourceNotFoundException}
+   */
+  public async validateExercisesExist(
+    ids: string[],
+    userId: string,
+  ): Promise<void> {
+    const exercises = await this.exerciseRepo.findByIds(ids, userId);
+
+    if (exercises.length !== ids.length) {
+      throw new ResourceNotFoundException('One or more exercises do not exist');
+    }
+  }
+
+  /**
    * Deletes an exercise
    * @param {string} exerciseId
    * @param {string} userId
@@ -137,19 +156,6 @@ export class ExerciseService {
       );
     }
   }
-
-  //   /**
-  //    * Retrieves exercises by their IDs for a specific user.
-  //    * @param {string[]} ids - An array of strings representing the IDs of the exercises to retrieve.
-  //    * @param {User} user
-  //    * @returns {Exercise[]}
-  //    */
-  //   public async getExercisesByIds(
-  //     ids: string[],
-  //     user: User,
-  //   ): Promise<Exercise[]> {
-  //     return await this.exerciseRepo.getByIds(ids, user);
-  //   }
 
   //   /**
   //    * Checks if each exercise exists in the database.

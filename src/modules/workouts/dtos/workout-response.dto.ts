@@ -1,19 +1,20 @@
 export class WorkoutResponseDto {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
   name: string;
-  exercises: ExerciseInWorkoutResponseDto[];
+  createdAt: string;
+  exercises: WorkoutExerciseResponseDto[];
 }
 
-export class ExerciseInWorkoutResponseDto {
+export class WorkoutExerciseResponseDto {
   id: string;
   name: string;
-  sets: SetInWorkoutResponseDto[];
+  order: number;
+  sets: WorkoutSetResponseDto[];
 }
 
-export class SetInWorkoutResponseDto {
-  setOrder: number;
+export class WorkoutSetResponseDto {
+  id: string;
+  order: number;
   weight: number;
   reps: number;
   rpe: number;
