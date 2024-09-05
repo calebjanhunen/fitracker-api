@@ -20,7 +20,9 @@ describe('ExerciseRepository: findByIds', () => {
   });
 
   afterEach(async () => {
-    await pool.query('TRUNCATE TABLE exercise RESTART IDENTITY CASCADE;');
+    await pool.query(
+      "DELETE FROM exercise WHERE name LIKE '%Test Exercise%' ;",
+    );
   });
 
   it('should successfully get exercises', async () => {

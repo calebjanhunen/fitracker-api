@@ -67,11 +67,13 @@ describe('WorkoutRepository: update', () => {
   });
 
   afterEach(async () => {
-    await pool.query('TRUNCATE TABLE "user" CASCADE;');
     await pool.query('TRUNCATE TABLE workout_set;');
     await pool.query('TRUNCATE TABLE workout_exercise CASCADE;');
     await pool.query('TRUNCATE TABLE workout CASCADE;');
-    await pool.query('TRUNCATE TABLE exercise CASCADE;');
+    await pool.query(
+      "DELETE FROM exercise WHERE name LIKE '%Test Exercise%' ;",
+    );
+    await pool.query('DELETE FROM "user" WHERE username = \'test_user1\'');
   });
 
   it('should successfully update workout name', async () => {

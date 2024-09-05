@@ -18,7 +18,10 @@ describe('UserRepository: create()', () => {
   });
 
   afterEach(async () => {
-    await pool.query('TRUNCATE TABLE exercise RESTART IDENTITY CASCADE;');
+    await pool.query(
+      "DELETE FROM exercise WHERE name LIKE '%Test Exercise%' ;",
+    );
+    await pool.query('DELETE FROM "user" WHERE username = \'user\'');
   });
 
   it('should successfully create user', async () => {

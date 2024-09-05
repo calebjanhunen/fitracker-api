@@ -65,15 +65,15 @@ describe('WorkoutRepository: findById', () => {
   });
 
   afterEach(async () => {
-    await pool.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;');
     await pool.query('TRUNCATE TABLE workout_set RESTART IDENTITY CASCADE;');
     await pool.query(
       'TRUNCATE TABLE workout_exercise RESTART IDENTITY CASCADE;',
     );
     await pool.query('TRUNCATE TABLE workout RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE exercise RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE body_part RESTART IDENTITY CASCADE;');
-    await pool.query('TRUNCATE TABLE equipment RESTART IDENTITY CASCADE;');
+    await pool.query(
+      "DELETE FROM exercise WHERE name LIKE '%Test Exercise%' ;",
+    );
+    await pool.query('DELETE FROM "user" WHERE username = \'test_user1\'');
   });
 
   it('should successfully return a workout', async () => {

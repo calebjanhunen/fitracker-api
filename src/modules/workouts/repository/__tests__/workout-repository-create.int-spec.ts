@@ -32,7 +32,7 @@ describe('WorkoutRepository: create', () => {
   });
 
   afterAll(async () => {
-    await pool.query('TRUNCATE TABLE "user" RESTART IDENTITY CASCADE;');
+    await pool.query('DELETE FROM "user" WHERE username = \'test_user1\'');
   });
 
   it('should successfully return a workout', async () => {
