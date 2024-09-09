@@ -21,15 +21,4 @@ export class UserModel {
     this.lastName = lastName;
     this.email = email;
   }
-
-  public static fromDbQuery(result: any): UserModel {
-    return new UserModel(
-      result.id,
-      result.username,
-      result.password,
-      result.first_name,
-      result.last_name,
-      result.email,
-    );
-  }
 }
