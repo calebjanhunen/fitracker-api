@@ -22,13 +22,13 @@ export class UserRepository {
     ];
 
     try {
-      const result = await this.db.query<UserModel>(
+      const result = await this.db.queryV2<UserModel>(
         'CreateUser',
         query,
         values,
       );
 
-      return UserModel.fromDbQuery(result.rows[0]);
+      return result[0];
     } catch (e) {
       throw e;
     }
@@ -49,16 +49,17 @@ export class UserRepository {
     const values = [username];
 
     try {
-      const result = await this.db.query<UserModel>(
+      const result = await this.db.queryV2<UserModel>(
         'FindUserByUsername',
         query,
         values,
       );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
-      return UserModel.fromDbQuery(result.rows[0]);
+
+      return result[0];
     } catch (e) {
       throw e;
     }
@@ -78,16 +79,17 @@ export class UserRepository {
     const values = [email];
 
     try {
-      const result = await this.db.query<UserModel>(
+      const result = await this.db.queryV2<UserModel>(
         'FindUserByEmail',
         query,
         values,
       );
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return null;
       }
-      return UserModel.fromDbQuery(result.rows[0]);
+
+      return result[0];
     } catch (e) {
       throw e;
     }
