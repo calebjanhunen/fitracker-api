@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
-import { ExerciseModel, InsertExerciseModel } from '../models';
+import {
+  ExerciseModel,
+  InsertExerciseModel,
+  NumTimesUsedForExerciseModel,
+  RecentSetsForExerciseModel,
+} from '../models';
 
 @Injectable()
 export class ExerciseRepository {
@@ -215,71 +220,79 @@ export class ExerciseRepository {
     return updatedExercise;
   }
 
-  // /**
-  //  * Retrieves number of times each exercise is used along with its id.
-  //  * @param {string} userId
-  //  * @returns {ExerciseUsage[]}
-  //  */
-  // public async getExerciseUsages(userId: string): Promise<ExerciseUsage[]> {
-  //   const query = this.workoutExerciseRepo.createQueryBuilder('we');
-  //   query
-  //     .select('we.exercise_id', 'exercise_id')
-  //     .addSelect('COUNT(we.exercise_id)', 'num_times_used')
-  //     .groupBy('we.exercise_id')
-  //     .innerJoin('workouts', 'w', 'w.id = we.workout_id')
-  //     .where('w.user_id = :userId', { userId });
-  //   const result = await query.getRawMany<{
-  //     exercise_id: string;
-  //     num_times_used: string;
-  //   }>();
+  /**
+   * Gets the sets from the most recent workout that each exercise was used
+   *
+   * @param {string} userId
+   * @returns {RecentSetsForExerciseModel[]}
+   */
+  public async getRecentSetsForExercises(
+    userId: string,
+  ): Promise<RecentSetsForExerciseModel[]> {
+    const query = `
+      WITH recent_workouts AS (
+	      SELECT
+	        we.exercise_id,
+	        MAX(w.created_at) as most_recent_date
+	      FROM workout as w
+	      INNER JOIN workout_exercise we ON we.workout_id = w.id
+	      GROUP BY we.exercise_id
+      )
 
-  //   return result;
-  // }
+      SELECT
+	      we.exercise_id as id,
+	      json_agg(json_build_object(
+		      'id', ws.id,
+		      'weight', ws.weight,
+		      'reps', ws.reps,
+		      'rpe', ws.rpe
+	      ) ORDER BY ws.order) as recent_sets
+	      FROM workout_exercise as we
+	      INNER JOIN workout w ON w.id = we.workout_id
+	      INNER JOIN workout_set ws ON we.id = ws.workout_exercise_id
+	      INNER JOIN recent_workouts rw ON rw.exercise_id = we.exercise_id AND rw.most_recent_date = w.created_at
+        INNER JOIN exercise e ON e.id = we.exercise_id
+        WHERE w.user_id = $1
+	      GROUP BY we.exercise_id, w.created_at, e.name
+    `;
+    const params = [userId];
 
-  // /**
-  //  * Retrieves the sets of an exercise from the most recent workout the exercise was used in.
-  //  * @param {string} userId
-  //  * @returns {WorkoutExercise[]}
-  //  */
-  // public async getRecentSetsForExercises(
-  //   userId: string,
-  //   exerciseIds?: string[],
-  // ): Promise<WorkoutExercise[]> {
-  //   const query = this.workoutExerciseRepo.createQueryBuilder('we');
-  //   query
-  //     .select([
-  //       'w.id',
-  //       'we.id',
-  //       'e.id',
-  //       'set.id',
-  //       'set.weight',
-  //       'set.reps',
-  //       'set.rpe',
-  //       'set.setOrder',
-  //     ])
-  //     .leftJoin('we.exercise', 'e')
-  //     .leftJoin('we.workout', 'w')
-  //     .leftJoin('we.sets', 'set')
-  //     .where((qb) => {
-  //       const subQ = qb
-  //         .subQuery()
-  //         .select('MAX(w2.created_at)')
-  //         .from('workouts', 'w2')
-  //         .leftJoin('w2.workoutExercises', 'we2')
-  //         .where('we2.exercise_id = we.exercise_id')
-  //         .getQuery();
+    const response = await this.db.queryV2<RecentSetsForExerciseModel>(
+      'GetRecentSetsForExercises',
+      query,
+      params,
+    );
 
-  //       return 'w.created_at = ' + subQ;
-  //     })
-  //     .andWhere('w.user_id = :userId', { userId })
-  //     .orderBy('we.exercise_id')
-  //     .addOrderBy('w.created_at')
-  //     .addOrderBy('set.set_order');
+    return response;
+  }
 
-  //   if (exerciseIds && exerciseIds.length > 0) {
-  //     query.andWhere('e.id IN (:...exerciseIds)', { exerciseIds });
-  //   }
-  //   const result = await query.getMany();
-  //   return result;
-  // }
+  /**
+   * Gets the number of times each exercise has been used
+   *
+   * @param {string} userId
+   * @returns {NumTimesUsedForExerciseModel[]}
+   */
+  public async getNumTimesEachExerciseUsed(
+    userId: string,
+  ): Promise<NumTimesUsedForExerciseModel[]> {
+    const query = `
+      SELECT
+        we.exercise_id as id,
+        COUNT(we.exercise_id) as num_times_used,
+        e.name
+	    FROM workout_exercise as we
+	    INNER JOIN workout w on w.id = we.workout_id
+      INNER JOIN exercise e on e.id = we.exercise_id
+	    WHERE w.user_id = $1
+	    GROUP BY we.exercise_id, e.name
+    `;
+    const params = [userId];
+
+    const response = await this.db.queryV2<NumTimesUsedForExerciseModel>(
+      'GetNumTimesEachExerciseUsed',
+      query,
+      params,
+    );
+    return response;
+  }
 }
