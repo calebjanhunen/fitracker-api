@@ -19,6 +19,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
+import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
@@ -57,6 +58,22 @@ export default class ExercisesController {
     try {
       const exercises = await this.exerciseService.findAll(userId);
       return plainToInstance(ExerciseResponseDto, exercises);
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Get('/workout-details')
+  public async getExercisesWithWorkoutDetails(
+    @Headers('user-id') userId: string,
+  ): Promise<ExerciseWithWorkoutDetailsDto[]> {
+    try {
+      const exercisesWithWorkout =
+        await this.exerciseService.getExerciseWithWorkoutDetails(userId);
+      return plainToInstance(
+        ExerciseWithWorkoutDetailsDto,
+        exercisesWithWorkout,
+      );
     } catch (e) {
       throw new ConflictException(e.message);
     }
@@ -122,19 +139,4 @@ export default class ExercisesController {
       throw new ConflictException(e.message);
     }
   }
-
-  // @Get('exercises-for-workout')
-  // async getExercisesForWorkout(
-  //   @Headers('user-id') userId: string,
-  // ): Promise<ExerciseForWorkoutResponseDTO[]> {
-  //   try {
-  //     const exercisesForWorkout =
-  //       await this.exercisesService.getExercisesForWorkout(userId);
-  //     return exercisesForWorkout.map((exercise) =>
-  //       ExercisesForWorkoutMapper.fromEntityToDto(exercise),
-  //     );
-  //   } catch (e) {
-  //     throw new ConflictException(e.message);
-  //   }
-  // }
 }

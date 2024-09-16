@@ -5,7 +5,13 @@ import { BodyPartService } from 'src/modules/body-part/service/body-part.service
 import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
-import { ExerciseModel, InsertExerciseModel } from '../models';
+import {
+  ExerciseModel,
+  ExerciseWithWorkoutDetailsModel,
+  InsertExerciseModel,
+  NumTimesUsedForExerciseModel,
+  RecentSetsForExerciseModel,
+} from '../models';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -132,6 +138,41 @@ export class ExerciseService {
   }
 
   /**
+   * Gets all exercises along with workout details about each one.
+   *
+   * @param {string} userId
+   * @returns {ExerciseWithWorkoutDetails[]}
+   */
+  public async getExerciseWithWorkoutDetails(
+    userId: string,
+  ): Promise<ExerciseWithWorkoutDetailsModel[]> {
+    const allExercises = await this.exerciseRepo.findAll(userId);
+    const exercisesWithRecentSets =
+      await this.exerciseRepo.getRecentSetsForExercises(userId);
+    const exerciseWithNumTimesUsed =
+      await this.exerciseRepo.getNumTimesEachExerciseUsed(userId);
+
+    // convert recent sets array to map for quick lookup
+    const recentSetsMap = new Map<string, RecentSetsForExerciseModel>();
+    exercisesWithRecentSets.forEach((e) => recentSetsMap.set(e.id, e));
+
+    //convert num times used array to map for quick lookup
+    const numTimesUsedMap = new Map<string, NumTimesUsedForExerciseModel>();
+    exerciseWithNumTimesUsed.forEach((e) => numTimesUsedMap.set(e.id, e));
+
+    return allExercises.map((e) => {
+      const numTimesUsed = numTimesUsedMap.get(e.id)?.numTimesUsed;
+      return {
+        id: e.id,
+        name: e.name,
+        bodyPart: e.bodyPart,
+        numTimesUsed: numTimesUsed ? Number(numTimesUsed) : 0,
+        recentSets: recentSetsMap.get(e.id)?.recentSets ?? [],
+      };
+    });
+  }
+
+  /**
    * Gets body part and equipment by id to see if they exist
    * @param {number} bodyPartId
    * @param {number} equipmentId
@@ -156,99 +197,4 @@ export class ExerciseService {
       );
     }
   }
-
-  //   /**
-  //    * Checks if each exercise exists in the database.
-  //    *
-  //    * @param   {string[]}      ids     The id of each exercise to check
-  //    * @param   {User}          user    The user that is doing the request
-  //    * @returns {Exercise[]}            Array of exercises
-  //    *
-  //    * @throws {Error}
-  //    */
-  //   public async validateExercisesExist(
-  //     ids: string[],
-  //     user: User,
-  //   ): Promise<Exercise[]> {
-  //     const exercises = await this.exerciseRepo.getByIds(ids, user);
-  //     if (exercises.length !== ids.length)
-  //       throw new Error('One or more exercises do not exist');
-
-  //     return exercises;
-  //   }
-
-  //   /**
-  //    * Retrieves exercises for a workout, including information on usage
-  //    * frequency and recent sets.
-  //    * @param {string} userId
-  //    * @returns {ExerciseForWorkout[]}
-  //    */
-  //   public async getExercisesForWorkout(
-  //     userId: string,
-  //   ): Promise<ExerciseForWorkout[]> {
-  //     let allExercises: Exercise[];
-  //     let exerciseUsages: ExerciseUsage[];
-
-  //     // Get all exercises for user
-  //     try {
-  //       allExercises = await this.exerciseRepo.getAll(userId, {
-  //         fields: ['id', 'name', 'primaryMuscle'],
-  //       });
-  //     } catch (e) {
-  //       // TODO: Log error
-  //       throw new Error('Could not get exercises');
-  //     }
-
-  //     // Get number of times each exercise was used
-  //     try {
-  //       exerciseUsages = await this.exerciseRepo.getExerciseUsages(userId);
-  //     } catch (e) {
-  //       // TODO: Log error
-  //       throw new Error('Could not number of times exercises were used');
-  //     }
-
-  //     const recentSets = await this.getRecentSetsForExercises(userId);
-
-  //     // Convert array of exercise usages to map for time complexity efficiency
-  //     const exerciseUsagesMap = new Map(
-  //       exerciseUsages.map((res) => [res.exercise_id, res.num_times_used]),
-  //     );
-
-  //     // Combine the 3 queries into one array
-  //     const exercisesForWorkout: ExerciseForWorkout[] = allExercises.map((e) => {
-  //       const prevSets = recentSets.find((prev) => prev.exercise.id === e.id);
-  //       return {
-  //         ...e,
-  //         numTimesUsed: exerciseUsagesMap.get(e.id) || '0',
-  //         previousSets: prevSets?.sets || [],
-  //       };
-  //     });
-
-  //     return exercisesForWorkout;
-  //   }
-
-  //   /**
-  //    * Gets sets from most recent workout for exercises.
-  //    * Gets previous sets for exercises in exerciseIds if provided,
-  //    * if not it gets previous sets for all exercises.
-  //    *
-  //    * @param {string} userId
-  //    * @param {string[]} exerciseIds
-  //    * @returns {WorkoutExercise[]}
-  //    */
-  //   public async getRecentSetsForExercises(
-  //     userId: string,
-  //     exerciseIds?: string[],
-  //   ): Promise<WorkoutExercise[]> {
-  //     try {
-  //       const recentSets = await this.exerciseRepo.getRecentSetsForExercises(
-  //         userId,
-  //         exerciseIds,
-  //       );
-  //       return recentSets;
-  //     } catch (e) {
-  //       // TODO: Log error
-  //       throw new Error('Could not get recent sets for exercises');
-  //     }
-  //   }
 }
