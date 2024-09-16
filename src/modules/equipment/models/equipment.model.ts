@@ -6,8 +6,4 @@ export class EquipmentModel {
     this.id = id;
     this.name = name;
   }
-
-  public static fromDbQuery(result: any): EquipmentModel {
-    return new EquipmentModel(result.id, result.name);
-  }
 }

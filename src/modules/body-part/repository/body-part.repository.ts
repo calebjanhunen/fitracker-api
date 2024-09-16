@@ -35,7 +35,7 @@ export class BodyPartRepository {
     `;
 
     const result = await this.db.queryV2<BodyPartModel>(
-      'GetBodyPartById',
+      'FindAllBodyParts',
       query,
       [],
     );

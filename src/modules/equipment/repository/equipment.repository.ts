@@ -14,15 +14,32 @@ export class EquipmentRepository {
     `;
     const params = [id];
 
-    const result = await this.db.query<EquipmentModel>(
+    const result = await this.db.queryV2<EquipmentModel>(
       'GetEquipmentById',
       query,
       params,
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return null;
     }
-    return EquipmentModel.fromDbQuery(result.rows[0]);
+    return result[0];
+  }
+
+  public async findAll(): Promise<EquipmentModel[]> {
+    const query = `
+        SELECT
+          id,
+          name
+        FROM equipment
+    `;
+
+    const result = await this.db.queryV2<EquipmentModel>(
+      'FindAllEquipment',
+      query,
+      [],
+    );
+
+    return result;
   }
 }
