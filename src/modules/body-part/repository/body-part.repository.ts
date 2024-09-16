@@ -14,15 +14,32 @@ export class BodyPartRepository {
     `;
     const params = [id];
 
-    const result = await this.db.query<BodyPartModel>(
+    const result = await this.db.queryV2<BodyPartModel>(
       'GetBodyPartById',
       query,
       params,
     );
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return null;
     }
-    return BodyPartModel.fromDbQuery(result.rows[0]);
+    return result[0];
+  }
+
+  public async findAll(): Promise<BodyPartModel[]> {
+    const query = `
+        SELECT
+          id,
+          name
+        FROM body_part
+    `;
+
+    const result = await this.db.queryV2<BodyPartModel>(
+      'GetBodyPartById',
+      query,
+      [],
+    );
+
+    return result;
   }
 }

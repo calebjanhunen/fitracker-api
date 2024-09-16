@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from './modules/auth/auth.module';
+import { BodyPartModule } from './modules/body-part/body-part.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
 import { WorkoutModule } from './modules/workouts/workout.module';
@@ -13,6 +14,7 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     AuthModule,
     ExerciseModule,
     WorkoutModule,
+    BodyPartModule,
   ],
   controllers: [],
   providers: [],

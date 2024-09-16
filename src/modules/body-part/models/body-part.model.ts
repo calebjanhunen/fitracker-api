@@ -6,8 +6,4 @@ export class BodyPartModel {
     this.id = id;
     this.name = name;
   }
-
-  public static fromDbQuery(result: any): BodyPartModel {
-    return new BodyPartModel(result.id, result.name);
-  }
 }
