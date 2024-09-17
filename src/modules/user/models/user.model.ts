@@ -5,6 +5,7 @@ export class UserModel {
   firstName: string;
   lastName: string;
   email: string;
+  totalXp: number;
 
   constructor(
     id: string,
