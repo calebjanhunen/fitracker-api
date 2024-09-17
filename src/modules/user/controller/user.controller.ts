@@ -12,7 +12,7 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserService } from '../service/user.service';
 
-@Controller('/api/user')
+@Controller('/api/users')
 @UseGuards(AuthGuard)
 export class UserController {
   private userService;
