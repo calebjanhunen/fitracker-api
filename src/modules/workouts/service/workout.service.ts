@@ -45,6 +45,7 @@ export class WorkoutService {
       );
       return {
         workoutId: createdWorkout.id,
+        xpGained: this.WORKOUT_COMPLETION_XP,
         totalXp,
       };
     } catch (e) {
