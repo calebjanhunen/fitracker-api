@@ -19,4 +19,11 @@ export class UserService {
   async findByEmail(email: string): Promise<UserModel | null> {
     return this.userRepo.findByEmail(email);
   }
+
+  public async incrementTotalXp(
+    amount: number,
+    userId: string,
+  ): Promise<number> {
+    return this.userRepo.incrementTotalXp(amount, userId);
+  }
 }
