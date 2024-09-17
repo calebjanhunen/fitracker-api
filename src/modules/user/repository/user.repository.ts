@@ -95,6 +95,36 @@ export class UserRepository {
     }
   }
 
+  public async findById(id: string): Promise<UserModel | null> {
+    const query = `
+    SELECT
+      id,
+      username,
+      first_name,
+      last_name,
+      total_xp
+    FROM "user"
+    WHERE id = $1
+`;
+    const values = [id];
+
+    try {
+      const result = await this.db.queryV2<UserModel>(
+        'FindUserById',
+        query,
+        values,
+      );
+
+      if (result.length === 0) {
+        return null;
+      }
+
+      return result[0];
+    } catch (e) {
+      throw e;
+    }
+  }
+
   public async incrementTotalXp(
     amount: number,
     userId: string,
