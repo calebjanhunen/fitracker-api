@@ -94,4 +94,29 @@ export class UserRepository {
       throw e;
     }
   }
+
+  public async incrementTotalXp(
+    amount: number,
+    userId: string,
+  ): Promise<number> {
+    const query = `
+      UPDATE "user"
+      SET total_xp = total_xp + $1
+      WHERE id = $2
+      RETURNING total_xp
+    `;
+    const params = [amount, userId];
+
+    try {
+      const response = await this.db.queryV2<{ totalXp: number }>(
+        'IncrementTotalXp',
+        query,
+        params,
+      );
+
+      return response[0].totalXp;
+    } catch (e) {
+      throw e;
+    }
+  }
 }

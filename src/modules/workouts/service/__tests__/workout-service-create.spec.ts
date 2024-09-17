@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
+import { UserService } from 'src/modules/user/service/user.service';
 import { InvalidOrderException } from '../../internal-errors/invalid-order.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../../models';
 import { WorkoutRepository } from '../../repository/workout.repository';
@@ -24,6 +25,12 @@ describe('WorkoutService: create', () => {
           provide: ExerciseService,
           useValue: {
             validateExercisesExist: jest.fn(),
+          },
+        },
+        {
+          provide: UserService,
+          useValue: {
+            incrementTotalXp: jest.fn((amount, userId) => amount + 20),
           },
         },
       ],
