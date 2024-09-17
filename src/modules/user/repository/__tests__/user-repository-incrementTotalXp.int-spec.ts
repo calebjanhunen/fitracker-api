@@ -24,12 +24,8 @@ describe('UserRepository: incrementTotalXp', () => {
     const amount = 10;
     const userId = 'a4b517f0-184d-43c4-8f61-a3dfde729450';
 
-    await userRepository.incrementTotalXp(amount, userId);
+    const result = await userRepository.incrementTotalXp(amount, userId);
 
-    const result = await pool.query(
-      `SELECT total_xp FROM "user" WHERE id = 'a4b517f0-184d-43c4-8f61-a3dfde729450'`,
-    );
-
-    expect(result.rows[0]['total_xp']).toBe(123225);
+    expect(result).toBe(123225);
   });
 });
