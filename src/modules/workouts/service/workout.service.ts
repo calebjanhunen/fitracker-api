@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
+import { UserService } from 'src/modules/user/service/user.service';
+import { ICreateWorkout } from '../interfaces/create-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { InvalidOrderException } from '../internal-errors/invalid-order.exception';
@@ -9,9 +11,12 @@ import { WorkoutRepository } from '../repository/workout.repository';
 
 @Injectable()
 export class WorkoutService {
+  private readonly WORKOUT_COMPLETION_XP = 10;
+
   constructor(
     private exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -27,14 +32,21 @@ export class WorkoutService {
   public async create(
     workout: InsertWorkoutModel,
     userId: string,
-  ): Promise<WorkoutModel> {
+  ): Promise<ICreateWorkout> {
     const exerciseIds = workout.exercises.map((e) => e.exerciseId);
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      return createdWorkout;
+      const totalXp = await this.userService.incrementTotalXp(
+        this.WORKOUT_COMPLETION_XP,
+        userId,
+      );
+      return {
+        workoutId: createdWorkout.id,
+        totalXp,
+      };
     } catch (e) {
       throw new CouldNotSaveWorkoutException(workout.name);
     }

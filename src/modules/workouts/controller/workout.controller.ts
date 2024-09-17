@@ -15,6 +15,7 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
 import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { InsertWorkoutModel } from '../models';
@@ -29,17 +30,14 @@ export class WorkoutController {
   async createWorkout(
     @Body() createWorkoutDto: WorkoutRequestDto,
     @Headers('user-id') userId: string,
-  ): Promise<WorkoutResponseDto> {
+  ): Promise<CreateWorkoutResponseDto> {
     try {
       const workoutModel = plainToInstance(
         InsertWorkoutModel,
         createWorkoutDto,
       );
-      const createdWorkout = await this.workoutService.create(
-        workoutModel,
-        userId,
-      );
-      return plainToInstance(WorkoutResponseDto, createdWorkout);
+      const result = await this.workoutService.create(workoutModel, userId);
+      return plainToInstance(CreateWorkoutResponseDto, result);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
