@@ -1,6 +1,6 @@
 # db-migrate Migration instructions
 
-## column object fields:
+## column spec object fields:
 
 ```
 type — the column data type. Supported types can be found below
