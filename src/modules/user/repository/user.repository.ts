@@ -99,6 +99,7 @@ export class UserRepository {
     const query = `
     SELECT
       id,
+      username,
       first_name,
       last_name,
       total_xp
