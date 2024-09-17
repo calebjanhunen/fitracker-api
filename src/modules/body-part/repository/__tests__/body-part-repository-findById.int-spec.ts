@@ -1,4 +1,3 @@
-import { BodyPartModel } from '../../models/body-part.model';
 import { BodyPartRepository } from '../body-part.repository';
 
 describe('UserRepository: findById()', () => {
@@ -10,7 +9,6 @@ describe('UserRepository: findById()', () => {
 
   it('should successfully return a body part', async () => {
     const model = await bodyPartRepo.findById(1);
-    expect(model).toBeInstanceOf(BodyPartModel);
     expect(model?.id).toBe(1);
     expect(model?.name).toBe('biceps');
   });

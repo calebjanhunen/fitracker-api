@@ -9,4 +9,14 @@ export class BodyPartService {
   public async findById(id: number): Promise<BodyPartModel | null> {
     return this.bodyPartRepo.findById(id);
   }
+
+  public async findAll(): Promise<BodyPartModel[]> {
+    const bodyParts = await this.bodyPartRepo.findAll();
+
+    // Capitalize first letter of name
+    return bodyParts.map((bodyPart) => ({
+      ...bodyPart,
+      name: bodyPart.name.charAt(0).toUpperCase() + bodyPart.name.slice(1),
+    }));
+  }
 }
