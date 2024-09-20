@@ -1,5 +1,7 @@
 export class InsertWorkoutModel {
   name: string;
+  createdAt: Date;
+  duration: number;
   exercises: InsertWorkoutExerciseModel[];
 }
 

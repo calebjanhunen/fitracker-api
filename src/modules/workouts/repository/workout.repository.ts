@@ -14,6 +14,7 @@ export class WorkoutRepository {
         w.id,
         w.name,
         w.created_at,
+        w.duration,
         json_agg(json_build_object(
         	'id', e.id,
         	'name', e.name,
@@ -205,11 +206,11 @@ export class WorkoutRepository {
     userId: string,
   ): Promise<string> {
     const query = `
-          INSERT INTO workout (name, user_id)
-          VALUES ($1, $2)
+          INSERT INTO workout (name, user_id, created_at, updated_at, duration)
+          VALUES ($1, $2, $3, $3, $4)
           RETURNING id;
         `;
-    const params = [workout.name, userId];
+    const params = [workout.name, userId, workout.createdAt, workout.duration];
     const result = await client.query<{ id: string }>(query, params);
 
     return result.rows[0].id;

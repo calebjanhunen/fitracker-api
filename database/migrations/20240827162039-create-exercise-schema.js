@@ -64,12 +64,12 @@ exports.up = async function (db) {
         defaultValue: new String('uuid_generate_v4()'),
       },
       created_at: {
-        type: 'datetime',
+        type: 'timestamptz',
         notNull: true,
         defaultValue: new String('CURRENT_TIMESTAMP'),
       },
       updated_at: {
-        type: 'datetime',
+        type: 'timestamptz',
         notNull: true,
         defaultValue: new String('CURRENT_TIMESTAMP'),
       },

@@ -1,6 +1,7 @@
 export class WorkoutModel {
   id: string;
   createdAt: string;
+  duration: number;
   name: string;
   exercises: WorkoutExerciseModel[];
 }

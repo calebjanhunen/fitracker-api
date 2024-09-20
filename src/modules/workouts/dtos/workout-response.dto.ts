@@ -1,7 +1,8 @@
 export class WorkoutResponseDto {
   id: string;
   name: string;
-  createdAt: string;
+  createdAt: Date;
+  duration: number;
   exercises: WorkoutExerciseResponseDto[];
 }
 

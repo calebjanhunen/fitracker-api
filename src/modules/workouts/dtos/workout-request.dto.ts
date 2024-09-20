@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsDate,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -15,6 +16,15 @@ export class WorkoutRequestDto {
   @IsString()
   @IsNotEmpty()
   public name: string;
+
+  @IsDate()
+  @IsNotEmpty()
+  public createdAt: Date;
+
+  @IsInt()
+  @IsNotEmpty()
+  @Min(0)
+  public duration: number;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })

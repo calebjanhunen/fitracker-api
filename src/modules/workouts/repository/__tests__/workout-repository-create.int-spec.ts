@@ -38,6 +38,8 @@ describe('WorkoutRepository: create', () => {
   it('should successfully return a workout', async () => {
     const model = new InsertWorkoutModel();
     model.name = 'Test Insert Workout';
+    model.createdAt = new Date();
+    model.duration = 1000;
     model.exercises = [
       {
         exerciseId: exercise1Id,
@@ -93,6 +95,8 @@ describe('WorkoutRepository: create', () => {
   it('should rollback transaction if error occurs during workout creation', async () => {
     const model = new InsertWorkoutModel();
     model.name = 'Test Insert Workout';
+    model.createdAt = new Date();
+    model.duration = 1000;
     model.exercises = [
       {
         exerciseId: exercise1Id,
@@ -133,5 +137,38 @@ describe('WorkoutRepository: create', () => {
 
     const setResults = await pool.query('SELECT * FROM workout_set');
     expect(setResults.rows.length).toBe(0);
+  });
+
+  it('should insert createdAt and duration values into workout table', async () => {
+    const createdAtDate = new Date();
+    const model = new InsertWorkoutModel();
+    model.name = 'Test Insert Workout';
+    model.createdAt = createdAtDate;
+    console.log(createdAtDate);
+    model.duration = 1000;
+    model.exercises = [
+      {
+        exerciseId: exercise1Id,
+        order: 1,
+        sets: [
+          { order: 1, weight: 200, reps: 20, rpe: 9 },
+          { order: 2, weight: 200, reps: 15, rpe: 10 },
+        ],
+      },
+      {
+        exerciseId: exercise2Id,
+        order: 2,
+        sets: [
+          { order: 1, weight: 400, reps: 10, rpe: 9 },
+          { order: 2, weight: 400, reps: 9, rpe: 10 },
+          { order: 3, weight: 400, reps: 8, rpe: 10 },
+        ],
+      },
+    ];
+
+    const result = await workoutRepo.create(model, userId);
+
+    expect(result.createdAt).toEqual(createdAtDate);
+    expect(result.duration).toBe(1000);
   });
 });
