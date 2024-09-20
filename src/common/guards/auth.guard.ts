@@ -20,7 +20,6 @@ export class AuthGuard implements CanActivate {
     const accessToken = this.extractToken(request);
 
     if (!accessToken) {
-      console.log('no token');
       throw new UnauthorizedException('Provide token');
     }
 
