@@ -170,4 +170,28 @@ export class UserRepository {
       throw e;
     }
   }
+
+  public async decrementTotalXp(
+    amount: number,
+    userId: string,
+  ): Promise<number> {
+    const query = `
+      UPDATE user_stats
+      SET total_xp = total_xp - $1
+      WHERE user_id = $2
+      RETURNING total_xp
+    `;
+    const params = [amount, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<{
+        totalXp: number;
+      }>(query, params);
+
+      return queryResult[0].totalXp;
+    } catch (e) {
+      this.logger.error(`Query DecrementTotalXp failed: `, e);
+      throw e;
+    }
+  }
 }

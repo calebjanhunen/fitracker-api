@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+import { BaseException } from 'src/common/internal-exceptions/base.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { XpCannotBeBelowZeroException } from '../internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserModel } from '../models/user.model';
 import { UserRepository } from '../repository/user.repository';
@@ -36,5 +38,22 @@ export class UserService {
     userId: string,
   ): Promise<number> {
     return this.userRepo.incrementTotalXp(amount, userId);
+  }
+
+  public async decrementTotalXp(
+    amount: number,
+    userId: string,
+  ): Promise<number> {
+    const user = await this.findById(userId);
+
+    if (user.totalXp - amount < 0) {
+      throw new XpCannotBeBelowZeroException();
+    }
+
+    try {
+      return await this.userRepo.decrementTotalXp(amount, userId);
+    } catch (e) {
+      throw new BaseException('Could not decrement xp: ' + e.message);
+    }
   }
 }

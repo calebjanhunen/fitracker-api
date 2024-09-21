@@ -89,9 +89,11 @@ export class WorkoutService {
    *
    * @throws {CouldNotDeleteWorkoutException}
    * @throws {WorkoutNotFoundException}
+   * @throws {XpCannotBeBelowZeroException}
    */
   public async delete(workoutId: string, userId: string): Promise<void> {
     await this.findById(workoutId, userId);
+    await this.userService.decrementTotalXp(this.WORKOUT_COMPLETION_XP, userId);
 
     try {
       await this.workoutRepo.delete(workoutId, userId);
