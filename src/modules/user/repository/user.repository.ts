@@ -25,12 +25,19 @@ export class UserRepository {
       user.lastName,
       user.email,
     ];
-
     try {
       const { queryResult, elapsedTime } = await this.db.queryV2<UserModel>(
         query,
         values,
       );
+
+      const userStatsQuery = `
+        INSERT INTO user_stats
+        VALUES ($1, 0)
+      `;
+      const userStatsParams = [queryResult[0].id];
+      await this.db.queryV2(userStatsQuery, userStatsParams);
+
       this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
       return queryResult[0];
     } catch (e) {
