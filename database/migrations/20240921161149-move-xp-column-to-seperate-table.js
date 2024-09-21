@@ -19,6 +19,7 @@ exports.up = async function (db) {
     user_id: {
       type: 'uuid',
       notNull: false,
+      primaryKey: true,
       foreignKey: {
         name: 'fk_user_exercise',
         table: 'user',
