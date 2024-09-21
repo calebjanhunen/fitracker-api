@@ -22,9 +22,9 @@ BEGIN
 
     -- Insert into workout table
     INSERT INTO workout
-        (name, user_id)
+        (name, user_id, duration)
     VALUES
-        ('Test Workout: caleb_test', userId);
+        ('Test Workout: caleb_test', userId, 4428);
     RAISE NOTICE 'Inserted 1 workout into workout table';
 
     -- Insert 3 exercises into workout_exercise table
