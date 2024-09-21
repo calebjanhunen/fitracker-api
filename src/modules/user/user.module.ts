@@ -16,6 +16,10 @@ import { UserService } from './service/user.service';
       provide: 'UserRepoLogger',
       useFactory: () => new MyLoggerService(UserRepository.name),
     },
+    {
+      provide: 'UserServiceLogger',
+      useFactory: () => new MyLoggerService(UserService.name),
+    },
   ],
   exports: [UserService],
 })

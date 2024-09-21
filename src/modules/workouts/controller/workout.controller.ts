@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   Headers,
-  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -16,6 +15,7 @@ import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
+import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
 import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { InsertWorkoutModel } from '../models';
@@ -74,13 +74,13 @@ export class WorkoutController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
   async deleteWorkout(
     @Headers('user-id') userId: string,
     @Param('id') workoutId: string,
-  ): Promise<void> {
+  ): Promise<DeleteWorkoutDto> {
     try {
-      await this.workoutService.delete(workoutId, userId);
+      const totalXp = await this.workoutService.delete(workoutId, userId);
+      return { totalXp };
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
