@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { BaseException } from 'src/common/internal-exceptions/base.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { XpCannotBeBelowZeroException } from '../internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserModel } from '../models/user.model';
@@ -9,7 +10,10 @@ import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepo: UserRepository) {}
+  constructor(
+    private readonly userRepo: UserRepository,
+    @Inject('UserServiceLogger') private readonly logger: MyLoggerService,
+  ) {}
 
   public async create(user: InsertUserModel): Promise<UserModel> {
     return this.userRepo.create(user);
@@ -47,6 +51,9 @@ export class UserService {
     const user = await this.findById(userId);
 
     if (user.totalXp - amount < 0) {
+      this.logger.warn(
+        `User tried removing ${amount} xp from total xp: ${user.totalXp}`,
+      );
       throw new XpCannotBeBelowZeroException();
     }
 
