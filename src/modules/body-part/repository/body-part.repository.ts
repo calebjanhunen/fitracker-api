@@ -14,16 +14,12 @@ export class BodyPartRepository {
     `;
     const params = [id];
 
-    const result = await this.db.queryV2<BodyPartModel>(
-      'GetBodyPartById',
-      query,
-      params,
-    );
+    const { queryResult } = await this.db.queryV2<BodyPartModel>(query, params);
 
-    if (result.length === 0) {
+    if (queryResult.length === 0) {
       return null;
     }
-    return result[0];
+    return queryResult[0];
   }
 
   public async findAll(): Promise<BodyPartModel[]> {
@@ -34,12 +30,8 @@ export class BodyPartRepository {
         FROM body_part
     `;
 
-    const result = await this.db.queryV2<BodyPartModel>(
-      'FindAllBodyParts',
-      query,
-      [],
-    );
+    const { queryResult } = await this.db.queryV2<BodyPartModel>(query, []);
 
-    return result;
+    return queryResult;
   }
 }

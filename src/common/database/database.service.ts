@@ -3,26 +3,15 @@ require('dotenv').config({
   path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
 });
 
-import {
-  Injectable,
-  Logger,
-  LoggerService,
-  OnModuleDestroy,
-} from '@nestjs/common';
-import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Pool, PoolClient, QueryResultRow } from 'pg';
 import { DatabaseException } from '../internal-exceptions/database.exception';
 
 @Injectable()
 export class DbService implements OnModuleDestroy {
   private readonly pool: Pool;
-  private poolClient: PoolClient;
-  private readonly logger: LoggerService;
-
-  // For transaction queries
-  private transactionStartTime: number;
 
   constructor() {
-    this.logger = new Logger(DbService.name);
     this.pool = new Pool({
       host: process.env.POSTGRES_HOST,
       port: +(process.env.POSTGRES_PORT as string),
@@ -30,31 +19,6 @@ export class DbService implements OnModuleDestroy {
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
     });
-  }
-
-  /**
-   * @deprecated Use queryV2
-   */
-  public async query<T extends QueryResultRow>(
-    queryName: string,
-    query: string,
-    parameters: (string | number | boolean | null)[],
-  ): Promise<QueryResult<T>> {
-    try {
-      const startTime = Date.now();
-
-      const result = await this.pool.query(query, parameters);
-
-      const endTime = Date.now();
-
-      if (process.env.NODE_ENV !== 'test') {
-        this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
-      }
-      return result;
-    } catch (e) {
-      this.logger.error(`Query: ${queryName} failed: `, e);
-      throw new DatabaseException(e.message);
-    }
   }
 
   /**
@@ -70,21 +34,17 @@ export class DbService implements OnModuleDestroy {
    * @throws {DatabaseException}
    */
   public async queryV2<T extends QueryResultRow>(
-    queryName: string,
     query: string,
     parameters: (string | string[] | number | boolean | null)[],
-  ): Promise<T[]> {
-    try {
-      const startTime = Date.now();
-      const result = await this.pool.query<T>(query, parameters);
-      const endTime = Date.now();
+  ): Promise<{ queryResult: T[]; elapsedTime: number }> {
+    const startTime = Date.now();
+    const result = await this.pool.query<T>(query, parameters);
+    const endTime = Date.now();
 
-      this.logQueryElapsedTime(startTime, endTime, queryName);
-      return this.toCamelCase(result.rows);
-    } catch (e) {
-      this.logger.error(`Query: ${queryName} failed: `, e);
-      throw new DatabaseException(e.message);
-    }
+    return {
+      queryResult: this.toCamelCase(result.rows),
+      elapsedTime: this.getElapsedTime(startTime, endTime),
+    };
   }
 
   /**
@@ -94,9 +54,8 @@ export class DbService implements OnModuleDestroy {
    * @returns {T}
    */
   public async transaction<T>(
-    queryName: string,
     callback: (client: PoolClient) => Promise<T>,
-  ): Promise<T> {
+  ): Promise<{ queryResult: T; elapsedTime: number }> {
     const client = await this.pool.connect();
     try {
       const startTime = Date.now();
@@ -106,8 +65,10 @@ export class DbService implements OnModuleDestroy {
       await client.query('COMMIT');
 
       const endTime = Date.now();
-      this.logQueryElapsedTime(startTime, endTime, queryName);
-      return result;
+      return {
+        queryResult: result,
+        elapsedTime: this.getElapsedTime(startTime, endTime),
+      };
     } catch (e) {
       await client.query('ROLLBACK');
       throw new DatabaseException(e.message);
@@ -116,14 +77,8 @@ export class DbService implements OnModuleDestroy {
     }
   }
 
-  private logQueryElapsedTime(
-    startTime: number,
-    endTime: number,
-    queryName: string,
-  ): void {
-    if (process.env.NODE_ENV !== 'test') {
-      this.logger.log(`${queryName} query took ${endTime - startTime}ms`);
-    }
+  private getElapsedTime(startTime: number, endTime: number): number {
+    return endTime - startTime;
   }
 
   /**

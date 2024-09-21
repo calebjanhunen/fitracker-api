@@ -56,38 +56,44 @@ export class WorkoutRepository {
     workout: InsertWorkoutModel,
     userId: string,
   ): Promise<WorkoutModel> {
-    const workoutId = await this.dbService.transaction<string>(
-      'InsertWorkout',
-      async (client) => {
-        const insertedWorkoutId = await this.insertWorkout(
-          client,
-          workout,
-          userId,
-        );
-
-        for (const exercise of workout.exercises) {
-          const workoutExerciseId = await this.insertWorkoutExercise(
+    const queryName = 'CreateWorkout';
+    try {
+      const { queryResult, elapsedTime } =
+        await this.dbService.transaction<string>(async (client) => {
+          const insertedWorkoutId = await this.insertWorkout(
             client,
-            insertedWorkoutId,
-            exercise,
+            workout,
+            userId,
           );
-          await this.insertExerciseSets(
-            client,
-            workoutExerciseId,
-            exercise.sets,
-          );
-        }
 
-        return insertedWorkoutId;
-      },
-    );
+          for (const exercise of workout.exercises) {
+            const workoutExerciseId = await this.insertWorkoutExercise(
+              client,
+              insertedWorkoutId,
+              exercise,
+            );
+            await this.insertExerciseSets(
+              client,
+              workoutExerciseId,
+              exercise.sets,
+            );
+          }
 
-    const createdWorkout = await this.findById(workoutId, userId);
-    if (!createdWorkout) {
-      throw new Error('Could not find created workout.');
+          return insertedWorkoutId;
+        });
+
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+
+      const createdWorkout = await this.findById(queryResult, userId);
+      if (!createdWorkout) {
+        throw new Error('Could not find created workout.');
+      }
+
+      return createdWorkout;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
     }
-
-    return createdWorkout;
   }
 
   /**
@@ -100,6 +106,7 @@ export class WorkoutRepository {
     workoutId: string,
     userId: string,
   ): Promise<WorkoutModel | null> {
+    const queryName = 'GetWorkoutById';
     const query = `
       SELECT
         ${this.COLUMNS_AND_JOINS}
@@ -108,20 +115,24 @@ export class WorkoutRepository {
     `;
     const params = [userId, workoutId];
 
-    const result = await this.dbService.queryV2<WorkoutModel>(
-      'FindWorkoutById',
-      query,
-      params,
-    );
+    try {
+      const { queryResult, elapsedTime } =
+        await this.dbService.queryV2<WorkoutModel>(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
-    if (result.length === 0) {
-      return null;
+      if (queryResult.length === 0) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
     }
-    return result[0];
   }
 
   public async findAll(userId: string): Promise<WorkoutModel[]> {
-    this.logger.log('TESTING LOGGING');
+    const queryName = 'GetAllWorkouts';
     const query = `
       SELECT
         ${this.COLUMNS_AND_JOINS}
@@ -131,16 +142,20 @@ export class WorkoutRepository {
     `;
     const params = [userId];
 
-    const result = await this.dbService.queryV2<WorkoutModel>(
-      'FindAllWorkouts',
-      query,
-      params,
-    );
+    try {
+      const { queryResult, elapsedTime } =
+        await this.dbService.queryV2<WorkoutModel>(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
-    return result;
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   public async delete(workoutId: string, userId: string): Promise<void> {
+    const queryName = 'DeleteWorkout';
     const query = `
       DELETE FROM workout
       WHERE
@@ -148,7 +163,13 @@ export class WorkoutRepository {
     `;
     const params = [userId, workoutId];
 
-    await this.dbService.queryV2('DeleteWorkout', query, params);
+    try {
+      const { elapsedTime } = await this.dbService.queryV2(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   public async update(
@@ -156,40 +177,54 @@ export class WorkoutRepository {
     workout: InsertWorkoutModel,
     userId: string,
   ): Promise<WorkoutModel> {
-    await this.dbService.transaction('UpdateWorkout', async (client) => {
-      // Update using kill and fill due to ability to remove and add sets & exercsies
-      // TODO: Change from kill and fill
+    const queryName = 'UpdateWorkout';
+    try {
+      const { elapsedTime } = await this.dbService.transaction(
+        async (client) => {
+          // Update using kill and fill due to ability to remove and add sets & exercsies
+          // TODO: Change from kill and fill
 
-      // Update workout to maintain id, created_at & updated_at
-      const updateQuery = `
+          // Update workout to maintain id, created_at & updated_at
+          const updateQuery = `
         UPDATE workout
         SET
-          name = $1
+        name = $1
         WHERE
           id = $2 AND user_id = $3
-      `;
-      const updateParams = [workout.name, workoutId, userId];
-      await client.query(updateQuery, updateParams);
+          `;
+          const updateParams = [workout.name, workoutId, userId];
+          await client.query(updateQuery, updateParams);
 
-      // Delete workout exercises & sets
-      const deleteQuery = `
-        DELETE FROM workout_exercise
-        WHERE
+          // Delete workout exercises & sets
+          const deleteQuery = `
+          DELETE FROM workout_exercise
+          WHERE
           workout_id = $1
-      `;
-      const deleteParams = [workoutId];
-      await client.query(deleteQuery, deleteParams);
+          `;
+          const deleteParams = [workoutId];
+          await client.query(deleteQuery, deleteParams);
 
-      // Insert workout exercises and sets
-      for (const exercise of workout.exercises) {
-        const workoutExerciseId = await this.insertWorkoutExercise(
-          client,
-          workoutId,
-          exercise,
-        );
-        await this.insertExerciseSets(client, workoutExerciseId, exercise.sets);
-      }
-    });
+          // Insert workout exercises and sets
+          for (const exercise of workout.exercises) {
+            const workoutExerciseId = await this.insertWorkoutExercise(
+              client,
+              workoutId,
+              exercise,
+            );
+            await this.insertExerciseSets(
+              client,
+              workoutExerciseId,
+              exercise.sets,
+            );
+          }
+        },
+      );
+
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
 
     const updatedWorkout = await this.findById(workoutId, userId);
     if (!updatedWorkout) {

@@ -14,16 +14,15 @@ export class EquipmentRepository {
     `;
     const params = [id];
 
-    const result = await this.db.queryV2<EquipmentModel>(
-      'GetEquipmentById',
+    const { queryResult } = await this.db.queryV2<EquipmentModel>(
       query,
       params,
     );
 
-    if (result.length === 0) {
+    if (queryResult.length === 0) {
       return null;
     }
-    return result[0];
+    return queryResult[0];
   }
 
   public async findAll(): Promise<EquipmentModel[]> {
@@ -34,12 +33,8 @@ export class EquipmentRepository {
         FROM equipment
     `;
 
-    const result = await this.db.queryV2<EquipmentModel>(
-      'FindAllEquipment',
-      query,
-      [],
-    );
+    const { queryResult } = await this.db.queryV2<EquipmentModel>(query, []);
 
-    return result;
+    return queryResult;
   }
 }

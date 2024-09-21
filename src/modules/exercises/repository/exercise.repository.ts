@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   ExerciseModel,
   InsertExerciseModel,
@@ -21,7 +22,10 @@ export class ExerciseRepository {
       INNER JOIN equipment eq
       ON eq.id = e.equipment_id
   `;
-  constructor(private readonly db: DbService) {}
+  constructor(
+    private readonly db: DbService,
+    @Inject('ExerciseRepoLogger') private readonly logger: MyLoggerService,
+  ) {}
 
   /**
    * Creates a new exercise.
@@ -31,6 +35,7 @@ export class ExerciseRepository {
    * @throws {DatabaseException}
    */
   public async create(exercise: InsertExerciseModel): Promise<ExerciseModel> {
+    const queryName = 'CreateExercise';
     const query = `
         INSERT INTO exercise (name, body_part_id, equipment_id, is_custom, user_id)
         VALUES ($1, $2, $3, $4, $5)
@@ -44,21 +49,30 @@ export class ExerciseRepository {
       exercise.userId,
     ];
 
-    const result = await this.db.queryV2<ExerciseModel>(
-      'CreateExercise',
-      query,
-      values,
-    );
-    if (result.length === 0) {
-      throw new Error('Could not create exercise');
-    }
+    try {
+      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+        query,
+        values,
+      );
 
-    const createdExercise = await this.findById(result[0].id, exercise.userId);
-    if (!createdExercise) {
-      throw new Error('Could not find created exercise');
-    }
+      if (queryResult.length === 0) {
+        throw new Error('Could not create exercise');
+      }
 
-    return createdExercise;
+      const createdExercise = await this.findById(
+        queryResult[0].id,
+        exercise.userId,
+      );
+      if (!createdExercise) {
+        throw new Error('Could not find created exercise');
+      }
+
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+      return createdExercise;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   /**
@@ -69,6 +83,7 @@ export class ExerciseRepository {
    * @throws {DatabaseException}
    */
   public async findAll(userId: string): Promise<ExerciseModel[]> {
+    const queryName = 'FindAllExercises';
     const query = `
       SELECT
         e.id,
@@ -87,12 +102,18 @@ export class ExerciseRepository {
     `;
     const params = [userId];
 
-    const result = await this.db.queryV2<ExerciseModel>(
-      'FindAllExercises',
-      query,
-      params,
-    );
-    return result;
+    try {
+      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+        query,
+        params,
+      );
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   /**
@@ -107,6 +128,7 @@ export class ExerciseRepository {
     exerciseId: string,
     userId: string,
   ): Promise<ExerciseModel | null> {
+    const queryName = 'FindExerciseById';
     const query = `
       SELECT
         e.id,
@@ -126,22 +148,28 @@ export class ExerciseRepository {
     `;
     const params = [exerciseId, userId];
 
-    const result = await this.db.queryV2<ExerciseModel>(
-      'FindExerciseById',
-      query,
-      params,
-    );
-    if (result.length === 0) {
-      return null;
-    }
+    try {
+      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+        query,
+        params,
+      );
+      if (queryResult.length === 0) {
+        return null;
+      }
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
-    return result[0];
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   public async findByIds(
     ids: string[],
     userId: string,
   ): Promise<ExerciseModel[]> {
+    const queryName = 'FindExercisesByIds';
     const query = `
       SELECT
         ${this.COLUMNS_AND_JOINS}
@@ -151,11 +179,18 @@ export class ExerciseRepository {
     `;
     const params = [ids, userId];
 
-    return await this.db.queryV2<ExerciseModel>(
-      'FindExercisesByIds',
-      query,
-      params,
-    );
+    try {
+      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+        query,
+        params,
+      );
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   /**
@@ -166,6 +201,7 @@ export class ExerciseRepository {
    * @throws {DatabaseException}
    */
   public async delete(exerciseId: string, userId: string): Promise<void> {
+    const queryName = 'DeleteExercise';
     const query = `
       DELETE FROM exercise
       WHERE
@@ -173,7 +209,13 @@ export class ExerciseRepository {
     `;
     const params = [exerciseId, userId];
 
-    await this.db.queryV2('DeleteExercise', query, params);
+    try {
+      const { elapsedTime } = await this.db.queryV2(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   /**
@@ -208,12 +250,9 @@ export class ExerciseRepository {
       userId,
     ];
 
-    const result = await this.db.queryV2<ExerciseModel>(
-      'UpdateExercise',
-      query,
-      params,
-    );
-    const updatedExercise = await this.findById(result[0].id, userId);
+    const { queryResult } = await this.db.queryV2<ExerciseModel>(query, params);
+
+    const updatedExercise = await this.findById(queryResult[0].id, userId);
     if (!updatedExercise) {
       throw new Error('Could not find updated exercise');
     }
@@ -229,6 +268,8 @@ export class ExerciseRepository {
   public async getRecentSetsForExercises(
     userId: string,
   ): Promise<RecentSetsForExerciseModel[]> {
+    const queryName = 'GetRecentSetsForExercises';
+
     const query = `
       WITH recent_workouts AS (
 	      SELECT
@@ -257,13 +298,15 @@ export class ExerciseRepository {
     `;
     const params = [userId];
 
-    const response = await this.db.queryV2<RecentSetsForExerciseModel>(
-      'GetRecentSetsForExercises',
-      query,
-      params,
-    );
-
-    return response;
+    try {
+      const { queryResult, elapsedTime } =
+        await this.db.queryV2<RecentSetsForExerciseModel>(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 
   /**
@@ -275,6 +318,8 @@ export class ExerciseRepository {
   public async getNumTimesEachExerciseUsed(
     userId: string,
   ): Promise<NumTimesUsedForExerciseModel[]> {
+    const queryName = 'GetNumTimesEachExerciseUsed';
+
     const query = `
       SELECT
         we.exercise_id as id,
@@ -288,11 +333,15 @@ export class ExerciseRepository {
     `;
     const params = [userId];
 
-    const response = await this.db.queryV2<NumTimesUsedForExerciseModel>(
-      'GetNumTimesEachExerciseUsed',
-      query,
-      params,
-    );
-    return response;
+    try {
+      const { queryResult, elapsedTime } =
+        await this.db.queryV2<NumTimesUsedForExerciseModel>(query, params);
+      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query ${queryName} failed: `, e);
+      throw e;
+    }
   }
 }
