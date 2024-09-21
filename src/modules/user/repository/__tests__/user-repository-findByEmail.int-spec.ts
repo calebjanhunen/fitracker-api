@@ -1,3 +1,4 @@
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { UserRepository } from '../user.repository';
 
 describe('UserRepository: findByEmail()', () => {
@@ -5,7 +6,8 @@ describe('UserRepository: findByEmail()', () => {
   let userRepository: UserRepository;
 
   beforeAll(async () => {
-    userRepository = new UserRepository(global.dbService);
+    const logger = new MyLoggerService(UserRepository.name);
+    userRepository = new UserRepository(global.dbService, logger);
   });
 
   beforeEach(async () => {

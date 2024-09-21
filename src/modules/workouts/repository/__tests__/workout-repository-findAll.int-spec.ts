@@ -1,3 +1,4 @@
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { WorkoutRepository } from '../workout.repository';
 
 describe('WorkoutRepository: findAll', () => {
@@ -5,7 +6,8 @@ describe('WorkoutRepository: findAll', () => {
   let workoutRepo: WorkoutRepository;
 
   beforeAll(async () => {
-    workoutRepo = new WorkoutRepository(global.dbService);
+    const logger = new MyLoggerService(WorkoutRepository.name);
+    workoutRepo = new WorkoutRepository(global.dbService, logger);
   });
 
   beforeEach(async () => {

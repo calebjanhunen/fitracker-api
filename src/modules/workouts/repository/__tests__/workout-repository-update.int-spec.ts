@@ -1,3 +1,4 @@
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel } from '../../models';
 import { WorkoutRepository } from '../workout.repository';
 
@@ -7,7 +8,8 @@ describe('WorkoutRepository: update', () => {
   const workoutId = 'a90bf798-8f67-4cbb-ae86-62be0cb4aee0';
   const userId = 'ca0f33a8-5c91-4056-9afd-a0783c624e92';
   beforeAll(async () => {
-    workoutRepo = new WorkoutRepository(global.dbService);
+    const logger = new MyLoggerService(WorkoutRepository.name);
+    workoutRepo = new WorkoutRepository(global.dbService, logger);
   });
 
   beforeEach(async () => {

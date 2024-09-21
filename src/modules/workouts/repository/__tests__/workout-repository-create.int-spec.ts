@@ -1,4 +1,5 @@
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel } from '../../models';
 import { WorkoutRepository } from '../workout.repository';
 
@@ -10,7 +11,8 @@ describe('WorkoutRepository: create', () => {
   let exercise2Id: string;
 
   beforeAll(async () => {
-    workoutRepo = new WorkoutRepository(global.dbService);
+    const logger = new MyLoggerService(WorkoutRepository.name);
+    workoutRepo = new WorkoutRepository(global.dbService, logger);
 
     await pool.query(`
       INSERT INTO "user" (id, username, password, first_name, last_name, email)
@@ -144,7 +146,6 @@ describe('WorkoutRepository: create', () => {
     const model = new InsertWorkoutModel();
     model.name = 'Test Insert Workout';
     model.createdAt = createdAtDate;
-    console.log(createdAtDate);
     model.duration = 1000;
     model.exercises = [
       {

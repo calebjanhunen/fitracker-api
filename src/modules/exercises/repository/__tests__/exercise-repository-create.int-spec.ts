@@ -1,3 +1,4 @@
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertExerciseModel } from '../../models/insert-exercise.model';
 import { ExerciseRepository } from '../exercise.repository';
 
@@ -6,7 +7,8 @@ describe('UserRepository: create()', () => {
   let exerciseRepo: ExerciseRepository;
 
   beforeAll(async () => {
-    exerciseRepo = new ExerciseRepository(global.dbService);
+    const logger = new MyLoggerService(ExerciseRepository.name);
+    exerciseRepo = new ExerciseRepository(global.dbService, logger);
   });
 
   beforeEach(async () => {

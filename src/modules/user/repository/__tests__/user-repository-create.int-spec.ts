@@ -1,3 +1,4 @@
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../../models/insert-user.model';
 import { UserRepository } from '../user.repository';
 
@@ -6,7 +7,8 @@ describe('UserRepository: create()', () => {
   let userRepository: UserRepository;
 
   beforeAll(async () => {
-    userRepository = new UserRepository(global.dbService);
+    const logger = new MyLoggerService(UserRepository.name);
+    userRepository = new UserRepository(global.dbService, logger);
   });
 
   afterEach(async () => {
