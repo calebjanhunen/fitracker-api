@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -39,7 +40,10 @@ export class WorkoutRepository {
 	      exercise as e ON e.id = we.exercise_id
   `;
 
-  constructor(private readonly dbService: DbService) {}
+  constructor(
+    private readonly dbService: DbService,
+    @Inject('WorkoutRepoLogger') private readonly logger: MyLoggerService,
+  ) {}
 
   /**
    * Saves a workout.
@@ -117,6 +121,7 @@ export class WorkoutRepository {
   }
 
   public async findAll(userId: string): Promise<WorkoutModel[]> {
+    this.logger.log('TESTING LOGGING');
     const query = `
       SELECT
         ${this.COLUMNS_AND_JOINS}

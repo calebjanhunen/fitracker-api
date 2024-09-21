@@ -1,6 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { AssignCorrelationIdMiddleware } from './common/middleware/assign-correlation-id.middleware';
+import { CorrelationIdService } from './common/services/correlation-id.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { BodyPartModule } from './modules/body-part/body-part.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
@@ -19,6 +21,10 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     EquipmentModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [CorrelationIdService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AssignCorrelationIdMiddleware).forRoutes('*');
+  }
+}
