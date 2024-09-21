@@ -12,9 +12,14 @@ describe('UserRepository: incrementTotalXp', () => {
 
   beforeEach(async () => {
     await pool.query(`
-        INSERT INTO "user" (id, username, password, first_name, last_name, email, total_xp)
+        INSERT INTO "user" (id, username, password, first_name, last_name, email)
         VALUES 
-          ('a4b517f0-184d-43c4-8f61-a3dfde729450', 'test_user1', 'password1', 'Test', 'User1', 'test1@example.com', 123215)
+          ('a4b517f0-184d-43c4-8f61-a3dfde729450', 'test_user1', 'password1', 'Test', 'User1', 'test1@example.com')
+      `);
+
+    await pool.query(`
+        INSERT INTO user_stats (user_id, total_xp)
+        VALUES ('a4b517f0-184d-43c4-8f61-a3dfde729450', 1235)
       `);
   });
 
@@ -28,6 +33,6 @@ describe('UserRepository: incrementTotalXp', () => {
 
     const result = await userRepository.incrementTotalXp(amount, userId);
 
-    expect(result).toBe(123225);
+    expect(result).toBe(1245);
   });
 });

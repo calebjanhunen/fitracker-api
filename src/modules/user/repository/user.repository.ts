@@ -108,13 +108,14 @@ export class UserRepository {
     const queryName = 'FindUserById';
     const query = `
     SELECT
-      id,
-      username,
-      first_name,
-      last_name,
-      total_xp
-    FROM "user"
-    WHERE id = $1
+      u.id,
+      u.username,
+      u.first_name,
+      u.last_name,
+      us.total_xp
+    FROM "user" as u
+    INNER JOIN user_stats us ON us.user_id = u.id
+    WHERE u.id = $1
 `;
     const values = [id];
 
@@ -142,9 +143,9 @@ export class UserRepository {
   ): Promise<number> {
     const queryName = 'IncrementTotalXp';
     const query = `
-      UPDATE "user"
+      UPDATE user_stats
       SET total_xp = total_xp + $1
-      WHERE id = $2
+      WHERE user_id = $2
       RETURNING total_xp
     `;
     const params = [amount, userId];
