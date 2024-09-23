@@ -8,6 +8,7 @@ import { InvalidOrderException } from '../internal-errors/invalid-order.exceptio
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
+import { WorkoutCalculator } from './workout.calculator';
 
 @Injectable()
 export class WorkoutService {
@@ -17,6 +18,7 @@ export class WorkoutService {
     private exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
+    private readonly workoutCalculator: WorkoutCalculator,
   ) {}
 
   /**
@@ -37,12 +39,12 @@ export class WorkoutService {
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
+    // Calculate gained xp
+    const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
+
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      const totalXp = await this.userService.incrementTotalXp(
-        this.WORKOUT_COMPLETION_XP,
-        userId,
-      );
+      const totalXp = await this.userService.incrementTotalXp(gainedXp, userId);
       return {
         workoutId: createdWorkout.id,
         xpGained: this.WORKOUT_COMPLETION_XP,
