@@ -247,11 +247,17 @@ export class WorkoutRepository {
     userId: string,
   ): Promise<string> {
     const query = `
-          INSERT INTO workout (name, user_id, created_at, updated_at, duration)
-          VALUES ($1, $2, $3, $3, $4)
+          INSERT INTO workout (name, user_id, created_at, updated_at, duration, gained_xp)
+          VALUES ($1, $2, $3, $3, $4, $5)
           RETURNING id;
         `;
-    const params = [workout.name, userId, workout.createdAt, workout.duration];
+    const params = [
+      workout.name,
+      userId,
+      workout.createdAt,
+      workout.duration,
+      workout.gainedXp,
+    ];
     const result = await client.query<{ id: string }>(query, params);
 
     return result.rows[0].id;

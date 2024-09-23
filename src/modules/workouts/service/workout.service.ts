@@ -39,8 +39,8 @@ export class WorkoutService {
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
-    // Calculate gained xp
     const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
+    workout.gainedXp = gainedXp;
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
