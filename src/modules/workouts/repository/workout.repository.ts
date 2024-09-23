@@ -16,6 +16,7 @@ export class WorkoutRepository {
         w.name,
         w.created_at,
         w.duration,
+        w.gained_xp,
         json_agg(json_build_object(
         	'id', e.id,
         	'name', e.name,
