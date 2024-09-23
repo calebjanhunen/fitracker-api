@@ -12,8 +12,6 @@ import { WorkoutCalculator } from './workout.calculator';
 
 @Injectable()
 export class WorkoutService {
-  private readonly WORKOUT_COMPLETION_XP = 10;
-
   constructor(
     private exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
@@ -47,7 +45,7 @@ export class WorkoutService {
       const totalXp = await this.userService.incrementTotalXp(gainedXp, userId);
       return {
         workoutId: createdWorkout.id,
-        xpGained: this.WORKOUT_COMPLETION_XP,
+        xpGained: gainedXp,
         totalXp,
       };
     } catch (e) {
