@@ -3,6 +3,7 @@ import { DbService } from 'src/common/database/database.service';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../models/insert-user.model';
+import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
 
 @Injectable()
@@ -142,6 +143,26 @@ export class UserRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  public async getStatsByUserId(userId: string): Promise<UserStats> {
+    const query = `
+      SELECT
+        total_xp,
+        last_workout_date,
+        current_workout_streak
+      FROM user_stats as us
+      WHERE us.user_id = $1
+    `;
+    const params = [userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<UserStats>(query, params);
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error('Query GetStatsByUserId failed: ', e);
+      throw new DatabaseException(e);
     }
   }
 

@@ -1,0 +1,12 @@
+user:
+  - id: 2a396411-9c45-45e1-92ba-59cffd258ed2
+    username: testuser
+    first_name: Test
+    last_name: User
+    password: '123'
+    email: testuser@test.com
+user_stats:
+  - user_id: 2a396411-9c45-45e1-92ba-59cffd258ed2
+    total_xp: 12345
+    last_workout_date: 2024-09-23T23:41:40+0000
+    current_workout_streak: 5

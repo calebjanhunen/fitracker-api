@@ -5,6 +5,7 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import { XpCannotBeBelowZeroException } from '../internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { InsertUserModel } from '../models/insert-user.model';
+import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
 import { UserRepository } from '../repository/user.repository';
 
@@ -74,5 +75,9 @@ export class UserService {
       currentWorkoutStreak,
       userId,
     );
+  }
+
+  public async getStatsByUserId(userId: string): Promise<UserStats> {
+    return this.userRepo.getStatsByUserId(userId);
   }
 }
