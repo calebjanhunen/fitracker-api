@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserModel } from '../models/user.model';
@@ -192,6 +193,33 @@ export class UserRepository {
     } catch (e) {
       this.logger.error(`Query DecrementTotalXp failed: `, e);
       throw e;
+    }
+  }
+
+  public async updateLastWorkoutDateAndCurrentWorkoutStreak(
+    lastWorkoutDate: Date,
+    currentWorkoutStreak: number,
+    userId: string,
+  ): Promise<number> {
+    const query = `
+      UPDATE user_stats SET
+        last_workout_date = $1,
+        current_workout_streak = $2,
+      WHERE user_stats.user_id = $3
+    `;
+    const params = [lastWorkoutDate, currentWorkoutStreak, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<{
+        currentWorkoutStreak: number;
+      }>(query, params);
+      return queryResult[0].currentWorkoutStreak;
+    } catch (e) {
+      this.logger.error(
+        'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',
+        e,
+      );
+      throw new DatabaseException(e.message);
     }
   }
 }

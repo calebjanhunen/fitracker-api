@@ -63,4 +63,16 @@ export class UserService {
       throw new BaseException('Could not decrement xp: ' + e.message);
     }
   }
+
+  public async updateLastWorkoutDateAndCurrentWorkoutStreak(
+    lastWorkoutDate: Date,
+    currentWorkoutStreak: number,
+    userId: string,
+  ): Promise<number> {
+    return this.userRepo.updateLastWorkoutDateAndCurrentWorkoutStreak(
+      lastWorkoutDate,
+      currentWorkoutStreak,
+      userId,
+    );
+  }
 }

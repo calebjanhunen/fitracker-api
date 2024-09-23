@@ -35,7 +35,7 @@ export class DbService implements OnModuleDestroy {
    */
   public async queryV2<T extends QueryResultRow>(
     query: string,
-    parameters: (string | string[] | number | boolean | null)[],
+    parameters: (string | string[] | number | boolean | Date | null)[],
   ): Promise<{ queryResult: T[]; elapsedTime: number }> {
     const startTime = Date.now();
     const result = await this.pool.query<T>(query, parameters);
