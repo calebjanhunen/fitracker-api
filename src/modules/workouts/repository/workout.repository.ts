@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
@@ -152,6 +153,26 @@ export class WorkoutRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  public async getMostRecentWorkout(userId: string): Promise<Date> {
+    const query = `
+      SELECT MAX(created_at) as latest_workout_date
+      FROM workout
+      WHERE workout.user_id = $1
+    `;
+    const params = [userId];
+
+    try {
+      const { queryResult } = await this.dbService.queryV2<{
+        latestWorkoutDate: Date;
+      }>(query, params);
+
+      return queryResult[0].latestWorkoutDate;
+    } catch (e) {
+      this.logger.error(`Query GetMostRecentWorkout failed: `, e);
+      throw new DatabaseException(e);
     }
   }
 
