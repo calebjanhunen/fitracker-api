@@ -5,6 +5,7 @@ import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import { WorkoutController } from './controller/workout.controller';
 import { WorkoutRepository } from './repository/workout.repository';
+import { WorkoutCalculator } from './service/workout.calculator';
 import { WorkoutService } from './service/workout.service';
 
 @Module({
@@ -12,6 +13,7 @@ import { WorkoutService } from './service/workout.service';
   providers: [
     WorkoutService,
     WorkoutRepository,
+    WorkoutCalculator,
     {
       provide: 'WorkoutRepoLogger',
       useFactory: () => new MyLoggerService(WorkoutRepository.name),
