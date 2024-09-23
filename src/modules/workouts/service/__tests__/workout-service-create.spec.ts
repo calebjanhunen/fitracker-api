@@ -4,6 +4,7 @@ import { UserService } from 'src/modules/user/service/user.service';
 import { InvalidOrderException } from '../../internal-errors/invalid-order.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../../models';
 import { WorkoutRepository } from '../../repository/workout.repository';
+import { WorkoutCalculator } from '../workout.calculator';
 import { WorkoutService } from '../workout.service';
 
 describe('WorkoutService: create', () => {
@@ -31,6 +32,12 @@ describe('WorkoutService: create', () => {
           provide: UserService,
           useValue: {
             incrementTotalXp: jest.fn((amount, userId) => amount + 20),
+          },
+        },
+        {
+          provide: WorkoutCalculator,
+          useValue: {
+            calculateGainedXp: jest.fn(() => 50),
           },
         },
       ],

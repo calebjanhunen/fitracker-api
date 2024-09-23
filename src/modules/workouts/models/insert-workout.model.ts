@@ -2,6 +2,7 @@ export class InsertWorkoutModel {
   name: string;
   createdAt: Date;
   duration: number;
+  gainedXp: number;
   exercises: InsertWorkoutExerciseModel[];
 }
 

@@ -53,7 +53,9 @@ export class WorkoutController {
   ): Promise<WorkoutResponseDto> {
     try {
       const workout = await this.workoutService.findById(workoutId, userId);
-      return plainToInstance(WorkoutResponseDto, workout);
+      return plainToInstance(WorkoutResponseDto, workout, {
+        excludeExtraneousValues: true,
+      });
     } catch (e) {
       throw new NotFoundException(e.message);
     }
@@ -66,7 +68,9 @@ export class WorkoutController {
     try {
       const workouts = await this.workoutService.findAll(userId);
       return workouts.map((workout) =>
-        plainToInstance(WorkoutResponseDto, workout),
+        plainToInstance(WorkoutResponseDto, workout, {
+          excludeExtraneousValues: true,
+        }),
       );
     } catch (e) {
       throw new ConflictException(e.message);

@@ -8,15 +8,15 @@ import { InvalidOrderException } from '../internal-errors/invalid-order.exceptio
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
+import { WorkoutCalculator } from './workout.calculator';
 
 @Injectable()
 export class WorkoutService {
-  private readonly WORKOUT_COMPLETION_XP = 10;
-
   constructor(
     private exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
+    private readonly workoutCalculator: WorkoutCalculator,
   ) {}
 
   /**
@@ -37,15 +37,15 @@ export class WorkoutService {
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
+    const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
+    workout.gainedXp = gainedXp;
+
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      const totalXp = await this.userService.incrementTotalXp(
-        this.WORKOUT_COMPLETION_XP,
-        userId,
-      );
+      const totalXp = await this.userService.incrementTotalXp(gainedXp, userId);
       return {
         workoutId: createdWorkout.id,
-        xpGained: this.WORKOUT_COMPLETION_XP,
+        xpGained: gainedXp,
         totalXp,
       };
     } catch (e) {
@@ -92,9 +92,9 @@ export class WorkoutService {
    * @throws {XpCannotBeBelowZeroException}
    */
   public async delete(workoutId: string, userId: string): Promise<number> {
-    await this.findById(workoutId, userId);
+    const workout = await this.findById(workoutId, userId);
     const totalXp = await this.userService.decrementTotalXp(
-      this.WORKOUT_COMPLETION_XP,
+      workout.gainedXp,
       userId,
     );
 

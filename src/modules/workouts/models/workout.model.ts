@@ -3,6 +3,7 @@ export class WorkoutModel {
   createdAt: string;
   duration: number;
   name: string;
+  gainedXp: number;
   exercises: WorkoutExerciseModel[];
 }
 
