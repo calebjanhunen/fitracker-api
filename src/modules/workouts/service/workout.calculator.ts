@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ICalculateGainedXp } from '../interfaces/calculate-gained-xp.interface';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 
 @Injectable()
@@ -12,14 +13,14 @@ export class WorkoutCalculator {
   public calculateGainedXp(
     workout: InsertWorkoutModel,
     currentWorkoutStreak: number,
-  ): number {
-    let gainedXpFromWorkoutLength = 0;
+  ): ICalculateGainedXp {
+    let xpGainedFromWorkoutDuration = 0;
     let xpGainedFromWorkoutStreak = 0;
 
     // If workout >= 15 mins -> add 10 xp for each minute of the workout
     if (workout.duration >= this.MIN_WORKOUT_DURATION_FOR_XP) {
       const workoutLengthInMinutes = Math.floor(workout.duration / 60);
-      gainedXpFromWorkoutLength =
+      xpGainedFromWorkoutDuration =
         workoutLengthInMinutes * this.XP_FOR_EACH_WORKOUT_MINUTE;
     }
 
@@ -29,9 +30,15 @@ export class WorkoutCalculator {
         (currentWorkoutStreak - 2) * this.XP_FOR_EACH_DAY_OF_CURRENT_STREAK;
     }
 
-    return (
-      this.BASE_XP_GAIN + gainedXpFromWorkoutLength + xpGainedFromWorkoutStreak
-    );
+    return {
+      baseXpGain: this.BASE_XP_GAIN,
+      xpGainedFromWorkoutDuration,
+      xpGainedFromWorkoutStreak,
+      totalGainedXp:
+        this.BASE_XP_GAIN +
+        xpGainedFromWorkoutDuration +
+        xpGainedFromWorkoutStreak,
+    };
   }
 
   /**
@@ -40,7 +47,10 @@ export class WorkoutCalculator {
    * @param {Date} date2 - Second date -> this one must be greater than or equal to the 1st date
    * @returns {number} The difference between the 2 days.
    */
-  public getDifferenceInDays(date1: Date, date2: Date): number {
+  public getDifferenceInDays(date1: Date | null, date2: Date): number {
+    if (!date1) {
+      return Infinity;
+    }
     // Get normalized dates so time for both is the same (00:00)
     const normalizedDate1 = new Date(
       date1.getFullYear(),
