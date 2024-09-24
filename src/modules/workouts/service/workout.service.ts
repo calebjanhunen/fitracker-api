@@ -48,14 +48,17 @@ export class WorkoutService {
         ? userStats.currentWorkoutStreak
         : differenceInDays === 1
         ? userStats.currentWorkoutStreak + 1
-        : 0;
+        : 1;
     await this.userService.updateLastWorkoutDateAndCurrentWorkoutStreak(
       workout.createdAt,
       updatedWorkoutStreak,
       userId,
     );
 
-    const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
+    const gainedXp = this.workoutCalculator.calculateGainedXp(
+      workout,
+      updatedWorkoutStreak,
+    );
     workout.gainedXp = gainedXp;
 
     try {
