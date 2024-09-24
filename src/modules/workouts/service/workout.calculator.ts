@@ -97,7 +97,6 @@ export class WorkoutCalculator {
           new Date(workout.createdAt),
           new Date(lastWorkoutDate),
         );
-        console.log(diff, lastWorkoutDate, workout.createdAt);
 
         if (diff === 1) {
           newCurrentStreak++;

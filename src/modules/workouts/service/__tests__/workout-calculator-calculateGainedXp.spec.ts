@@ -8,18 +8,34 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     const workout = new InsertWorkoutModel();
     workout.duration = 899;
 
-    const xpGain = workoutCalculator.calculateGainedXp(workout, 2);
+    const {
+      totalGainedXp,
+      baseXpGain,
+      xpGainedFromWorkoutDuration,
+      xpGainedFromWorkoutStreak,
+    } = workoutCalculator.calculateGainedXp(workout, 2);
 
-    expect(xpGain).toBe(50);
+    expect(totalGainedXp).toBe(50);
+    expect(baseXpGain).toBe(50);
+    expect(xpGainedFromWorkoutDuration).toBe(0);
+    expect(xpGainedFromWorkoutStreak).toBe(0);
   });
 
   it('testing xp gain from base xp and workout duration xp', () => {
     const workout = new InsertWorkoutModel();
     workout.duration = 1000;
 
-    const xpGain = workoutCalculator.calculateGainedXp(workout, 2);
+    const {
+      totalGainedXp,
+      baseXpGain,
+      xpGainedFromWorkoutDuration,
+      xpGainedFromWorkoutStreak,
+    } = workoutCalculator.calculateGainedXp(workout, 2);
 
-    expect(xpGain).toBe(50 + 160);
+    expect(totalGainedXp).toBe(210);
+    expect(baseXpGain).toBe(50);
+    expect(xpGainedFromWorkoutDuration).toBe(160);
+    expect(xpGainedFromWorkoutStreak).toBe(0);
   });
 
   it('testing xp gain from base xp and workout streak xp', () => {
@@ -27,8 +43,16 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     workout.duration = 100;
     const streak = 5;
 
-    const xpGain = workoutCalculator.calculateGainedXp(workout, streak);
+    const {
+      totalGainedXp,
+      baseXpGain,
+      xpGainedFromWorkoutDuration,
+      xpGainedFromWorkoutStreak,
+    } = workoutCalculator.calculateGainedXp(workout, streak);
 
-    expect(xpGain).toBe(50 + 30);
+    expect(totalGainedXp).toBe(80);
+    expect(baseXpGain).toBe(50);
+    expect(xpGainedFromWorkoutDuration).toBe(0);
+    expect(xpGainedFromWorkoutStreak).toBe(30);
   });
 });
