@@ -17,8 +17,7 @@ module.exports = {
   },
   ignorePatterns: [
     '.eslintrc.js',
-    'test/integration/jest-integration.globalSetup.ts',
-    'test/integration/jest-integration.globalTeardown.ts',
+    'test/integration/*',
     'database/migrations/*.js',
   ],
   rules: {

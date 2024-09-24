@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
+import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
 import { ICreateWorkout } from '../interfaces/create-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
@@ -37,12 +38,38 @@ export class WorkoutService {
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
-    const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
+    const userStats = await this.userService.getStatsByUserId(userId);
+
+    let differenceInDays = Infinity;
+    if (userStats.lastWorkoutDate) {
+      differenceInDays = this.workoutCalculator.getDifferenceInDays(
+        userStats.lastWorkoutDate,
+        workout.createdAt,
+      );
+    }
+
+    const updatedWorkoutStreak =
+      differenceInDays === 0
+        ? userStats.currentWorkoutStreak
+        : differenceInDays === 1
+        ? userStats.currentWorkoutStreak + 1
+        : 1;
+
+    const gainedXp = this.workoutCalculator.calculateGainedXp(
+      workout,
+      updatedWorkoutStreak,
+    );
     workout.gainedXp = gainedXp;
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      const totalXp = await this.userService.incrementTotalXp(gainedXp, userId);
+      const totalXp =
+        await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
+          workout.createdAt,
+          updatedWorkoutStreak,
+          gainedXp,
+          userId,
+        );
       return {
         workoutId: createdWorkout.id,
         xpGained: gainedXp,
@@ -92,14 +119,35 @@ export class WorkoutService {
    * @throws {XpCannotBeBelowZeroException}
    */
   public async delete(workoutId: string, userId: string): Promise<number> {
-    const workout = await this.findById(workoutId, userId);
-    const totalXp = await this.userService.decrementTotalXp(
-      workout.gainedXp,
-      userId,
-    );
+    const workoutToBeDeleted = await this.findById(workoutId, userId);
+    const userStats = await this.userService.getStatsByUserId(userId);
+
+    if (userStats.totalXp - workoutToBeDeleted.gainedXp < 0) {
+      throw new XpCannotBeBelowZeroException();
+    }
 
     try {
       await this.workoutRepo.delete(workoutId, userId);
+
+      const remainingWorkouts = await this.workoutRepo.findAll(userId);
+      if (!remainingWorkouts.length) {
+        userStats.lastWorkoutDate = null;
+      } else {
+        userStats.lastWorkoutDate = new Date(remainingWorkouts[0].createdAt);
+      }
+
+      userStats.currentWorkoutStreak =
+        this.workoutCalculator.recalculateCurrentWorkoutStreak(
+          remainingWorkouts,
+        );
+
+      const totalXp =
+        await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
+          userStats.lastWorkoutDate,
+          userStats.currentWorkoutStreak,
+          -workoutToBeDeleted.gainedXp,
+          userId,
+        );
       return totalXp;
     } catch (e) {
       throw new CouldNotDeleteWorkoutException(e.message);

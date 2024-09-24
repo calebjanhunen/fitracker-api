@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../models/insert-user.model';
+import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
 
 @Injectable()
@@ -144,54 +146,53 @@ export class UserRepository {
     }
   }
 
-  public async incrementTotalXp(
-    amount: number,
-    userId: string,
-  ): Promise<number> {
-    const queryName = 'IncrementTotalXp';
+  public async getStatsByUserId(userId: string): Promise<UserStats> {
     const query = `
-      UPDATE user_stats
-      SET total_xp = total_xp + $1
-      WHERE user_id = $2
-      RETURNING total_xp
+      SELECT
+        total_xp,
+        last_workout_date,
+        current_workout_streak
+      FROM user_stats as us
+      WHERE us.user_id = $1
     `;
-    const params = [amount, userId];
+    const params = [userId];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<{
-        totalXp: number;
-      }>(query, params);
-
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
-
-      return queryResult[0].totalXp;
+      const { queryResult } = await this.db.queryV2<UserStats>(query, params);
+      return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
-      throw e;
+      this.logger.error('Query GetStatsByUserId failed: ', e);
+      throw new DatabaseException(e);
     }
   }
 
-  public async decrementTotalXp(
-    amount: number,
+  public async updateStatsAfterCreatingOrDeletingWorkout(
+    lastWorkoutDate: Date | null,
+    currentWorkoutStreak: number,
+    xpChange: number,
     userId: string,
   ): Promise<number> {
     const query = `
-      UPDATE user_stats
-      SET total_xp = total_xp - $1
-      WHERE user_id = $2
+      UPDATE user_stats SET
+        last_workout_date = $1,
+        current_workout_streak = $2,
+        total_xp = total_xp + $3
+      WHERE user_stats.user_id = $4
       RETURNING total_xp
     `;
-    const params = [amount, userId];
+    const params = [lastWorkoutDate, currentWorkoutStreak, xpChange, userId];
 
     try {
       const { queryResult } = await this.db.queryV2<{
         totalXp: number;
       }>(query, params);
-
       return queryResult[0].totalXp;
     } catch (e) {
-      this.logger.error(`Query DecrementTotalXp failed: `, e);
-      throw e;
+      this.logger.error(
+        'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',
+        e,
+      );
+      throw new DatabaseException(e.message);
     }
   }
 }
