@@ -41,7 +41,7 @@ export class UserService {
     currentWorkoutStreak: number,
     xpChange: number,
     userId: string,
-  ): Promise<number> {
+  ): Promise<UserStats> {
     return this.userRepo.updateStatsAfterCreatingOrDeletingWorkout(
       lastWorkoutDate,
       currentWorkoutStreak,

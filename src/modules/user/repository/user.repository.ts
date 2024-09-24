@@ -171,22 +171,20 @@ export class UserRepository {
     currentWorkoutStreak: number,
     xpChange: number,
     userId: string,
-  ): Promise<number> {
+  ): Promise<UserStats> {
     const query = `
       UPDATE user_stats SET
         last_workout_date = $1,
         current_workout_streak = $2,
         total_xp = total_xp + $3
       WHERE user_stats.user_id = $4
-      RETURNING total_xp
+      RETURNING total_xp, last_workout_date, current_workout_streak
     `;
     const params = [lastWorkoutDate, currentWorkoutStreak, xpChange, userId];
 
     try {
-      const { queryResult } = await this.db.queryV2<{
-        totalXp: number;
-      }>(query, params);
-      return queryResult[0].totalXp;
+      const { queryResult } = await this.db.queryV2<UserStats>(query, params);
+      return queryResult[0];
     } catch (e) {
       this.logger.error(
         'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',
