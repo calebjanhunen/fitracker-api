@@ -166,33 +166,6 @@ export class UserRepository {
     }
   }
 
-  public async incrementTotalXp(
-    amount: number,
-    userId: string,
-  ): Promise<number> {
-    const queryName = 'IncrementTotalXp';
-    const query = `
-      UPDATE user_stats
-      SET total_xp = total_xp + $1
-      WHERE user_id = $2
-      RETURNING total_xp
-    `;
-    const params = [amount, userId];
-
-    try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<{
-        totalXp: number;
-      }>(query, params);
-
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
-
-      return queryResult[0].totalXp;
-    } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
-      throw e;
-    }
-  }
-
   public async decrementTotalXp(
     amount: number,
     userId: string,
@@ -217,25 +190,27 @@ export class UserRepository {
     }
   }
 
-  public async updateLastWorkoutDateAndCurrentWorkoutStreak(
+  public async updateStatsAfterWorkoutCreation(
     lastWorkoutDate: Date,
     currentWorkoutStreak: number,
+    gainedXp: number,
     userId: string,
   ): Promise<number> {
     const query = `
       UPDATE user_stats SET
         last_workout_date = $1,
-        current_workout_streak = $2
-      WHERE user_stats.user_id = $3
-      RETURNING current_workout_streak
+        current_workout_streak = $2,
+        total_xp = total_xp + $3
+      WHERE user_stats.user_id = $4
+      RETURNING total_xp
     `;
-    const params = [lastWorkoutDate, currentWorkoutStreak, userId];
+    const params = [lastWorkoutDate, currentWorkoutStreak, gainedXp, userId];
 
     try {
       const { queryResult } = await this.db.queryV2<{
-        currentWorkoutStreak: number;
+        totalXp: number;
       }>(query, params);
-      return queryResult[0].currentWorkoutStreak;
+      return queryResult[0].totalXp;
     } catch (e) {
       this.logger.error(
         'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',

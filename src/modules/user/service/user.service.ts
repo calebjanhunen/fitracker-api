@@ -38,13 +38,6 @@ export class UserService {
     return user;
   }
 
-  public async incrementTotalXp(
-    amount: number,
-    userId: string,
-  ): Promise<number> {
-    return this.userRepo.incrementTotalXp(amount, userId);
-  }
-
   public async decrementTotalXp(
     amount: number,
     userId: string,
@@ -65,14 +58,16 @@ export class UserService {
     }
   }
 
-  public async updateLastWorkoutDateAndCurrentWorkoutStreak(
+  public async updateStatsAfterWorkoutCreation(
     lastWorkoutDate: Date,
     currentWorkoutStreak: number,
+    gainedXp: number,
     userId: string,
   ): Promise<number> {
-    return this.userRepo.updateLastWorkoutDateAndCurrentWorkoutStreak(
+    return this.userRepo.updateStatsAfterWorkoutCreation(
       lastWorkoutDate,
       currentWorkoutStreak,
+      gainedXp,
       userId,
     );
   }
