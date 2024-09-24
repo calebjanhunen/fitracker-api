@@ -3,6 +3,7 @@ import { ExerciseService } from 'src/modules/exercises/services/exercise.service
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
 import { ICreateWorkout } from '../interfaces/create-workout.interface';
+import { IDeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { InvalidOrderException } from '../internal-errors/invalid-order.exception';
@@ -122,7 +123,10 @@ export class WorkoutService {
    * @throws {WorkoutNotFoundException}
    * @throws {XpCannotBeBelowZeroException}
    */
-  public async delete(workoutId: string, userId: string): Promise<number> {
+  public async delete(
+    workoutId: string,
+    userId: string,
+  ): Promise<IDeleteWorkout> {
     const workoutToBeDeleted = await this.findById(workoutId, userId);
     const userStats = await this.userService.getStatsByUserId(userId);
 
@@ -152,7 +156,10 @@ export class WorkoutService {
           -workoutToBeDeleted.gainedXp,
           userId,
         );
-      return updatedUserStats.totalXp;
+      return {
+        totalUserXp: updatedUserStats.totalXp,
+        currentWorkoutStreak: userStats.currentWorkoutStreak,
+      };
     } catch (e) {
       throw new CouldNotDeleteWorkoutException(e.message);
     }

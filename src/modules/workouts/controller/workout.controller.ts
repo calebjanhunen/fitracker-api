@@ -83,8 +83,8 @@ export class WorkoutController {
     @Param('id') workoutId: string,
   ): Promise<DeleteWorkoutDto> {
     try {
-      const totalXp = await this.workoutService.delete(workoutId, userId);
-      return { totalXp };
+      const response = await this.workoutService.delete(workoutId, userId);
+      return plainToInstance(DeleteWorkoutDto, response);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
