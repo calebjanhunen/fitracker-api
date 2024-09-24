@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InsertWorkoutModel } from '../models';
+import { InsertWorkoutModel, WorkoutModel } from '../models';
 
 @Injectable()
 export class WorkoutCalculator {
@@ -34,16 +34,23 @@ export class WorkoutCalculator {
     );
   }
 
-  public getDifferenceInDays(lastWorkoutDate: Date, createdWorkoutDate: Date) {
+  /**
+   * Get number of days between 2 days (not including the hour of day)
+   * @param {Date} date1
+   * @param {Date} date2 - Second date -> this one must be greater than or equal to the 1st date
+   * @returns {number} The difference between the 2 days.
+   */
+  public getDifferenceInDays(date1: Date, date2: Date): number {
+    // Get normalized dates so time for both is the same (00:00)
     const normalizedDate1 = new Date(
-      lastWorkoutDate.getFullYear(),
-      lastWorkoutDate.getMonth(),
-      lastWorkoutDate.getDate(),
+      date1.getFullYear(),
+      date1.getMonth(),
+      date1.getDate(),
     );
     const normalizedDate2 = new Date(
-      createdWorkoutDate.getFullYear(),
-      createdWorkoutDate.getMonth(),
-      createdWorkoutDate.getDate(),
+      date2.getFullYear(),
+      date2.getMonth(),
+      date2.getDate(),
     );
 
     const differenceInDays =
@@ -51,5 +58,47 @@ export class WorkoutCalculator {
       this.DAY_IN_MILLISECONDS;
 
     return differenceInDays;
+  }
+
+  public recalculateCurrentWorkoutStreak(
+    remainingWorkouts: WorkoutModel[],
+  ): number {
+    if (!remainingWorkouts.length) {
+      return 0;
+    }
+
+    const newLatestWorkoutDate = new Date(remainingWorkouts[0].createdAt);
+    const today = new Date();
+    const differenceBetweenTodayAndNewLatestWorkout = this.getDifferenceInDays(
+      newLatestWorkoutDate,
+      today,
+    );
+
+    let newCurrentStreak = 0;
+
+    // If latest workout is today or yesterday (if not, streak is 0)
+    if (differenceBetweenTodayAndNewLatestWorkout <= 1) {
+      let lastWorkoutDate: Date = newLatestWorkoutDate;
+
+      newCurrentStreak = 1;
+      // Loop through remaining workouts starting at second workout
+      for (const workout of remainingWorkouts.slice(1)) {
+        const diff = this.getDifferenceInDays(
+          new Date(workout.createdAt),
+          new Date(lastWorkoutDate),
+        );
+        console.log(diff, lastWorkoutDate, workout.createdAt);
+
+        if (diff === 1) {
+          newCurrentStreak++;
+        } else if (diff > 1) {
+          break;
+        }
+
+        // If diff is 0: both workouts are on the same day, don't increase streak
+        lastWorkoutDate = new Date(workout.createdAt);
+      }
+    }
+    return newCurrentStreak;
   }
 }
