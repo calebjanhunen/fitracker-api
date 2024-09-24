@@ -31,13 +31,17 @@ describe('WorkoutService: create', () => {
         {
           provide: UserService,
           useValue: {
-            incrementTotalXp: jest.fn((amount, userId) => amount + 20),
+            getStatsByUserId: jest.fn(() => {
+              return { currentWorkoutStreal: 2, lastWorkoutDate: new Date() };
+            }),
+            updateStatsAfterCreatingOrDeletingWorkout: jest.fn(() => 100),
           },
         },
         {
           provide: WorkoutCalculator,
           useValue: {
             calculateGainedXp: jest.fn(() => 50),
+            getDifferenceInDays: jest.fn(() => 2),
           },
         },
       ],
