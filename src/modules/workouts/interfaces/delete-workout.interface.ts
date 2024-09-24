@@ -1,4 +1,4 @@
-export class DeleteWorkoutDto {
+export interface IDeleteWorkout {
   totalUserXp: number;
   currentWorkoutStreak: number;
 }
