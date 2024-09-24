@@ -40,13 +40,10 @@ export class WorkoutService {
 
     const userStats = await this.userService.getStatsByUserId(userId);
 
-    let differenceInDays = Infinity;
-    if (userStats.lastWorkoutDate) {
-      differenceInDays = this.workoutCalculator.getDifferenceInDays(
-        userStats.lastWorkoutDate,
-        workout.createdAt,
-      );
-    }
+    const differenceInDays = this.workoutCalculator.getDifferenceInDays(
+      userStats.lastWorkoutDate,
+      workout.createdAt,
+    );
 
     const updatedWorkoutStreak =
       differenceInDays === 0
@@ -55,25 +52,32 @@ export class WorkoutService {
         ? userStats.currentWorkoutStreak + 1
         : 1;
 
-    const gainedXp = this.workoutCalculator.calculateGainedXp(
-      workout,
-      updatedWorkoutStreak,
-    );
-    workout.gainedXp = gainedXp;
+    const {
+      totalGainedXp,
+      baseXpGain,
+      xpGainedFromWorkoutDuration,
+      xpGainedFromWorkoutStreak,
+    } = this.workoutCalculator.calculateGainedXp(workout, updatedWorkoutStreak);
+    workout.gainedXp = totalGainedXp;
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      const totalXp =
+      const updatedUserStats =
         await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
           workout.createdAt,
           updatedWorkoutStreak,
-          gainedXp,
+          totalGainedXp,
           userId,
         );
+
       return {
         workoutId: createdWorkout.id,
-        xpGained: gainedXp,
-        totalXp,
+        currentWorkoutStreak: updatedUserStats.currentWorkoutStreak,
+        baseXpGain,
+        xpGainedFromWorkoutDuration,
+        xpGainedFromWorkoutStreak,
+        totalXpGained: totalGainedXp,
+        totalUserXp: updatedUserStats.totalXp,
       };
     } catch (e) {
       throw new CouldNotSaveWorkoutException(workout.name);
@@ -141,14 +145,14 @@ export class WorkoutService {
           remainingWorkouts,
         );
 
-      const totalXp =
+      const updatedUserStats =
         await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
           userStats.lastWorkoutDate,
           userStats.currentWorkoutStreak,
           -workoutToBeDeleted.gainedXp,
           userId,
         );
-      return totalXp;
+      return updatedUserStats.totalXp;
     } catch (e) {
       throw new CouldNotDeleteWorkoutException(e.message);
     }
