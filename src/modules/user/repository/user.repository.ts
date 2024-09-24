@@ -227,6 +227,7 @@ export class UserRepository {
         last_workout_date = $1,
         current_workout_streak = $2,
       WHERE user_stats.user_id = $3
+      RETURNING current_workout_streak
     `;
     const params = [lastWorkoutDate, currentWorkoutStreak, userId];
 

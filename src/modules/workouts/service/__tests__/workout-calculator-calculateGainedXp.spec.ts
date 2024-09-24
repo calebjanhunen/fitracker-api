@@ -1,7 +1,7 @@
 import { InsertWorkoutModel } from '../../models';
 import { WorkoutCalculator } from '../workout.calculator';
 
-describe('WorkoutService: create', () => {
+describe('WorkoutCalculator: calculateGainedXp', () => {
   const workoutCalculator = new WorkoutCalculator();
 
   it('should return base xp gain if workout is less than 15 mins', () => {

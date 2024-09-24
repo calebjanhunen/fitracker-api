@@ -37,6 +37,24 @@ export class WorkoutService {
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
 
+    const userStats = await this.userService.getStatsByUserId(userId);
+    const differenceInDays = this.workoutCalculator.getDifferenceInDays(
+      userStats.lastWorkoutDate,
+      workout.createdAt,
+    );
+
+    const updatedWorkoutStreak =
+      differenceInDays === 0
+        ? userStats.currentWorkoutStreak
+        : differenceInDays === 1
+        ? userStats.currentWorkoutStreak + 1
+        : 0;
+    await this.userService.updateLastWorkoutDateAndCurrentWorkoutStreak(
+      workout.createdAt,
+      updatedWorkoutStreak,
+      userId,
+    );
+
     const gainedXp = this.workoutCalculator.calculateGainedXp(workout);
     workout.gainedXp = gainedXp;
 
