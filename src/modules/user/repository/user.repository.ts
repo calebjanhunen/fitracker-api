@@ -225,7 +225,7 @@ export class UserRepository {
     const query = `
       UPDATE user_stats SET
         last_workout_date = $1,
-        current_workout_streak = $2,
+        current_workout_streak = $2
       WHERE user_stats.user_id = $3
       RETURNING current_workout_streak
     `;

@@ -1,5 +1,5 @@
 export class UserStats {
   totalXp: number;
-  lastWorkoutDate: Date;
+  lastWorkoutDate: Date | null;
   currentWorkoutStreak: number;
 }

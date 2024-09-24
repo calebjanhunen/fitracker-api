@@ -38,10 +38,14 @@ export class WorkoutService {
     this.validateOrderForExercisesAndSets(workout);
 
     const userStats = await this.userService.getStatsByUserId(userId);
-    const differenceInDays = this.workoutCalculator.getDifferenceInDays(
-      userStats.lastWorkoutDate,
-      workout.createdAt,
-    );
+
+    let differenceInDays = Infinity;
+    if (userStats.lastWorkoutDate) {
+      differenceInDays = this.workoutCalculator.getDifferenceInDays(
+        userStats.lastWorkoutDate,
+        workout.createdAt,
+      );
+    }
 
     const updatedWorkoutStreak =
       differenceInDays === 0
