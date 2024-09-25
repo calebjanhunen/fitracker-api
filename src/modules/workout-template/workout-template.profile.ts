@@ -7,6 +7,16 @@ import {
   WorkoutTemplateSetRequestDto,
 } from './dtos/workout-template-request.dto';
 import {
+  WorkoutTemplateExerciseResponseDto,
+  WorkoutTemplateResponseDto,
+  WorkoutTemplateSetResponseDto,
+} from './dtos/workout-template-response.dto';
+import {
+  WorkoutTemplateExerciseModel,
+  WorkoutTemplateModel,
+  WorkoutTemplateSetModel,
+} from './models';
+import {
   InsertWorkoutTemplateExerciseModel,
   InsertWorkoutTemplateModel,
   InsertWorkoutTemplateSetModel,
@@ -31,6 +41,13 @@ export class WorkoutTemplateProfile extends AutomapperProfile {
         WorkoutTemplateSetRequestDto,
         InsertWorkoutTemplateSetModel,
       );
+      createMap(mapper, WorkoutTemplateModel, WorkoutTemplateResponseDto);
+      createMap(
+        mapper,
+        WorkoutTemplateExerciseModel,
+        WorkoutTemplateExerciseResponseDto,
+      );
+      createMap(mapper, WorkoutTemplateSetModel, WorkoutTemplateSetResponseDto);
     };
   }
 }
