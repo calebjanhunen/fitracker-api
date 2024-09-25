@@ -2,7 +2,7 @@ import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
 import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { CreateWorkoutTemplateDto } from './dtos/create-workout-template.dto';
+import { WorkoutTemplateRequestDto } from './dtos/workout-template-request.dto';
 import { InsertWorkoutTemplateModel } from './models/insert-workout-template.model';
 
 @Controller('/api/workout-templates')
@@ -12,12 +12,12 @@ export class WorkoutTemplateController {
 
   @Post()
   public async createWorkoutTemplate(
-    @Body() dto: CreateWorkoutTemplateDto,
+    @Body() dto: WorkoutTemplateRequestDto,
     @Headers('user-id') userId: string,
   ): Promise<string> {
     const model = this.mapper.map(
       dto,
-      CreateWorkoutTemplateDto,
+      WorkoutTemplateRequestDto,
       InsertWorkoutTemplateModel,
     );
 
