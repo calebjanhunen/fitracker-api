@@ -1,8 +1,16 @@
 import { createMap, Mapper } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
-import { WorkoutTemplateRequestDto } from './dtos/workout-template-request.dto';
-import { InsertWorkoutTemplateModel } from './models/insert-workout-template.model';
+import {
+  WorkoutTemplateExerciseRequestDto,
+  WorkoutTemplateRequestDto,
+  WorkoutTemplateSetRequestDto,
+} from './dtos/workout-template-request.dto';
+import {
+  InsertWorkoutTemplateExerciseModel,
+  InsertWorkoutTemplateModel,
+  InsertWorkoutTemplateSetModel,
+} from './models/insert-workout-template.model';
 
 @Injectable()
 export class WorkoutTemplateProfile extends AutomapperProfile {
@@ -13,6 +21,16 @@ export class WorkoutTemplateProfile extends AutomapperProfile {
   override get profile() {
     return (mapper: Mapper) => {
       createMap(mapper, WorkoutTemplateRequestDto, InsertWorkoutTemplateModel);
+      createMap(
+        mapper,
+        WorkoutTemplateExerciseRequestDto,
+        InsertWorkoutTemplateExerciseModel,
+      );
+      createMap(
+        mapper,
+        WorkoutTemplateSetRequestDto,
+        InsertWorkoutTemplateSetModel,
+      );
     };
   }
 }
