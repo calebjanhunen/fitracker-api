@@ -55,7 +55,7 @@ export class WorkoutTemplateRepository {
   ): Promise<WorkoutTemplateModel> {
     const queryName = 'CreateWorkoutTemplate';
     try {
-      const { queryResult, elapsedTime } = await this.db.transaction<>(
+      const { queryResult, elapsedTime } = await this.db.transaction<string>(
         async (client) => {
           const insertedWorkoutTemplateId = await this.insertWorkoutTemplate(
             client,
