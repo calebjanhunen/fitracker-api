@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
@@ -6,7 +7,6 @@ import { ICreateWorkout } from '../interfaces/create-workout.interface';
 import { IDeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
-import { InvalidOrderException } from '../internal-errors/invalid-order.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
