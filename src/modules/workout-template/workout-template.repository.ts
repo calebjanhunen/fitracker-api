@@ -17,13 +17,13 @@ export class WorkoutTemplateRepository {
         wt.name,
         wt.created_at,
         json_agg(json_build_object(
-            'id', e.id,
-        	'name', e.name,
-            'order', wte.order,
+          'exercise_id', e.id,
+        	'exercise_name', e.name,
+          'order', wte.order,
         	'sets', (
         		SELECT json_agg(json_build_object(
                 	'id', wts.id,
-                    'order', wts.order,
+                  'order', wts.order
             	) ORDER BY wts.order)
             	FROM workout_template_set wts
             	WHERE wts.workout_template_exercise_id = wte.id
@@ -32,7 +32,7 @@ export class WorkoutTemplateRepository {
       FROM
         workout_template as wt
       LEFT JOIN
-	      workout_template_exercise as we ON wte.workout_template_id = wt.id
+	      workout_template_exercise as wte ON wte.workout_template_id = wt.id
       LEFT JOIN
 	      exercise as e ON e.id = wte.exercise_id
   `;
@@ -86,6 +86,7 @@ export class WorkoutTemplateRepository {
       );
 
       this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+      console.log(createdWorkoutTemplate);
       return createdWorkoutTemplate!;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
@@ -107,7 +108,7 @@ export class WorkoutTemplateRepository {
       SELECT
         ${this.COLUMNS_AND_JOINS}
       WHERE wt.user_id = $1 AND wt.id = $2
-      GROUP BY w.id
+      GROUP BY wt.id
     `;
     const params = [userId, workoutTemplateId];
 
@@ -164,7 +165,7 @@ export class WorkoutTemplateRepository {
     exercise: InsertWorkoutTemplateExerciseModel,
   ): Promise<string> {
     const workoutExerciseInsertQuery = `
-          INSERT INTO workout_template_exercise (workout_id, exercise_id, "order")
+          INSERT INTO workout_template_exercise (workout_template_id, exercise_id, "order")
           VALUES ($1, $2, $3)
           RETURNING id;
         `;
@@ -196,16 +197,15 @@ export class WorkoutTemplateRepository {
       (_, index) => `
       ($${index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 1}, $${
         index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 2
-      }, $${index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 3}, $${
-        index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 4
-      }, $${index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 5})
-    `,
+      })`,
     );
+    console.log(valuesPlaceHolder);
 
     const query = `
-      INSERT INTO workout_set ("order", weight, reps, rpe, workout_exercise_id)
+      INSERT INTO workout_template_set ("order", workout_template_exercise_id)
       VALUES ${valuesPlaceHolder}
     `;
+    console.log(query);
 
     // Create a flat array of each set value
     const params = sets.flatMap((set) => [
