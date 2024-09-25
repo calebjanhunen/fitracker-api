@@ -70,12 +70,12 @@ exports.up = async function (db) {
         type: 'int',
         notNull: true,
       },
-      workout_id: {
+      workout_template_id: {
         type: 'uuid',
         notNull: true,
         foreignKey: {
-          name: 'fk_workout_workout_exercise',
-          table: 'workout',
+          name: 'fk_workout_template_workout_template_exercise',
+          table: 'workout_template',
           mapping: 'id',
           rules: {
             onDelete: 'CASCADE',
@@ -87,7 +87,7 @@ exports.up = async function (db) {
         type: 'uuid',
         notNull: true,
         foreignKey: {
-          name: 'fk_exercise_workout_exercise',
+          name: 'fk_exercise_workout_template_exercise',
           table: 'exercise',
           mapping: 'id',
           rules: {
@@ -109,12 +109,12 @@ exports.up = async function (db) {
         unique: true,
         defaultValue: new String('uuid_generate_v4()'),
       },
-      workout_exercise_id: {
+      workout_template_exercise_id: {
         type: 'uuid',
         notNull: true,
         foreignKey: {
-          name: 'fk_workout_exercise_set',
-          table: 'workout_exercise',
+          name: 'fk_workout_template_exercise_workout_template_set',
+          table: 'workout_template_exercise',
           mapping: 'id',
           rules: {
             onDelete: 'CASCADE',
