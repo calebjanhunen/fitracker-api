@@ -21,8 +21,8 @@
     "migration:run": "db-migrate up --env dev --config ./database/database.js --migrations-dir ./database/migrations --",
     "migration:rollback": "db-migrate down --count %npm_config_rollback_count% --env dev --config ./database/database.js --migrations-dir ./database/migrations",
     "migration:reset": "db-migrate reset --env dev --config ./database/database.js --migrations-dir ./database/migrations",
-    "docker:start": "docker-compose up -d fitracker-db fitracker-api",
-    "docker:stop": "docker-compose down fitracker-db fitracker-api",
+    "start-containers": "docker-compose up -d fitracker-db fitracker-api",
+    "stop-containers": "docker-compose down fitracker-db fitracker-api",
     "seed": "docker-compose up seed"
   },
   "dependencies": {

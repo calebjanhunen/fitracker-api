@@ -1,20 +1,71 @@
-FROM node:22
+###################
+#
+# Development environment
+#
+###################
+FROM node:current-alpine AS development
 
-# Create directory in container
+# Create directory inside docker
 WORKDIR /usr/src/app
 
-# Install dependencies
+# Copy package.json and package-lock.json using permissions
 COPY package*.json ./
+
+# Install depencencies
 RUN npm install
 
-# Copy code from host directory to container directory
+# Copy source code to docker directory
 COPY . .
 
-# Expose the port in the container to be used by host machine (used for port mapping)
+# Set NODE_ENV environment variable for development
+ENV NODE_ENV=development
+
+# Expose port
 EXPOSE 3000
 
-# Builds production version of application
-# RUN npm run build
+# Run app in dev mode
+CMD ["npm", "run", "start:dev"]
 
-# Run the nestjs application for development
-CMD [ "npm", "run", "start:dev" ]
+###################
+#
+# Build the code for production
+#
+###################
+FROM node:current-alpine AS build
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+# run npm ci to install dev dependencies (for nest cli)
+RUN npm ci
+
+COPY . .
+
+# Run the build command to create production bundle
+RUN npm run build
+
+# Run "npm ci" with --omit=dev flag so dev dependencies arent installed (Reason for using "npm ci": https://docs.npmjs.com/cli/v10/commands/npm-ci)
+# This will remove the node_modules from before
+RUN npm ci --omit=dev
+
+
+###################
+#
+# Production environment
+#
+###################
+FROM node:current-alpine AS production
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy the bundled code from the build stage to the production image
+COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
+
+# Set NODE_ENV environment variable for production
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+# Start the server using the production build
+CMD [ "node", "dist/main.js" ]
