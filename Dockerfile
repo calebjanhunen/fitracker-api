@@ -61,7 +61,8 @@ WORKDIR /usr/src/app
 # Copy the bundled code from the build stage to the production image
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build ./database/migrations ./database/migrations
+COPY --from=build /usr/src/app/database/migrations ./database/migrations
+COPY --from=build /usr/src/app/database/database.js ./database/database.js
 
 # Set NODE_ENV environment variable for production
 ENV NODE_ENV=production
