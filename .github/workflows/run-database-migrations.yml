@@ -17,5 +17,12 @@ jobs:
           ssh-private-key: ${{ secrets.RPI_SSH_KEY }}
 
       - name: Test SSH connection
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.RPI_USER }}@${{ secrets.RPI_IP }} "hostname && echo 'SSH connection successful'"
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
+            hostname
+            echo 'SSH connection successful'
