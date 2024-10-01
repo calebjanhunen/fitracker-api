@@ -20,7 +20,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.RPI_IP }}
-          username: ${{ RPI_USER }}
+          username: ${{ secrets.RPI_USER }}
           key: ${{ secrets.RPI_SSH_KEY }}
           port: ${{ secrets.RPI_SSH_PORT }}
           script: |
