@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   fitracker-db:
+    container_name: fitracker-db
     image: postgres:15
     restart: always
     environment:
@@ -12,21 +13,14 @@ services:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
-  test-db:
-    image: postgres:15
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: testuser
-      POSTGRES_PASSWORD: testpassword
-      POSTGRES_DB: testdb
-    ports:
-      - '5433:5432'
 
   fitracker-api:
+    container_name: fitracker-api
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run start:debug
+      target: development
+    command: npm run start:debug # override npm run start:dev in Dockerfile
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -40,15 +34,26 @@ services:
       - fitracker-db
     # Mount host directory to docker container (for hot reloading)
     volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
+      - .:/usr/src/app:delegated
+      - /usr/src/app/node_modules # excludes node_modules
 
+  test-db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - '5433:5432'
+
+  # used when running npm run seed (for seeding the database)
   seed:
     image: postgres:15
     depends_on:
       - fitracker-db
     environment:
-      PGHOST: fitracker-db
+      PGHOST: fitracker-db-dev
       PGUSER: ${POSTGRES_USER}
       PGDATABASE: ${POSTGRES_DATABASE}
       PGPASSWORD: ${POSTGRES_PASSWORD}
