@@ -4,11 +4,18 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
+  Get,
   Headers,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { WorkoutTemplateRequestDto } from './dtos/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from './dtos/workout-template-response.dto';
 import { WorkoutTemplateModel } from './models';
@@ -44,6 +51,42 @@ export class WorkoutTemplateController {
         WorkoutTemplateResponseDto,
       );
     } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Get()
+  public async getAllWorkoutTemplates(
+    @Headers('user-id') userId: string,
+  ): Promise<WorkoutTemplateResponseDto[]> {
+    try {
+      const workoutTemplates =
+        await this.workoutTemplateService.findAllWorkoutTemplates(userId);
+      return this.mapper.mapArray(
+        workoutTemplates,
+        WorkoutTemplateModel,
+        WorkoutTemplateResponseDto,
+      );
+    } catch (e) {
+      throw new ConflictException(e.message);
+    }
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async deleteWorkoutTemplate(
+    @Headers('user-id') userId: string,
+    @Param('id') workoutTemplateId: string,
+  ): Promise<void> {
+    try {
+      await this.workoutTemplateService.deleteWorkoutTemplate(
+        workoutTemplateId,
+        userId,
+      );
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
       throw new ConflictException(e.message);
     }
   }

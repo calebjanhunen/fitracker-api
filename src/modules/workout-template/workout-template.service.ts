@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { MyLoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from '../exercises/services/exercise.service';
 import { InsertWorkoutTemplateModel, WorkoutTemplateModel } from './models';
 import { WorkoutTemplateRepository } from './workout-template.repository';
@@ -9,6 +11,7 @@ export class WorkoutTemplateService {
   constructor(
     private workoutTemplateRepo: WorkoutTemplateRepository,
     private exerciseService: ExerciseService,
+    @Inject('WorkoutTemplateServiceLogger') private logger: MyLoggerService,
   ) {}
 
   public async createWorkoutTemplate(
@@ -29,6 +32,37 @@ export class WorkoutTemplateService {
     } catch (e) {
       throw e;
     }
+  }
+
+  public async findAllWorkoutTemplates(
+    userId: string,
+  ): Promise<WorkoutTemplateModel[]> {
+    return this.workoutTemplateRepo.findAllWorkoutTemplates(userId);
+  }
+
+  public async deleteWorkoutTemplate(
+    workoutTemplateId: string,
+    userId: string,
+  ): Promise<void> {
+    const existingWorkoutTemplate =
+      await this.workoutTemplateRepo.findWorkoutTemplateById(
+        workoutTemplateId,
+        userId,
+      );
+
+    if (!existingWorkoutTemplate) {
+      this.logger.warn(
+        `User ${userId} tried to delete workout template ${workoutTemplateId}`,
+      );
+      throw new ResourceNotFoundException(
+        `Workout Template ${workoutTemplateId} does not exist`,
+      );
+    }
+
+    await this.workoutTemplateRepo.deleteWorkoutTemplate(
+      workoutTemplateId,
+      userId,
+    );
   }
 
   /**

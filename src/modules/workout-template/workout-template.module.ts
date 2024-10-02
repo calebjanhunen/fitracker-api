@@ -18,6 +18,10 @@ import { WorkoutTemplateService } from './workout-template.service';
       provide: 'WorkoutTemplateRepoLogger',
       useFactory: () => new MyLoggerService(WorkoutTemplateRepository.name),
     },
+    {
+      provide: 'WorkoutTemplateServiceLogger',
+      useFactory: () => new MyLoggerService(WorkoutTemplateService.name),
+    },
   ],
   exports: [],
 })

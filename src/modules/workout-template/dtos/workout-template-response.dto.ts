@@ -2,6 +2,8 @@ import { AutoMap } from '@automapper/classes';
 
 export class WorkoutTemplateResponseDto {
   @AutoMap()
+  id: string;
+  @AutoMap()
   name: string;
   @AutoMap()
   createdAt: Date;

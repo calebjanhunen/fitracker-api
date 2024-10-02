@@ -86,7 +86,6 @@ export class WorkoutTemplateRepository {
       );
 
       this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
-      console.log(createdWorkoutTemplate);
       return createdWorkoutTemplate!;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
@@ -125,6 +124,48 @@ export class WorkoutTemplateRepository {
       return queryResult[0];
     } catch (e) {
       this.logger.error('Query FindWorkoutTemplateById failed: ', e);
+      throw new DatabaseException(e);
+    }
+  }
+
+  public async findAllWorkoutTemplates(
+    userId: string,
+  ): Promise<WorkoutTemplateModel[]> {
+    const query = `
+      SELECT
+        ${this.COLUMNS_AND_JOINS}
+      WHERE wt.user_id = $1
+      GROUP BY wt.id
+    `;
+    const params = [userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<WorkoutTemplateModel>(
+        query,
+        params,
+      );
+
+      return queryResult;
+    } catch (e) {
+      this.logger.error('Query FindAllWorkoutTemplates failed: ', e);
+      throw new DatabaseException(e);
+    }
+  }
+
+  public async deleteWorkoutTemplate(
+    workoutTemplateId: string,
+    userId: string,
+  ): Promise<void> {
+    const query = `
+      DELETE FROM workout_template
+      WHERE id = $1 AND user_id = $2
+    `;
+    const params = [workoutTemplateId, userId];
+
+    try {
+      await this.db.queryV2(query, params);
+    } catch (e) {
+      this.logger.error('Query DeleteWorkoutTemplate failed: ', e);
       throw new DatabaseException(e);
     }
   }
@@ -199,13 +240,11 @@ export class WorkoutTemplateRepository {
         index * this.NUM_WORKOUT_TEMPLATE_SET_FIELDS + 2
       })`,
     );
-    console.log(valuesPlaceHolder);
 
     const query = `
       INSERT INTO workout_template_set ("order", workout_template_exercise_id)
       VALUES ${valuesPlaceHolder}
     `;
-    console.log(query);
 
     // Create a flat array of each set value
     const params = sets.flatMap((set) => [
