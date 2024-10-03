@@ -3,8 +3,6 @@ import { AutoMap } from '@automapper/classes';
 export class InsertWorkoutTemplateModel {
   @AutoMap()
   name: string;
-  @AutoMap()
-  createdAt: Date;
   @AutoMap(() => InsertWorkoutTemplateExerciseModel)
   exercises: InsertWorkoutTemplateExerciseModel[];
 }

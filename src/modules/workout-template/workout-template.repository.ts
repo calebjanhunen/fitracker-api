@@ -182,12 +182,13 @@ export class WorkoutTemplateRepository {
     workoutTemplate: InsertWorkoutTemplateModel,
     userId: string,
   ): Promise<string> {
+    const now = new Date().toISOString();
     const query = `
           INSERT INTO workout_template (name, user_id, created_at, updated_at)
           VALUES ($1, $2, $3, $3)
           RETURNING id;
         `;
-    const params = [workoutTemplate.name, userId, workoutTemplate.createdAt];
+    const params = [workoutTemplate.name, userId, now];
     const result = await client.query<{ id: string }>(query, params);
 
     return result.rows[0].id;

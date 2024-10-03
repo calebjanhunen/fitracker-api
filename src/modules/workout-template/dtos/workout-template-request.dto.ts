@@ -2,7 +2,6 @@ import { AutoMap } from '@automapper/classes';
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
-  IsDate,
   IsInt,
   IsNotEmpty,
   IsString,
@@ -16,11 +15,6 @@ export class WorkoutTemplateRequestDto {
   @IsNotEmpty()
   @AutoMap()
   public name: string;
-
-  @IsDate()
-  @IsNotEmpty()
-  @AutoMap()
-  public createdAt: Date;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
