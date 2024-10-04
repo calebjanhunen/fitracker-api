@@ -1,3 +1,5 @@
+import { classes } from '@automapper/classes';
+import { AutomapperModule } from '@automapper/nestjs';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
@@ -8,17 +10,22 @@ import { BodyPartModule } from './modules/body-part/body-part.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
+import { WorkoutTemplateModule } from './modules/workout-template/workout-template.module';
 import { WorkoutModule } from './modules/workouts/workout.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // UserModule,
+    AutomapperModule.forRoot({
+      strategyInitializer: classes(),
+    }),
+    UserModule,
     AuthModule,
     ExerciseModule,
     WorkoutModule,
     BodyPartModule,
     EquipmentModule,
+    WorkoutTemplateModule,
   ],
   controllers: [],
   providers: [CorrelationIdService],

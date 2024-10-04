@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { InvalidOrderException } from '../../internal-errors/invalid-order.exception';
+import { InvalidOrderException } from '../../../../common/internal-exceptions/invalid-order.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../../models';
 import { WorkoutRepository } from '../../repository/workout.repository';
 import { WorkoutCalculator } from '../workout.calculator';
