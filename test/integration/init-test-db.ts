@@ -58,7 +58,6 @@ async function insertIntoDb(key: string, value: any[], pool: Pool) {
         INSERT INTO "${key}" (${params})
         VALUES (${values})
     `;
-    console.log(query);
 
     await pool.query(query);
   }
