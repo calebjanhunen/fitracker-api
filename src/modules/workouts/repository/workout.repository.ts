@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
@@ -129,6 +130,40 @@ export class WorkoutRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  public async findWorkoutsWhere(
+    userId: string,
+    whereClauses?: Array<{ field: string; operator: string; value: string }>,
+  ): Promise<WorkoutModel[]> {
+    let query = `
+      SELECT
+        ${this.COLUMNS_AND_JOINS}
+    `;
+    const params = [];
+
+    if (whereClauses && whereClauses.length) {
+      const conditions = whereClauses.map((clause, index) => {
+        params.push(clause.value);
+        return `${clause.field} ${clause.operator} $${index + 1}`;
+      });
+      query += `WHERE ${conditions.join(' AND ')}`;
+    }
+
+    query += ` AND w.user_id = $${whereClauses ? whereClauses.length + 1 : 1}`;
+    params.push(userId);
+    query += ' GROUP BY w.id';
+
+    try {
+      const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
+        query,
+        params,
+      );
+      return queryResult;
+    } catch (e) {
+      this.logger.error(`Query findWorkoutsWhere failed: `, e);
+      throw new DatabaseException(e.message);
     }
   }
 
