@@ -151,7 +151,7 @@ export class UserRepository {
       SELECT
         total_xp,
         last_workout_date,
-        current_workout_streak
+        workouts_completed_this_week
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
@@ -168,26 +168,31 @@ export class UserRepository {
 
   public async updateStatsAfterCreatingOrDeletingWorkout(
     lastWorkoutDate: Date | null,
-    currentWorkoutStreak: number,
+    workoutsCompletedThisWeek: number,
     xpChange: number,
     userId: string,
   ): Promise<UserStats> {
     const query = `
       UPDATE user_stats SET
         last_workout_date = $1,
-        current_workout_streak = $2,
+        workouts_completed_this_week = $2,
         total_xp = total_xp + $3
       WHERE user_stats.user_id = $4
-      RETURNING total_xp, last_workout_date, current_workout_streak
+      RETURNING total_xp, last_workout_date, workouts_completed_this_week
     `;
-    const params = [lastWorkoutDate, currentWorkoutStreak, xpChange, userId];
+    const params = [
+      lastWorkoutDate,
+      workoutsCompletedThisWeek,
+      xpChange,
+      userId,
+    ];
 
     try {
       const { queryResult } = await this.db.queryV2<UserStats>(query, params);
       return queryResult[0];
     } catch (e) {
       this.logger.error(
-        'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',
+        'Query updateStatsAfterCreatingOrDeletingWorkout failed: ',
         e,
       );
       throw new DatabaseException(e.message);
