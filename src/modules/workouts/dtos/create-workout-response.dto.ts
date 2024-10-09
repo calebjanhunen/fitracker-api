@@ -1,9 +1,14 @@
+import { WorkoutResponseDto } from './workout-response.dto';
+
 export class CreateWorkoutResponseDto {
-  workoutId: string;
-  currentWorkoutStreak: number;
+  workout: WorkoutResponseDto;
+  workoutStats: WorkoutStatsDto;
+}
+
+class WorkoutStatsDto {
   baseXpGain: number;
   xpGainedFromWorkoutDuration: number;
-  xpGainedFromWorkoutStreak: number;
-  totalXpGained: number;
+  xpGainedFromWeeklyGoal: number;
+  totalGainedXp: number;
   totalUserXp: number;
 }

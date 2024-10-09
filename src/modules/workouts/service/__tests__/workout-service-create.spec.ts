@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
+import { UserStats } from 'src/modules/user/models/user-stats.model';
 import { UserService } from 'src/modules/user/service/user.service';
 import { InvalidOrderException } from '../../../../common/internal-exceptions/invalid-order.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../../models';
@@ -34,14 +35,13 @@ describe('WorkoutService: create', () => {
             getStatsByUserId: jest.fn(() => {
               return { currentWorkoutStreal: 2, lastWorkoutDate: new Date() };
             }),
-            updateStatsAfterCreatingOrDeletingWorkout: jest.fn(() => 100),
+            updateUserStatsAfterWorkoutCreation: jest.fn(() => new UserStats()),
           },
         },
         {
           provide: WorkoutCalculator,
           useValue: {
-            calculateGainedXp: jest.fn(() => 50),
-            getDifferenceInDays: jest.fn(() => 2),
+            calculateXpGainedFromWorkout: jest.fn(() => 50),
           },
         },
       ],

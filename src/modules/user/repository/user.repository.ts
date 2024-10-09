@@ -150,8 +150,7 @@ export class UserRepository {
     const query = `
       SELECT
         total_xp,
-        last_workout_date,
-        current_workout_streak
+        weekly_bonus_awarded_at
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
@@ -166,30 +165,28 @@ export class UserRepository {
     }
   }
 
-  public async updateStatsAfterCreatingOrDeletingWorkout(
-    lastWorkoutDate: Date | null,
-    currentWorkoutStreak: number,
-    xpChange: number,
+  public async updateUserStats(
+    updatedUserStats: UserStats,
     userId: string,
   ): Promise<UserStats> {
     const query = `
       UPDATE user_stats SET
-        last_workout_date = $1,
-        current_workout_streak = $2,
-        total_xp = total_xp + $3
-      WHERE user_stats.user_id = $4
-      RETURNING total_xp, last_workout_date, current_workout_streak
+        total_xp = $1,
+        weekly_bonus_awarded_at = $2
+      WHERE  user_id = $3
+      RETURNING total_xp, weekly_bonus_awarded_at
     `;
-    const params = [lastWorkoutDate, currentWorkoutStreak, xpChange, userId];
+    const params = [
+      updatedUserStats.totalXp,
+      updatedUserStats.weeklyBonusAwardedAt,
+      userId,
+    ];
 
     try {
       const { queryResult } = await this.db.queryV2<UserStats>(query, params);
       return queryResult[0];
     } catch (e) {
-      this.logger.error(
-        'Query UpdateLastWorkoutDateAndCurrentWorkoutStreak failed: ',
-        e,
-      );
+      this.logger.error('Query updateUserStats failed: ', e);
       throw new DatabaseException(e.message);
     }
   }

@@ -44,7 +44,9 @@ async function insertIntoDb(key: string, value: any[], pool: Pool) {
 
     const values = Object.values(item)
       .map((val) => {
-        if (typeof val === 'string') {
+        if (val instanceof Date) {
+          return `'${val.toISOString()}'`;
+        } else if (typeof val === 'string') {
           return `'${val}'`;
         } else {
           return val;

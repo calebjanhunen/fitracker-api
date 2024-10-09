@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
@@ -129,6 +130,47 @@ export class WorkoutRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  /**
+   * Finds all workouts between sunday at 12am (UTC) of the current week
+   * and the currentDate passed in (currentDate excluded)
+   * Only gets workouts with distinct dates so multiple workouts on the same
+   * date will only return 1
+   * @param {string} userId
+   * @param {Date} currentDate
+   * @returns {WorkoutModel}
+   *
+   * @throws {DatabaseException}
+   */
+  public async findWorkoutsThisWeekWithDistinctDates(
+    userId: string,
+    currentDate: Date,
+  ): Promise<WorkoutModel[]> {
+    const query = `
+      SELECT
+        DISTINCT ON (DATE(w.created_at))
+        ${this.COLUMNS_AND_JOINS}
+      WHERE w.user_id = $1
+      AND w.created_at >= (DATE_TRUNC('week', $2 AT TIME ZONE 'UTC') - INTERVAL '1 day')
+      AND w.created_at < DATE($2) AT TIME ZONE 'UTC'
+      GROUP BY w.id
+    `;
+    const params = [userId, currentDate];
+
+    try {
+      const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
+        query,
+        params,
+      );
+      return queryResult;
+    } catch (e) {
+      this.logger.error(
+        `Query findWorkoutsThisWeekWithDistinctDates failed: `,
+        e,
+      );
+      throw new DatabaseException(e.message);
     }
   }
 

@@ -41,44 +41,37 @@ export class WorkoutService {
 
     const userStats = await this.userService.getStatsByUserId(userId);
 
-    const differenceInDays = this.workoutCalculator.getDifferenceInDays(
-      userStats.lastWorkoutDate,
-      workout.createdAt,
-    );
-
-    const updatedWorkoutStreak =
-      differenceInDays === 0
-        ? userStats.currentWorkoutStreak
-        : differenceInDays === 1
-        ? userStats.currentWorkoutStreak + 1
-        : 1;
-
     const {
       totalGainedXp,
       baseXpGain,
       xpGainedFromWorkoutDuration,
-      xpGainedFromWorkoutStreak,
-    } = this.workoutCalculator.calculateGainedXp(workout, updatedWorkoutStreak);
+      xpGainedFromWeeklyGoal,
+    } = await this.workoutCalculator.calculateXpGainedFromWorkout(
+      workout,
+      3, //TODO: allow user to pick workout goal
+      userStats,
+      userId,
+    );
     workout.gainedXp = totalGainedXp;
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
       const updatedUserStats =
-        await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
-          workout.createdAt,
-          updatedWorkoutStreak,
-          totalGainedXp,
+        await this.userService.updateUserStatsAfterWorkoutCreation(
           userId,
+          totalGainedXp,
+          xpGainedFromWeeklyGoal ? new Date(createdWorkout.createdAt) : null,
         );
 
       return {
-        workoutId: createdWorkout.id,
-        currentWorkoutStreak: updatedUserStats.currentWorkoutStreak,
-        baseXpGain,
-        xpGainedFromWorkoutDuration,
-        xpGainedFromWorkoutStreak,
-        totalXpGained: totalGainedXp,
-        totalUserXp: updatedUserStats.totalXp,
+        workout: createdWorkout,
+        workoutStats: {
+          baseXpGain,
+          xpGainedFromWorkoutDuration,
+          xpGainedFromWeeklyGoal,
+          totalGainedXp,
+          totalUserXp: updatedUserStats.totalXp,
+        },
       };
     } catch (e) {
       throw new CouldNotSaveWorkoutException(workout.name);
@@ -137,28 +130,13 @@ export class WorkoutService {
     try {
       await this.workoutRepo.delete(workoutId, userId);
 
-      const remainingWorkouts = await this.workoutRepo.findAll(userId);
-      if (!remainingWorkouts.length) {
-        userStats.lastWorkoutDate = null;
-      } else {
-        userStats.lastWorkoutDate = new Date(remainingWorkouts[0].createdAt);
-      }
-
-      userStats.currentWorkoutStreak =
-        this.workoutCalculator.recalculateCurrentWorkoutStreak(
-          remainingWorkouts,
-        );
-
       const updatedUserStats =
-        await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
-          userStats.lastWorkoutDate,
-          userStats.currentWorkoutStreak,
-          -workoutToBeDeleted.gainedXp,
+        await this.userService.updateUserStatsAfterDeletingWorkout(
           userId,
+          workoutToBeDeleted.gainedXp,
         );
       return {
         totalUserXp: updatedUserStats.totalXp,
-        currentWorkoutStreak: userStats.currentWorkoutStreak,
       };
     } catch (e) {
       throw new CouldNotDeleteWorkoutException(e.message);
