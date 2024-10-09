@@ -22,14 +22,13 @@ describe('UserRepository: getStatsByUserId', () => {
     await clearDb();
   });
 
-  it('it should return the most recent workout', async () => {
+  it('it should return user stats', async () => {
     const response = await userRepo.getStatsByUserId(
       '2a396411-9c45-45e1-92ba-59cffd258ed2',
     );
-    expect(response.lastWorkoutDate).toEqual(
-      new Date('2024-09-23T23:41:40+0000'),
-    );
     expect(response.totalXp).toBe(12345);
-    expect(response.currentWorkoutStreak).toBe(5);
+    expect(response.weeklyBonusAwardedAt.toISOString().split('T')[0]).toBe(
+      '2024-10-08',
+    );
   });
 });
