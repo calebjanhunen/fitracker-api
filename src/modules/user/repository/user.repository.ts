@@ -171,15 +171,17 @@ export class UserRepository {
   ): Promise<UserStats> {
     const query = `
       UPDATE user_stats SET
-        total_xp = $1,
-        weekly_bonus_awarded_at = $2
-      WHERE  user_id = $3
+        total_xp = $2,
+        weekly_bonus_awarded_at = $3,
+        weekly_workout_goal = $4
+      WHERE  user_id = $1
       RETURNING total_xp, weekly_bonus_awarded_at
     `;
     const params = [
+      userId,
       updatedUserStats.totalXp,
       updatedUserStats.weeklyBonusAwardedAt,
-      userId,
+      updatedUserStats.weeklyWorkoutGoal,
     ];
 
     try {
