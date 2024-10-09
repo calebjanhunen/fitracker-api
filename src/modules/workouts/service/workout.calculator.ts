@@ -27,11 +27,11 @@ export class WorkoutCalculator {
 
     // TODO: Rework to discourage unnecessarily long workouts
     // If workout >= 15 mins -> add 10 xp for each minute of the workout
-    if (workout.duration >= this.MIN_WORKOUT_DURATION_FOR_XP) {
-      const workoutLengthInMinutes = Math.floor(workout.duration / 60);
-      xpGainedFromWorkoutDuration =
-        workoutLengthInMinutes * this.XP_FOR_EACH_WORKOUT_MINUTE;
-    }
+    // if (workout.duration >= this.MIN_WORKOUT_DURATION_FOR_XP) {
+    //   const workoutLengthInMinutes = Math.floor(workout.duration / 60);
+    //   xpGainedFromWorkoutDuration =
+    //     workoutLengthInMinutes * this.XP_FOR_EACH_WORKOUT_MINUTE;
+    // }
 
     const workoutsCompletedThisWeek =
       await this.workoutRepo.findWorkoutsThisWeekWithDistinctDates(
