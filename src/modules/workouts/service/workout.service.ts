@@ -116,47 +116,32 @@ export class WorkoutService {
    * @throws {WorkoutNotFoundException}
    * @throws {XpCannotBeBelowZeroException}
    */
-  // public async delete(
-  //   workoutId: string,
-  //   userId: string,
-  // ): Promise<IDeleteWorkout> {
-  //   const workoutToBeDeleted = await this.findById(workoutId, userId);
-  //   const userStats = await this.userService.getStatsByUserId(userId);
+  public async delete(
+    workoutId: string,
+    userId: string,
+  ): Promise<IDeleteWorkout> {
+    const workoutToBeDeleted = await this.findById(workoutId, userId);
+    const userStats = await this.userService.getStatsByUserId(userId);
 
-  //   if (userStats.totalXp - workoutToBeDeleted.gainedXp < 0) {
-  //     throw new XpCannotBeBelowZeroException();
-  //   }
+    if (userStats.totalXp - workoutToBeDeleted.gainedXp < 0) {
+      throw new XpCannotBeBelowZeroException();
+    }
 
-  //   try {
-  //     await this.workoutRepo.delete(workoutId, userId);
+    try {
+      await this.workoutRepo.delete(workoutId, userId);
 
-  //     const remainingWorkouts = await this.workoutRepo.findAll(userId);
-  //     if (!remainingWorkouts.length) {
-  //       userStats.lastWorkoutDate = null;
-  //     } else {
-  //       userStats.lastWorkoutDate = new Date(remainingWorkouts[0].createdAt);
-  //     }
-
-  //     userStats.currentWorkoutStreak =
-  //       this.workoutCalculator.recalculateCurrentWorkoutStreak(
-  //         remainingWorkouts,
-  //       );
-
-  //     const updatedUserStats =
-  //       await this.userService.updateStatsAfterCreatingOrDeletingWorkout(
-  //         userStats.lastWorkoutDate,
-  //         userStats.currentWorkoutStreak,
-  //         -workoutToBeDeleted.gainedXp,
-  //         userId,
-  //       );
-  //     return {
-  //       totalUserXp: updatedUserStats.totalXp,
-  //       currentWorkoutStreak: userStats.currentWorkoutStreak,
-  //     };
-  //   } catch (e) {
-  //     throw new CouldNotDeleteWorkoutException(e.message);
-  //   }
-  // }
+      const updatedUserStats =
+        await this.userService.updateUserStatsAfterDeletingWorkout(
+          userId,
+          workoutToBeDeleted.gainedXp,
+        );
+      return {
+        totalUserXp: updatedUserStats.totalXp,
+      };
+    } catch (e) {
+      throw new CouldNotDeleteWorkoutException(e.message);
+    }
+  }
 
   public async update(
     workoutId: string,

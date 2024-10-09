@@ -5,8 +5,6 @@ import {
   Delete,
   Get,
   Headers,
-  HttpException,
-  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -84,20 +82,16 @@ export class WorkoutController {
     @Headers('user-id') userId: string,
     @Param('id') workoutId: string,
   ): Promise<DeleteWorkoutDto> {
-    throw new HttpException(
-      'This endpoint has been temporarily disabled',
-      HttpStatus.NOT_IMPLEMENTED,
-    );
-    // try {
-    //   const response = await this.workoutService.delete(workoutId, userId);
-    //   return plainToInstance(DeleteWorkoutDto, response);
-    // } catch (e) {
-    //   if (e instanceof ResourceNotFoundException) {
-    //     throw new NotFoundException(e.message);
-    //   }
+    try {
+      const response = await this.workoutService.delete(workoutId, userId);
+      return plainToInstance(DeleteWorkoutDto, response);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
 
-    //   throw new ConflictException(e.message);
-    // }
+      throw new ConflictException(e.message);
+    }
   }
 
   @Put(':id')
