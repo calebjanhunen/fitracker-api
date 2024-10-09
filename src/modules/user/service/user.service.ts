@@ -66,4 +66,22 @@ export class UserService {
   public async getStatsByUserId(userId: string): Promise<UserStats> {
     return this.userRepo.getStatsByUserId(userId);
   }
+
+  public async updateUserStats(
+    userId: string,
+    updatedUserStats: UserStats,
+  ): Promise<UserStats> {
+    const userStats = await this.userRepo.getStatsByUserId(userId);
+    if (!userStats) {
+      throw new ResourceNotFoundException(
+        `User stats for user ${userId} not found.`,
+      );
+    }
+    userStats.totalXp = updatedUserStats.totalXp ?? userStats.totalXp;
+    userStats.weeklyBonusAwardedAt =
+      updatedUserStats.weeklyBonusAwardedAt ?? userStats.weeklyBonusAwardedAt;
+    userStats.weeklyWorkoutGoal =
+      updatedUserStats.weeklyWorkoutGoal ?? userStats.weeklyWorkoutGoal;
+    return await this.userRepo.updateUserStats(userStats, userId);
+  }
 }
