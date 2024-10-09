@@ -1,9 +1,14 @@
+import { WorkoutModel } from '../models';
+
 export interface ICreateWorkout {
-  workoutId: string;
-  currentWorkoutStreak: number;
+  workout: WorkoutModel;
+  workoutStats: WorkoutStats;
+}
+
+export interface WorkoutStats {
   baseXpGain: number;
   xpGainedFromWorkoutDuration: number;
-  xpGainedFromWorkoutStreak: number;
-  totalXpGained: number;
+  xpGainedFromWeeklyGoal: number;
+  totalGainedXp: number;
   totalUserXp: number;
 }

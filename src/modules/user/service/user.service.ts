@@ -36,18 +36,36 @@ export class UserService {
     return user;
   }
 
-  public async updateStatsAfterCreatingOrDeletingWorkout(
-    lastWorkoutDate: Date | null,
-    currentWorkoutStreak: number,
-    xpChange: number,
+  // public async updateStatsAfterCreatingOrDeletingWorkout(
+  //   lastWorkoutDate: Date | null,
+  //   currentWorkoutStreak: number,
+  //   xpChange: number,
+  //   userId: string,
+  // ): Promise<UserStats> {
+  //   return this.userRepo.updateStatsAfterCreatingOrDeletingWorkout(
+  //     lastWorkoutDate,
+  //     currentWorkoutStreak,
+  //     xpChange,
+  //     userId,
+  //   );
+  // }
+
+  public async updateUserStatsAfterWorkoutCreation(
     userId: string,
+    xpIncrease: number,
+    weeklyBonusAwardedAt: Date | null,
   ): Promise<UserStats> {
-    return this.userRepo.updateStatsAfterCreatingOrDeletingWorkout(
-      lastWorkoutDate,
-      currentWorkoutStreak,
-      xpChange,
+    const currentUserStats = await this.userRepo.getStatsByUserId(userId);
+    currentUserStats.totalXp = currentUserStats.totalXp + xpIncrease;
+    currentUserStats.weeklyBonusAwardedAt =
+      weeklyBonusAwardedAt ?? currentUserStats.weeklyBonusAwardedAt;
+
+    const result = await this.userRepo.updateUserStats(
+      currentUserStats,
       userId,
     );
+
+    return result;
   }
 
   public async getStatsByUserId(userId: string): Promise<UserStats> {

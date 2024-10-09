@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsDate,
+  IsDateString,
   IsInt,
   IsNotEmpty,
   IsNumber,
