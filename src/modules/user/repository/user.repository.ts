@@ -175,7 +175,7 @@ export class UserRepository {
         weekly_bonus_awarded_at = $3,
         weekly_workout_goal = $4
       WHERE  user_id = $1
-      RETURNING total_xp, weekly_bonus_awarded_at
+      RETURNING total_xp, weekly_bonus_awarded_at, weekly_workout_goal
     `;
     const params = [
       userId,

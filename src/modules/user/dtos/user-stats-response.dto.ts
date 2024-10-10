@@ -1,9 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 
-export class UserStats {
+export class UserStatsResponseDto {
   @AutoMap()
   totalXp: number;
   @AutoMap()
   weeklyWorkoutGoal: number;
-  weeklyBonusAwardedAt: Date;
 }
