@@ -50,11 +50,28 @@ export class UserService {
         `User stats for user ${userId} not found.`,
       );
     }
-    userStats.totalXp = updatedUserStats.totalXp ?? userStats.totalXp;
-    userStats.weeklyBonusAwardedAt =
-      updatedUserStats.weeklyBonusAwardedAt ?? userStats.weeklyBonusAwardedAt;
-    userStats.weeklyWorkoutGoal =
-      updatedUserStats.weeklyWorkoutGoal ?? userStats.weeklyWorkoutGoal;
-    return await this.userRepo.updateUserStats(userStats, userId);
+    const newUserStats = this.getUpdatedUserStatsModel(
+      updatedUserStats,
+      userStats,
+    );
+    return await this.userRepo.updateUserStats(newUserStats, userId);
+  }
+
+  private getUpdatedUserStatsModel(
+    updatedUserStats: UserStats,
+    currentUserStats: UserStats,
+  ): UserStats {
+    const newUserStats = new UserStats();
+    newUserStats.totalXp = updatedUserStats.totalXp ?? currentUserStats.totalXp;
+    newUserStats.weeklyBonusAwardedAt =
+      updatedUserStats.weeklyBonusAwardedAt ??
+      currentUserStats.weeklyBonusAwardedAt;
+    newUserStats.weeklyWorkoutGoal =
+      updatedUserStats.weeklyWorkoutGoal ?? currentUserStats.weeklyWorkoutGoal;
+    newUserStats.weeklyWorkoutGoalStreak =
+      updatedUserStats.weeklyWorkoutGoalStreak ??
+      currentUserStats.weeklyWorkoutGoalStreak;
+
+    return newUserStats;
   }
 }

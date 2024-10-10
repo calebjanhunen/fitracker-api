@@ -100,4 +100,79 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
 
     expect(xpGainedFromWeeklyGoal).toBe(70);
   });
+  it('xpGainedFromWeeklyGoal should not be affected by streak xp if streak is less than 2', async () => {
+    const mockDate = new Date('2024-10-16T15:45:00.000Z');
+    const workout = new InsertWorkoutModel();
+    workout.createdAt = mockDate;
+    const userStats = new UserStats();
+    userStats.weeklyBonusAwardedAt = new Date('2024-10-08T15:45:00.000Z'); // set to value in previous week
+    userStats.weeklyWorkoutGoal = 4;
+    userStats.weeklyWorkoutGoalStreak = 0;
+
+    jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+    mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
+      new WorkoutModel(),
+      new WorkoutModel(),
+      new WorkoutModel(),
+    ]);
+
+    const { xpGainedFromWeeklyGoal } =
+      await workoutCalculator.calculateXpGainedFromWorkout(
+        workout,
+        userStats,
+        'user-id',
+      );
+
+    expect(xpGainedFromWeeklyGoal).toBe(70);
+  });
+  it('xpGainedFromWeeklyGoal should be affected by streak xp if streak is at least 2', async () => {
+    const mockDate = new Date('2024-10-16T15:45:00.000Z');
+    const workout = new InsertWorkoutModel();
+    workout.createdAt = mockDate;
+    const userStats = new UserStats();
+    userStats.weeklyBonusAwardedAt = new Date('2024-10-08T15:45:00.000Z'); // set to value in previous week
+    userStats.weeklyWorkoutGoal = 4;
+    userStats.weeklyWorkoutGoalStreak = 1;
+
+    jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+    mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
+      new WorkoutModel(),
+      new WorkoutModel(),
+      new WorkoutModel(),
+    ]);
+
+    const { xpGainedFromWeeklyGoal } =
+      await workoutCalculator.calculateXpGainedFromWorkout(
+        workout,
+        userStats,
+        'user-id',
+      );
+
+    expect(xpGainedFromWeeklyGoal).toBe(90);
+  });
+  it('weekly goal streak xp should cap at 100 at 10 weeks', async () => {
+    const mockDate = new Date('2024-10-16T15:45:00.000Z');
+    const workout = new InsertWorkoutModel();
+    workout.createdAt = mockDate;
+    const userStats = new UserStats();
+    userStats.weeklyBonusAwardedAt = new Date('2024-10-08T15:45:00.000Z'); // set to value in previous week
+    userStats.weeklyWorkoutGoal = 4;
+    userStats.weeklyWorkoutGoalStreak = 20;
+
+    jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
+    mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
+      new WorkoutModel(),
+      new WorkoutModel(),
+      new WorkoutModel(),
+    ]);
+
+    const { xpGainedFromWeeklyGoal } =
+      await workoutCalculator.calculateXpGainedFromWorkout(
+        workout,
+        userStats,
+        'user-id',
+      );
+
+    expect(xpGainedFromWeeklyGoal).toBe(170);
+  });
 });

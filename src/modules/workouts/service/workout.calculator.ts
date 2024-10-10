@@ -11,7 +11,10 @@ export class WorkoutCalculator {
   private readonly WEEKLY_GOAL_XP_VALUES = {
     baseXp: 30,
     multiplier: 10,
+    weeklyGoalStreakBaseXp: 10,
+    maxWeeklyGoalStreakXp: 100,
   };
+  private readonly MIN_STREAK_TO_RECEIVE_XP = 2;
 
   constructor(private workoutRepo: WorkoutRepository) {}
 
@@ -20,6 +23,7 @@ export class WorkoutCalculator {
     userStats: UserStats,
     userId: string,
   ): Promise<ICalculateGainedXp> {
+    const updatedUserStats = new UserStats();
     // let xpGainedFromWorkoutDuration = 0;
     let xpGainedFromWeeklyGoal = 0;
 
@@ -37,21 +41,46 @@ export class WorkoutCalculator {
         workout.createdAt,
       );
 
-    if (!this.isDateThisWeek(userStats.weeklyBonusAwardedAt)) {
+    if (
+      !this.alreadyReceivedWeeklyWorkoutGoalXpThisWeek(
+        userStats.weeklyBonusAwardedAt,
+      )
+    ) {
       // Give bonus xp if a user hits their weekly workout goal
+      let newWeeklyGoalStreak = 0;
       if (
         workoutsCompletedThisWeek.length + 1 ===
         userStats.weeklyWorkoutGoal
       ) {
+        updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
+        newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
         xpGainedFromWeeklyGoal =
           this.WEEKLY_GOAL_XP_VALUES.baseXp +
           userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
       }
+
+      // Give bonus xp if user hit weekly goal at least 2 weeks in a row
+      if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
+        if (newWeeklyGoalStreak >= 10) {
+          // Cap bonus xp at 100 (10 weeks * 10xp for each week)
+          xpGainedFromWeeklyGoal +=
+            this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
+        } else {
+          xpGainedFromWeeklyGoal +=
+            this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
+            newWeeklyGoalStreak;
+        }
+      }
+
+      updatedUserStats.weeklyWorkoutGoalStreak = newWeeklyGoalStreak;
     }
 
+    const totalGainedXp = xpGainedFromWeeklyGoal;
+    updatedUserStats.totalXp = userStats.totalXp + totalGainedXp;
     return {
       xpGainedFromWeeklyGoal,
-      totalGainedXp: xpGainedFromWeeklyGoal,
+      totalGainedXp,
+      newUserStats: updatedUserStats,
     };
   }
 
@@ -60,7 +89,7 @@ export class WorkoutCalculator {
    *
    * @param {Date} date - the date in UTC
    */
-  private isDateThisWeek(date: Date): boolean {
+  private alreadyReceivedWeeklyWorkoutGoalXpThisWeek(date: Date): boolean {
     const startOfWeek = this.getStartOfWeek();
     return date >= startOfWeek;
   }
