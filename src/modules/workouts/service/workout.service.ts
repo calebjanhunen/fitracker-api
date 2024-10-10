@@ -48,7 +48,6 @@ export class WorkoutService {
       xpGainedFromWeeklyGoal,
     } = await this.workoutCalculator.calculateXpGainedFromWorkout(
       workout,
-      3, //TODO: allow user to pick workout goal
       userStats,
       userId,
     );

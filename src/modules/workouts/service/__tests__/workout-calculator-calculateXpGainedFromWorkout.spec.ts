@@ -37,6 +37,7 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     workout.createdAt = mockDate;
     const userStats = new UserStats();
     userStats.weeklyBonusAwardedAt = new Date('2024-10-15T15:45:00.000Z');
+    userStats.weeklyWorkoutGoal = 4;
 
     jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
     mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
@@ -47,7 +48,6 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     const { xpGainedFromWeeklyGoal } =
       await workoutCalculator.calculateXpGainedFromWorkout(
         workout,
-        3,
         userStats,
         'user-id',
       );
@@ -59,6 +59,7 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     workout.createdAt = mockDate;
     const userStats = new UserStats();
     userStats.weeklyBonusAwardedAt = new Date('2024-10-08T15:45:00.000Z'); //set to a value in previous week
+    userStats.weeklyWorkoutGoal = 4;
 
     jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
     mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
@@ -69,7 +70,6 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     const { xpGainedFromWeeklyGoal } =
       await workoutCalculator.calculateXpGainedFromWorkout(
         workout,
-        4,
         userStats,
         'user-id',
       );
@@ -82,6 +82,7 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     workout.createdAt = mockDate;
     const userStats = new UserStats();
     userStats.weeklyBonusAwardedAt = new Date('2024-10-08T15:45:00.000Z'); // set to value in previous week
+    userStats.weeklyWorkoutGoal = 4;
 
     jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
     mockWorkoutRepo.findWorkoutsThisWeekWithDistinctDates.mockResolvedValue([
@@ -93,7 +94,6 @@ describe('WorkoutCalculator: calculateGainedXp', () => {
     const { xpGainedFromWeeklyGoal } =
       await workoutCalculator.calculateXpGainedFromWorkout(
         workout,
-        4,
         userStats,
         'user-id',
       );
