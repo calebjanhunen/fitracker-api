@@ -150,7 +150,8 @@ export class UserRepository {
     const query = `
       SELECT
         total_xp,
-        weekly_bonus_awarded_at
+        weekly_bonus_awarded_at,
+        weekly_workout_goal
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
