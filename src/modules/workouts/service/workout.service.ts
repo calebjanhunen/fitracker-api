@@ -56,12 +56,14 @@ export class WorkoutService {
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
-      const updatedUserStats =
-        await this.userService.updateUserStatsAfterWorkoutCreation(
-          userId,
-          totalGainedXp,
-          xpGainedFromWeeklyGoal ? new Date(createdWorkout.createdAt) : null,
-        );
+      userStats.totalXp += totalGainedXp;
+      userStats.weeklyBonusAwardedAt = xpGainedFromWeeklyGoal
+        ? new Date(workout.createdAt)
+        : userStats.weeklyBonusAwardedAt;
+      const updatedUserStats = await this.userService.updateUserStats(
+        userId,
+        userStats,
+      );
 
       return {
         workout: createdWorkout,
@@ -130,11 +132,11 @@ export class WorkoutService {
     try {
       await this.workoutRepo.delete(workoutId, userId);
 
-      const updatedUserStats =
-        await this.userService.updateUserStatsAfterDeletingWorkout(
-          userId,
-          workoutToBeDeleted.gainedXp,
-        );
+      userStats.totalXp -= workoutToBeDeleted.gainedXp;
+      const updatedUserStats = await this.userService.updateUserStats(
+        userId,
+        userStats,
+      );
       return {
         totalUserXp: updatedUserStats.totalXp,
       };
