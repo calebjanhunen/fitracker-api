@@ -52,6 +52,7 @@ export class WorkoutCalculator {
         workoutsCompletedThisWeek.length + 1 ===
         userStats.weeklyWorkoutGoal
       ) {
+        updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
         newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
         xpGainedFromWeeklyGoal =
           this.WEEKLY_GOAL_XP_VALUES.baseXp +
@@ -72,7 +73,6 @@ export class WorkoutCalculator {
       }
 
       updatedUserStats.weeklyWorkoutGoalStreak = newWeeklyGoalStreak;
-      userStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
     }
 
     const totalGainedXp = xpGainedFromWeeklyGoal;
