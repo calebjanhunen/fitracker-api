@@ -151,7 +151,8 @@ export class UserRepository {
       SELECT
         total_xp,
         weekly_bonus_awarded_at,
-        weekly_workout_goal
+        weekly_workout_goal,
+        weekly_workout_goal_streak
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
