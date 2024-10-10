@@ -6,7 +6,6 @@ import { WorkoutRepository } from '../repository/workout.repository';
 
 @Injectable()
 export class WorkoutCalculator {
-  private readonly BASE_XP_GAIN = 50;
   private readonly MIN_WORKOUT_DURATION_FOR_XP = 900; // 15 mins in seconds
   private readonly XP_FOR_EACH_WORKOUT_MINUTE = 10;
   private readonly WEEKLY_GOAL_XP_VALUES = {
@@ -21,7 +20,7 @@ export class WorkoutCalculator {
     userStats: UserStats,
     userId: string,
   ): Promise<ICalculateGainedXp> {
-    let xpGainedFromWorkoutDuration = 0;
+    // let xpGainedFromWorkoutDuration = 0;
     let xpGainedFromWeeklyGoal = 0;
 
     // TODO: Rework to discourage unnecessarily long workouts
@@ -51,10 +50,8 @@ export class WorkoutCalculator {
     }
 
     return {
-      baseXpGain: this.BASE_XP_GAIN,
-      xpGainedFromWorkoutDuration: 0, //TODO: Refine workout duration xp calulation
       xpGainedFromWeeklyGoal,
-      totalGainedXp: this.BASE_XP_GAIN + 0 + xpGainedFromWeeklyGoal,
+      totalGainedXp: xpGainedFromWeeklyGoal,
     };
   }
 

@@ -41,16 +41,12 @@ export class WorkoutService {
 
     const userStats = await this.userService.getStatsByUserId(userId);
 
-    const {
-      totalGainedXp,
-      baseXpGain,
-      xpGainedFromWorkoutDuration,
-      xpGainedFromWeeklyGoal,
-    } = await this.workoutCalculator.calculateXpGainedFromWorkout(
-      workout,
-      userStats,
-      userId,
-    );
+    const { totalGainedXp, xpGainedFromWeeklyGoal } =
+      await this.workoutCalculator.calculateXpGainedFromWorkout(
+        workout,
+        userStats,
+        userId,
+      );
     workout.gainedXp = totalGainedXp;
 
     try {
@@ -67,8 +63,6 @@ export class WorkoutService {
       return {
         workout: createdWorkout,
         workoutStats: {
-          baseXpGain,
-          xpGainedFromWorkoutDuration,
           xpGainedFromWeeklyGoal,
           totalGainedXp,
           totalUserXp: updatedUserStats.totalXp,

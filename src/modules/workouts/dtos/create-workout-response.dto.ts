@@ -6,8 +6,6 @@ export class CreateWorkoutResponseDto {
 }
 
 class WorkoutStatsDto {
-  baseXpGain: number;
-  xpGainedFromWorkoutDuration: number;
   xpGainedFromWeeklyGoal: number;
   totalGainedXp: number;
   totalUserXp: number;
