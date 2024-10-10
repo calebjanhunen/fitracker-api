@@ -18,7 +18,6 @@ export class WorkoutCalculator {
 
   public async calculateXpGainedFromWorkout(
     workout: InsertWorkoutModel,
-    weeklyWorkoutGoal: number,
     userStats: UserStats,
     userId: string,
   ): Promise<ICalculateGainedXp> {
@@ -41,10 +40,13 @@ export class WorkoutCalculator {
 
     if (!this.isDateThisWeek(userStats.weeklyBonusAwardedAt)) {
       // Give bonus xp if a user hits their weekly workout goal
-      if (workoutsCompletedThisWeek.length + 1 === weeklyWorkoutGoal) {
+      if (
+        workoutsCompletedThisWeek.length + 1 ===
+        userStats.weeklyWorkoutGoal
+      ) {
         xpGainedFromWeeklyGoal =
           this.WEEKLY_GOAL_XP_VALUES.baseXp +
-          weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
+          userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
       }
     }
 
