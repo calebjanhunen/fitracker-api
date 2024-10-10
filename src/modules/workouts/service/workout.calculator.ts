@@ -23,6 +23,7 @@ export class WorkoutCalculator {
     userStats: UserStats,
     userId: string,
   ): Promise<ICalculateGainedXp> {
+    const updatedUserStats = new UserStats();
     // let xpGainedFromWorkoutDuration = 0;
     let xpGainedFromWeeklyGoal = 0;
 
@@ -45,36 +46,41 @@ export class WorkoutCalculator {
         userStats.weeklyBonusAwardedAt,
       )
     ) {
-      userStats.weeklyWorkoutGoalStreak += 1;
-      userStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
-
       // Give bonus xp if a user hits their weekly workout goal
+      let newWeeklyGoalStreak = 0;
       if (
         workoutsCompletedThisWeek.length + 1 ===
         userStats.weeklyWorkoutGoal
       ) {
+        newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
         xpGainedFromWeeklyGoal =
           this.WEEKLY_GOAL_XP_VALUES.baseXp +
           userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
       }
 
       // Give bonus xp if user hit weekly goal at least 2 weeks in a row
-      if (userStats.weeklyWorkoutGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
-        if (userStats.weeklyWorkoutGoalStreak >= 10) {
+      if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
+        if (newWeeklyGoalStreak >= 10) {
           // Cap bonus xp at 100 (10 weeks * 10xp for each week)
           xpGainedFromWeeklyGoal +=
             this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
         } else {
           xpGainedFromWeeklyGoal +=
             this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
-            userStats.weeklyWorkoutGoalStreak;
+            newWeeklyGoalStreak;
         }
       }
+
+      updatedUserStats.weeklyWorkoutGoalStreak = newWeeklyGoalStreak;
+      userStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
     }
 
+    const totalGainedXp = xpGainedFromWeeklyGoal;
+    updatedUserStats.totalXp = userStats.totalXp + totalGainedXp;
     return {
       xpGainedFromWeeklyGoal,
-      totalGainedXp: xpGainedFromWeeklyGoal,
+      totalGainedXp,
+      newUserStats: updatedUserStats,
     };
   }
 
