@@ -18,6 +18,7 @@ exports.up = async function (db) {
   await db.addColumn('user_stats', 'weekly_workout_goal', {
     type: 'int',
     notNull: false,
+    defaultValue: 0,
   });
 };
 
