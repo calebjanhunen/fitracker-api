@@ -33,9 +33,9 @@ describe('WorkoutService: create', () => {
           provide: UserService,
           useValue: {
             getStatsByUserId: jest.fn(() => {
-              return { currentWorkoutStreal: 2, lastWorkoutDate: new Date() };
+              return new UserStats();
             }),
-            updateUserStatsAfterWorkoutCreation: jest.fn(() => new UserStats()),
+            updateUserStats: jest.fn(() => new UserStats()),
           },
         },
         {

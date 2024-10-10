@@ -36,34 +36,25 @@ export class UserService {
     return user;
   }
 
-  public async updateUserStatsAfterDeletingWorkout(
-    userId: string,
-    xpDecrease: number,
-  ): Promise<UserStats> {
-    const currentUserStats = await this.userRepo.getStatsByUserId(userId);
-    currentUserStats.totalXp = currentUserStats.totalXp - xpDecrease;
-    return await this.userRepo.updateUserStats(currentUserStats, userId);
-  }
-
-  public async updateUserStatsAfterWorkoutCreation(
-    userId: string,
-    xpIncrease: number,
-    weeklyBonusAwardedAt: Date | null,
-  ): Promise<UserStats> {
-    const currentUserStats = await this.userRepo.getStatsByUserId(userId);
-    currentUserStats.totalXp = currentUserStats.totalXp + xpIncrease;
-    currentUserStats.weeklyBonusAwardedAt =
-      weeklyBonusAwardedAt ?? currentUserStats.weeklyBonusAwardedAt;
-
-    const result = await this.userRepo.updateUserStats(
-      currentUserStats,
-      userId,
-    );
-
-    return result;
-  }
-
   public async getStatsByUserId(userId: string): Promise<UserStats> {
     return this.userRepo.getStatsByUserId(userId);
+  }
+
+  public async updateUserStats(
+    userId: string,
+    updatedUserStats: UserStats,
+  ): Promise<UserStats> {
+    const userStats = await this.userRepo.getStatsByUserId(userId);
+    if (!userStats) {
+      throw new ResourceNotFoundException(
+        `User stats for user ${userId} not found.`,
+      );
+    }
+    userStats.totalXp = updatedUserStats.totalXp ?? userStats.totalXp;
+    userStats.weeklyBonusAwardedAt =
+      updatedUserStats.weeklyBonusAwardedAt ?? userStats.weeklyBonusAwardedAt;
+    userStats.weeklyWorkoutGoal =
+      updatedUserStats.weeklyWorkoutGoal ?? userStats.weeklyWorkoutGoal;
+    return await this.userRepo.updateUserStats(userStats, userId);
   }
 }
