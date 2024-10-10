@@ -11,7 +11,10 @@ export class WorkoutCalculator {
   private readonly WEEKLY_GOAL_XP_VALUES = {
     baseXp: 30,
     multiplier: 10,
+    weeklyGoalStreakBaseXp: 10,
+    maxWeeklyGoalStreakXp: 100,
   };
+  private readonly MIN_STREAK_TO_RECEIVE_XP = 2;
 
   constructor(private workoutRepo: WorkoutRepository) {}
 
@@ -37,7 +40,14 @@ export class WorkoutCalculator {
         workout.createdAt,
       );
 
-    if (!this.isDateThisWeek(userStats.weeklyBonusAwardedAt)) {
+    if (
+      !this.alreadyReceivedWeeklyWorkoutGoalXpThisWeek(
+        userStats.weeklyBonusAwardedAt,
+      )
+    ) {
+      userStats.weeklyWorkoutGoalStreak += 1;
+      userStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
+
       // Give bonus xp if a user hits their weekly workout goal
       if (
         workoutsCompletedThisWeek.length + 1 ===
@@ -46,6 +56,19 @@ export class WorkoutCalculator {
         xpGainedFromWeeklyGoal =
           this.WEEKLY_GOAL_XP_VALUES.baseXp +
           userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
+      }
+
+      // Give bonus xp if user hit weekly goal at least 2 weeks in a row
+      if (userStats.weeklyWorkoutGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
+        if (userStats.weeklyWorkoutGoalStreak >= 10) {
+          // Cap bonus xp at 100 (10 weeks * 10xp for each week)
+          xpGainedFromWeeklyGoal +=
+            this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
+        } else {
+          xpGainedFromWeeklyGoal +=
+            this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
+            userStats.weeklyWorkoutGoalStreak;
+        }
       }
     }
 
@@ -60,7 +83,7 @@ export class WorkoutCalculator {
    *
    * @param {Date} date - the date in UTC
    */
-  private isDateThisWeek(date: Date): boolean {
+  private alreadyReceivedWeeklyWorkoutGoalXpThisWeek(date: Date): boolean {
     const startOfWeek = this.getStartOfWeek();
     return date >= startOfWeek;
   }
