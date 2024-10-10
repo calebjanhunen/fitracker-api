@@ -52,9 +52,11 @@ export class WorkoutService {
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
       userStats.totalXp += totalGainedXp;
-      userStats.weeklyBonusAwardedAt = xpGainedFromWeeklyGoal
-        ? new Date(workout.createdAt)
-        : userStats.weeklyBonusAwardedAt;
+      if (xpGainedFromWeeklyGoal) {
+        userStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
+        userStats.weeklyWorkoutGoalStreak += 1;
+      }
+
       const updatedUserStats = await this.userService.updateUserStats(
         userId,
         userStats,
