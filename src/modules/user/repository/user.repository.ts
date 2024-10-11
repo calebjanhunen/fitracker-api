@@ -167,6 +167,26 @@ export class UserRepository {
     }
   }
 
+  public async getStatsForAllUsers(): Promise<UserStats[]> {
+    const query = `
+      SELECT
+        user_id,
+        total_xp,
+        weekly_bonus_awarded_at,
+        weekly_workout_goal,
+        weekly_workout_goal_streak
+      FROM user_stats
+    `;
+
+    try {
+      const { queryResult } = await this.db.queryV2<UserStats>(query, []);
+      return queryResult;
+    } catch (e) {
+      this.logger.error('Query getStatsForAllUsers failed: ', e);
+      throw new DatabaseException(e);
+    }
+  }
+
   public async updateUserStats(
     updatedUserStats: UserStats,
     userId: string,
