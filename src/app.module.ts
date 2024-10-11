@@ -3,6 +3,8 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { ScheduleModule } from '@nestjs/schedule';
+import 'src/common/extensions/date.extensions';
 import { AssignCorrelationIdMiddleware } from './common/middleware/assign-correlation-id.middleware';
 import { CorrelationIdService } from './common/services/correlation-id.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -19,6 +21,7 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     AutomapperModule.forRoot({
       strategyInitializer: classes(),
     }),
+    ScheduleModule.forRoot(),
     UserModule,
     AuthModule,
     ExerciseModule,
