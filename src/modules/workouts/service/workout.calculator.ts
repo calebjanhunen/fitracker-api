@@ -55,14 +55,20 @@ export class WorkoutCalculator {
         updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
         newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
 
-        if (process.env.NODE_ENV === 'development' || 'test') {
+        if (
+          process.env.NODE_ENV === 'development' ||
+          process.env.NODE_ENV === 'test'
+        ) {
           xpGainedFromWeeklyGoal =
             this.WEEKLY_GOAL_XP_VALUES.baseXp +
             userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
         }
       }
 
-      if (process.env.NODE_ENV === 'development' || 'test') {
+      if (
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test'
+      ) {
         // Give bonus xp if user hit weekly goal at least 2 weeks in a row
         if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
           if (newWeeklyGoalStreak >= 10) {
