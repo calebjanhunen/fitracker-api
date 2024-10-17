@@ -54,21 +54,32 @@ export class WorkoutCalculator {
       ) {
         updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
         newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
-        xpGainedFromWeeklyGoal =
-          this.WEEKLY_GOAL_XP_VALUES.baseXp +
-          userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
+
+        if (
+          process.env.NODE_ENV === 'development' ||
+          process.env.NODE_ENV === 'test'
+        ) {
+          xpGainedFromWeeklyGoal =
+            this.WEEKLY_GOAL_XP_VALUES.baseXp +
+            userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
+        }
       }
 
-      // Give bonus xp if user hit weekly goal at least 2 weeks in a row
-      if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
-        if (newWeeklyGoalStreak >= 10) {
-          // Cap bonus xp at 100 (10 weeks * 10xp for each week)
-          xpGainedFromWeeklyGoal +=
-            this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
-        } else {
-          xpGainedFromWeeklyGoal +=
-            this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
-            newWeeklyGoalStreak;
+      if (
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test'
+      ) {
+        // Give bonus xp if user hit weekly goal at least 2 weeks in a row
+        if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
+          if (newWeeklyGoalStreak >= 10) {
+            // Cap bonus xp at 100 (10 weeks * 10xp for each week)
+            xpGainedFromWeeklyGoal +=
+              this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
+          } else {
+            xpGainedFromWeeklyGoal +=
+              this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
+              newWeeklyGoalStreak;
+          }
         }
       }
 

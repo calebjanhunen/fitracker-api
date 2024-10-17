@@ -5,6 +5,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   IsUUID,
   Max,
@@ -49,13 +50,14 @@ export class WorkoutExerciseRequestDto {
 
 export class WorkoutSetRequestDto {
   @IsNumber()
-  @Min(1)
+  @Min(0)
   public weight: number;
 
   @IsInt()
   @Min(1)
   public reps: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(10)

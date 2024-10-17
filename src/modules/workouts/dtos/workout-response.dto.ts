@@ -45,5 +45,5 @@ export class WorkoutSetResponseDto {
   reps: number;
 
   @Expose()
-  rpe: number;
+  rpe: number | null;
 }
