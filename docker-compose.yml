@@ -53,7 +53,7 @@ services:
     depends_on:
       - fitracker-db
     environment:
-      PGHOST: fitracker-db-dev
+      PGHOST: fitracker-db
       PGUSER: ${POSTGRES_USER}
       PGDATABASE: ${POSTGRES_DATABASE}
       PGPASSWORD: ${POSTGRES_PASSWORD}

@@ -6,6 +6,7 @@ export class UserModel {
   lastName: string;
   email: string;
   totalXp: number;
+  weeklyWorkoutGoal: number;
 
   constructor(
     id: string,
