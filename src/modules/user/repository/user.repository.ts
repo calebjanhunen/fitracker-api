@@ -121,7 +121,8 @@ export class UserRepository {
       u.username,
       u.first_name,
       u.last_name,
-      us.total_xp
+      us.total_xp,
+      us.weekly_workout_goal
     FROM "user" as u
     INNER JOIN user_stats us ON us.user_id = u.id
     WHERE u.id = $1

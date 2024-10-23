@@ -4,4 +4,5 @@ export class UserResponseDto {
   firstName: string;
   lastName: string;
   totalXp: string;
+  weeklyWorkoutGoal: number;
 }
