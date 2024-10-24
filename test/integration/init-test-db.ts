@@ -28,12 +28,11 @@ export async function clearDb() {
   const tableNames = result.rows.map((row) => row.tablename);
 
   for (const table of tableNames) {
-    if (table === 'exercise') {
-      await pool.query(`DELETE FROM "${table}" WHERE is_custom = true`);
-    } else {
+    if (table !== 'exercise') {
       await pool.query(`DELETE FROM "${table}"`);
     }
   }
+  await pool.query(`DELETE FROM "exercise" WHERE is_custom = true`);
 }
 
 async function insertIntoDb(key: string, value: any[], pool: Pool) {
