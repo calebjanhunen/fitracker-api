@@ -28,11 +28,11 @@ describe('ExerciseRepository: getExerciseDetails', () => {
       '2a396411-9c45-45e1-92ba-59cffd258ed2',
     );
 
-    expect(response.name).toBe('Test Exercise');
-    expect(response.workoutDetails.length).toBe(2);
-    expect(response.workoutDetails[0].workoutName).toBe('Test Workout 2');
-    expect(response.workoutDetails[0].sets.length).toBe(2);
-    expect(response.workoutDetails[1].workoutName).toBe('Test Workout 1');
-    expect(response.workoutDetails[1].sets.length).toBe(3);
+    expect(response?.name).toBe('Test Exercise');
+    expect(response?.workoutDetails.length).toBe(2);
+    expect(response?.workoutDetails[0].workoutName).toBe('Test Workout 2');
+    expect(response?.workoutDetails[0].sets.length).toBe(2);
+    expect(response?.workoutDetails[1].workoutName).toBe('Test Workout 1');
+    expect(response?.workoutDetails[1].sets.length).toBe(3);
   });
 });
