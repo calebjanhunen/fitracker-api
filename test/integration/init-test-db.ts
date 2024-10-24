@@ -27,22 +27,10 @@ export async function clearDb() {
 
   const tableNames = result.rows.map((row) => row.tablename);
 
-  await pool.query('BEGIN'); // Start a transaction
-  try {
-    // Temporarily defer all foreign key constraints
-    await pool.query('SET CONSTRAINTS ALL DEFERRED');
-
-    // Delete from all tables
-    for (const table of tableNames) {
-      if (table !== 'exercise') {
-        await pool.query(`DELETE FROM "${table}"`);
-      }
+  for (const table of tableNames) {
+    if (table !== 'exercise') {
+      await pool.query(`TRUNCATE TABLE "${table}" CASCADE`);
     }
-
-    await pool.query('COMMIT'); // Commit the transaction
-  } catch (error) {
-    await pool.query('ROLLBACK'); // Rollback on error
-    throw error;
   }
 
   await pool.query(`DELETE FROM "exercise" WHERE is_custom = true`);
