@@ -12,6 +12,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
+import { ExerciseDetailsModel } from '../models/exercise-details.model';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -170,6 +171,20 @@ export class ExerciseService {
         recentSets: recentSetsMap.get(e.id)?.recentSets ?? [],
       };
     });
+  }
+
+  public async getExerciseDetails(
+    exerciseId: string,
+    userId: string,
+  ): Promise<ExerciseDetailsModel> {
+    const exercise = await this.exerciseRepo.getExerciseDetails(
+      exerciseId,
+      userId,
+    );
+    if (!exercise) {
+      throw new ResourceNotFoundException('Exercise not found.');
+    }
+    return exercise;
   }
 
   /**
