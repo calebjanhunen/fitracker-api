@@ -1,6 +1,6 @@
 {
   "name": "fitracker-api",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "author": "",
   "private": true,
@@ -9,8 +9,6 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev:db": "docker compose up -d",
-    "stop:dev:db": "docker compose down",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug 0.0.0.0:9229 --watch",
     "start:prod": "node dist/main",
@@ -23,7 +21,10 @@
     "migration:reset": "db-migrate reset --env dev --config ./database/database.js --migrations-dir ./database/migrations",
     "start-containers": "docker-compose up -d fitracker-db fitracker-api",
     "stop-containers": "docker-compose down fitracker-db fitracker-api",
-    "seed": "docker-compose up seed"
+    "seed": "docker compose run --rm seed",
+    "version:patch": "npm version --no-git-tag-version patch",
+    "version:minor": "npm version --no-git-tag-version minor",
+    "version:major": "npm version --no-git-tag-version major"
   },
   "dependencies": {
     "@automapper/classes": "^8.8.1",
