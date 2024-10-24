@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   fitracker-db:
     container_name: fitracker-db
