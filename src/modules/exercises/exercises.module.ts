@@ -5,6 +5,7 @@ import { BodyPartModule } from '../body-part/body-part.module';
 import { EquipmentModule } from '../equipment/equipment.module';
 import { UserModule } from '../user/user.module';
 import ExercisesController from './controller/exercises.controller';
+import { ExerciseProfile } from './exercise.profile';
 import { ExerciseRepository } from './repository/exercise.repository';
 import { ExerciseService } from './services/exercise.service';
 
@@ -12,6 +13,7 @@ import { ExerciseService } from './services/exercise.service';
   imports: [UserModule, EquipmentModule, BodyPartModule, DbModule],
   controllers: [ExercisesController],
   providers: [
+    ExerciseProfile,
     ExerciseService,
     ExerciseRepository,
     {
