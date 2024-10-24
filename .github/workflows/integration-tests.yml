@@ -37,7 +37,7 @@ jobs:
         run: npm install
 
       - name: Run integration tests
-        run: npm run test:int --config ./test/integration/jest-integration.config.json --runInBand
+        run: npm run test:int
         env:
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpassword
