@@ -44,3 +44,4 @@ jobs:
           POSTGRES_DATABASE: testdb
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5434
+          ENVIRONMENT: test
