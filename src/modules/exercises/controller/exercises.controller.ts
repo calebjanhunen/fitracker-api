@@ -1,3 +1,5 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import {
   Body,
   ConflictException,
@@ -17,18 +19,23 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
 import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
+import { ExerciseDetailsModel } from '../models/exercise-details.model';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseService } from '../services/exercise.service';
 
 @Controller('api/exercises')
 @UseGuards(AuthGuard)
 export default class ExercisesController {
-  constructor(private exerciseService: ExerciseService) {}
+  constructor(
+    private exerciseService: ExerciseService,
+    @InjectMapper() private mapper: Mapper,
+  ) {}
 
   @Post()
   public async createExercise(
@@ -83,15 +90,22 @@ export default class ExercisesController {
   public async getExerciseById(
     @Headers('user-id') userId: string,
     @Param('id') exerciseId: string,
-  ): Promise<ExerciseResponseDto> {
+  ): Promise<ExerciseDetailsDto> {
     try {
-      const exercise = await this.exerciseService.findById(exerciseId, userId);
-      return plainToInstance(ExerciseResponseDto, exercise);
+      const exercise = await this.exerciseService.getExerciseDetails(
+        exerciseId,
+        userId,
+      );
+      return this.mapper.map(
+        exercise,
+        ExerciseDetailsModel,
+        ExerciseDetailsDto,
+      );
     } catch (e) {
-      if (e instanceof ResourceNotFoundException)
+      if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
-
-      throw new ConflictException('Error getting exercise');
+      }
+      throw new ConflictException(e);
     }
   }
 

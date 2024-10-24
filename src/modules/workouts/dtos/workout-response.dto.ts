@@ -1,3 +1,4 @@
+import { AutoMap } from '@automapper/classes';
 import { Expose } from 'class-transformer';
 
 export class WorkoutResponseDto {
@@ -32,18 +33,19 @@ export class WorkoutExerciseResponseDto {
 }
 
 export class WorkoutSetResponseDto {
+  @AutoMap()
   @Expose()
   id: string;
-
+  @AutoMap()
   @Expose()
   order: number;
-
+  @AutoMap()
   @Expose()
   weight: number;
-
+  @AutoMap()
   @Expose()
   reps: number;
-
+  @AutoMap()
   @Expose()
   rpe: number | null;
 }

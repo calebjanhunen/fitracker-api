@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
+import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import {
   ExerciseModel,
@@ -7,6 +8,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
+import { ExerciseDetailsModel } from '../models/exercise-details.model';
 
 @Injectable()
 export class ExerciseRepository {
@@ -190,6 +192,65 @@ export class ExerciseRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  /**
+   * Gets an exercise along with it's details
+   * @param {string} exerciseId
+   * @param {string} userId
+   * @returns {ExerciseDetailsModel | null}
+   *
+   * @throws {DatabaseException}
+   */
+  public async getExerciseDetails(
+    exerciseId: string,
+    userId: string,
+  ): Promise<ExerciseDetailsModel | null> {
+    const query = `
+      SELECT
+	      e.name,
+	      json_agg(
+		      json_build_object(
+			      'workout_name', w.name,
+			      'workout_date', w.created_at,
+			      'sets', (
+				      SELECT json_agg(
+					      json_build_object(
+						    'reps', ws.reps,
+						    'weight', ws.weight,
+						    'rpe', ws.rpe,
+						    'order', ws.order
+					    ) ORDER BY ws.order
+				    )
+				    FROM workout_set as ws
+				    WHERE ws.workout_exercise_id = we.id
+			    )
+		    ) ORDER BY w.created_at DESC
+	    ) as workout_details
+      FROM exercise as e
+      INNER JOIN workout_exercise we ON we.exercise_id = e.id
+      INNER JOIN workout w ON w.id = we.workout_id
+      WHERE (is_custom = false AND e.id = $1) OR
+            (is_custom = true AND e.id = $1 AND e.user_id = $2)
+      GROUP BY e.name
+    `;
+    const params = [exerciseId, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<ExerciseDetailsModel>(
+        query,
+        params,
+      );
+
+      if (!queryResult.length) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error('Query getExerciseDetails failed: ', e);
+      throw new DatabaseException(e.message);
     }
   }
 

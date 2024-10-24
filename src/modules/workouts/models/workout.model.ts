@@ -1,3 +1,5 @@
+import { AutoMap } from '@automapper/classes';
+
 export class WorkoutModel {
   id: string;
   createdAt: string;
@@ -15,9 +17,14 @@ export class WorkoutExerciseModel {
 }
 
 export class WorkoutSetModel {
+  @AutoMap()
   id: string;
+  @AutoMap()
   order: number;
+  @AutoMap()
   weight: number;
+  @AutoMap()
   reps: number;
+  @AutoMap()
   rpe: number;
 }
