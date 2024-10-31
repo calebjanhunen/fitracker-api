@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { DbModule } from 'src/common/database/database.module';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { MyLoggerService } from 'src/common/logger/logger.service';
 import { UserController } from './controller/user.controller';
 import { UserRepository } from './repository/user.repository';
@@ -28,6 +29,11 @@ import { UserProfile } from './user.profile';
       provide: 'UserCronServiceLogger',
       useFactory: () => new MyLoggerService(UserCronService.name),
     },
+    {
+      provide: 'UserControllerLogger',
+      useFactory: () => new MyLoggerService(UserController.name),
+    },
+    LoggerServiceV2,
   ],
   exports: [UserService],
 })

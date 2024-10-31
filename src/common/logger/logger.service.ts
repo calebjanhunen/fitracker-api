@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CorrelationIdService } from '../services/correlation-id.service';
 
 @Injectable()
 export class MyLoggerService extends Logger {
@@ -8,37 +7,32 @@ export class MyLoggerService extends Logger {
   }
 
   log(message: string) {
-    const correlationId = CorrelationIdService.getCorrelationId();
     if (process.env.ENVIRONMENT !== 'test') {
-      super.log(`[${correlationId}] ${message}`);
+      super.log(`${message}`);
     }
   }
 
   error(message: string, trace: string) {
-    const correlationId = CorrelationIdService.getCorrelationId();
     if (process.env.ENVIRONMENT !== 'test') {
-      super.error(`[${correlationId}] ${message}`, trace);
+      super.error(`${message}`, trace);
     }
   }
 
   warn(message: string) {
-    const correlationId = CorrelationIdService.getCorrelationId();
     if (process.env.ENVIRONMENT !== 'test') {
-      super.warn(`[${correlationId}] ${message}`);
+      super.warn(`${message}`);
     }
   }
 
   debug(message: string) {
-    const correlationId = CorrelationIdService.getCorrelationId();
     if (process.env.ENVIRONMENT !== 'test') {
-      super.debug(`[${correlationId}] ${message}`);
+      super.debug(`${message}`);
     }
   }
 
   verbose(message: string) {
-    const correlationId = CorrelationIdService.getCorrelationId();
     if (process.env.ENVIRONMENT !== 'test') {
-      super.verbose(`[${correlationId}] ${message}`);
+      super.verbose(`${message}`);
     }
   }
 }
