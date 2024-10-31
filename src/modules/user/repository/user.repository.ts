@@ -28,10 +28,7 @@ export class UserRepository {
       user.email,
     ];
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<UserModel>(
-        query,
-        values,
-      );
+      const { queryResult } = await this.db.queryV2<UserModel>(query, values);
 
       const userStatsQuery = `
         INSERT INTO user_stats
@@ -40,7 +37,6 @@ export class UserRepository {
       const userStatsParams = [queryResult[0].id];
       await this.db.queryV2(userStatsQuery, userStatsParams);
 
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
       return queryResult[0];
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
@@ -64,15 +60,11 @@ export class UserRepository {
     const values = [username];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<UserModel>(
-        query,
-        values,
-      );
+      const { queryResult } = await this.db.queryV2<UserModel>(query, values);
 
       if (queryResult.length === 0) {
         return null;
       }
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult[0];
     } catch (e) {
@@ -96,15 +88,11 @@ export class UserRepository {
     const values = [email];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<UserModel>(
-        query,
-        values,
-      );
+      const { queryResult } = await this.db.queryV2<UserModel>(query, values);
 
       if (queryResult.length === 0) {
         return null;
       }
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult[0];
     } catch (e) {
@@ -130,15 +118,11 @@ export class UserRepository {
     const values = [id];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<UserModel>(
-        query,
-        values,
-      );
+      const { queryResult } = await this.db.queryV2<UserModel>(query, values);
 
       if (queryResult.length === 0) {
         return null;
       }
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult[0];
     } catch (e) {

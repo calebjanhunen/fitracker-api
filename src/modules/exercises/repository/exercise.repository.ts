@@ -52,7 +52,7 @@ export class ExerciseRepository {
     ];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+      const { queryResult } = await this.db.queryV2<ExerciseModel>(
         query,
         values,
       );
@@ -69,7 +69,6 @@ export class ExerciseRepository {
         throw new Error('Could not find created exercise');
       }
 
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
       return createdExercise;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
@@ -105,11 +104,10 @@ export class ExerciseRepository {
     const params = [userId];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+      const { queryResult } = await this.db.queryV2<ExerciseModel>(
         query,
         params,
       );
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult;
     } catch (e) {
@@ -151,14 +149,13 @@ export class ExerciseRepository {
     const params = [exerciseId, userId];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+      const { queryResult } = await this.db.queryV2<ExerciseModel>(
         query,
         params,
       );
       if (queryResult.length === 0) {
         return null;
       }
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult[0];
     } catch (e) {
@@ -182,11 +179,10 @@ export class ExerciseRepository {
     const params = [ids, userId];
 
     try {
-      const { queryResult, elapsedTime } = await this.db.queryV2<ExerciseModel>(
+      const { queryResult } = await this.db.queryV2<ExerciseModel>(
         query,
         params,
       );
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult;
     } catch (e) {
@@ -271,8 +267,7 @@ export class ExerciseRepository {
     const params = [exerciseId, userId];
 
     try {
-      const { elapsedTime } = await this.db.queryV2(query, params);
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+      await this.db.queryV2(query, params);
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
@@ -360,9 +355,10 @@ export class ExerciseRepository {
     const params = [userId];
 
     try {
-      const { queryResult, elapsedTime } =
-        await this.db.queryV2<RecentSetsForExerciseModel>(query, params);
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
+      const { queryResult } = await this.db.queryV2<RecentSetsForExerciseModel>(
+        query,
+        params,
+      );
       return queryResult;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
@@ -395,9 +391,8 @@ export class ExerciseRepository {
     const params = [userId];
 
     try {
-      const { queryResult, elapsedTime } =
+      const { queryResult } =
         await this.db.queryV2<NumTimesUsedForExerciseModel>(query, params);
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
 
       return queryResult;
     } catch (e) {

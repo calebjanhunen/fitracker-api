@@ -55,7 +55,7 @@ export class WorkoutTemplateRepository {
   ): Promise<WorkoutTemplateModel> {
     const queryName = 'CreateWorkoutTemplate';
     try {
-      const { queryResult, elapsedTime } = await this.db.transaction<string>(
+      const { queryResult } = await this.db.transaction<string>(
         async (client) => {
           const insertedWorkoutTemplateId = await this.insertWorkoutTemplate(
             client,
@@ -85,7 +85,6 @@ export class WorkoutTemplateRepository {
         userId,
       );
 
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
       return createdWorkoutTemplate!;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
