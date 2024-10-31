@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -44,8 +44,10 @@ export class WorkoutRepository {
 
   constructor(
     private readonly dbService: DbService,
-    @Inject('WorkoutRepoLogger') private readonly logger: MyLoggerService,
-  ) {}
+    private logger: LoggerServiceV2,
+  ) {
+    this.logger.setContext(WorkoutRepository.name);
+  }
 
   /**
    * Saves a workout.

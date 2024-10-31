@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from 'src/common/database/database.module';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import { WorkoutController } from './controller/workout.controller';
@@ -14,10 +14,7 @@ import { WorkoutService } from './service/workout.service';
     WorkoutService,
     WorkoutRepository,
     WorkoutCalculator,
-    {
-      provide: 'WorkoutRepoLogger',
-      useFactory: () => new MyLoggerService(WorkoutRepository.name),
-    },
+    LoggerServiceV2,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],

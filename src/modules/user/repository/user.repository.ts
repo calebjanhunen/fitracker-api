@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
@@ -10,8 +10,10 @@ import { UserModel } from '../models/user.model';
 export class UserRepository {
   constructor(
     private readonly db: DbService,
-    @Inject('UserRepoLogger') private readonly logger: MyLoggerService,
-  ) {}
+    private readonly logger: LoggerServiceV2,
+  ) {
+    this.logger.setContext(UserRepository.name);
+  }
 
   public async create(user: InsertUserModel): Promise<UserModel> {
     const queryName = 'CreateUser';

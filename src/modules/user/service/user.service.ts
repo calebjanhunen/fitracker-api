@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
@@ -11,8 +11,10 @@ import { UserRepository } from '../repository/user.repository';
 export class UserService {
   constructor(
     private readonly userRepo: UserRepository,
-    @Inject('UserServiceLogger') private readonly logger: MyLoggerService,
-  ) {}
+    private readonly logger: LoggerServiceV2,
+  ) {
+    this.logger.setContext(UserService.name);
+  }
 
   public async create(user: InsertUserModel): Promise<UserModel> {
     return this.userRepo.create(user);

@@ -1,4 +1,4 @@
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { ExerciseRepository } from '../exercise.repository';
 
 describe('ExerciseRepository: findByIds', () => {
@@ -6,7 +6,7 @@ describe('ExerciseRepository: findByIds', () => {
   let exerciseRepo: ExerciseRepository;
 
   beforeAll(async () => {
-    const logger = new MyLoggerService(ExerciseRepository.name);
+    const logger = new LoggerServiceV2();
     exerciseRepo = new ExerciseRepository(global.dbService, logger);
   });
 

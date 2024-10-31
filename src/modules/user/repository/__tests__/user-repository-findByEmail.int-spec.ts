@@ -1,4 +1,4 @@
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { UserRepository } from '../user.repository';
 
 describe('UserRepository: findByEmail()', () => {
@@ -6,7 +6,7 @@ describe('UserRepository: findByEmail()', () => {
   let userRepository: UserRepository;
 
   beforeAll(async () => {
-    const logger = new MyLoggerService(UserRepository.name);
+    const logger = new LoggerServiceV2();
     userRepository = new UserRepository(global.dbService, logger);
   });
 

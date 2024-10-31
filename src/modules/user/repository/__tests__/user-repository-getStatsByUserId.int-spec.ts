@@ -2,7 +2,7 @@ import {
   clearDb,
   loadDataIntoTestDb,
 } from 'src/../test/integration/init-test-db';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { UserRepository } from '../user.repository';
 
 describe('UserRepository: getStatsByUserId', () => {
@@ -10,7 +10,7 @@ describe('UserRepository: getStatsByUserId', () => {
 
   beforeAll(() => {
     const db = global.dbService;
-    const logger = new MyLoggerService(UserRepository.name);
+    const logger = new LoggerServiceV2();
     userRepo = new UserRepository(db, logger);
   });
 
