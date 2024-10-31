@@ -1,14 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserCronService {
   constructor(
-    @Inject('UserCronServiceLogger') private logger: MyLoggerService,
+    private logger: LoggerServiceV2,
     private userRepo: UserRepository,
-  ) {}
+  ) {
+    this.logger.setContext(UserCronService.name);
+  }
 
   @Cron('0 0 * * 0', {
     timeZone: 'UTC',

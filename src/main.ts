@@ -2,9 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
-import { EndpointLoggingInterceptor } from './common/interceptors/endpoint-logger.interceptor';
-import { MyLoggerService } from './common/logger/logger.service';
-// import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
+import { LoggerServiceV2 } from './common/logger/logger-v2.service';
 
 async function bootstrap() {
   setEnvFile();
@@ -15,12 +13,12 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
-  app.useGlobalInterceptors(
-    new EndpointLoggingInterceptor(new MyLoggerService(AppModule.name)),
-  );
-  // app.useLogger(new MyLogger());
-  // app.useGlobalFilters(new HttpExceptionFilter());
+
+  const logger = app.get(LoggerServiceV2);
+  logger.setContext('Bootstrap');
+
   await app.listen(3000);
+  logger.log(`Environment: ${process.env.NODE_ENV}`);
 }
 bootstrap();
 

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DbModule } from 'src/common/database/database.module';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { BodyPartModule } from '../body-part/body-part.module';
 import { EquipmentModule } from '../equipment/equipment.module';
 import { UserModule } from '../user/user.module';
@@ -16,10 +16,7 @@ import { ExerciseService } from './services/exercise.service';
     ExerciseProfile,
     ExerciseService,
     ExerciseRepository,
-    {
-      provide: 'ExerciseRepoLogger',
-      useFactory: () => new MyLoggerService(ExerciseRepository.name),
-    },
+    LoggerServiceV2,
   ],
   exports: [ExerciseService],
 })

@@ -2,7 +2,7 @@ import {
   clearDb,
   loadDataIntoTestDb,
 } from 'src/../test/integration/init-test-db';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { ExerciseRepository } from '../exercise.repository';
 
 describe('ExerciseRepository: getExerciseDetails', () => {
@@ -10,7 +10,7 @@ describe('ExerciseRepository: getExerciseDetails', () => {
 
   beforeAll(() => {
     const db = global.dbService;
-    const logger = new MyLoggerService(ExerciseRepository.name);
+    const logger = new LoggerServiceV2();
     exerciseRepo = new ExerciseRepository(db, logger);
   });
 

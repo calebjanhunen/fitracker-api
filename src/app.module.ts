@@ -1,12 +1,12 @@
 import { classes } from '@automapper/classes';
 import { AutomapperModule } from '@automapper/nestjs';
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import 'src/common/extensions/date.extensions';
-import { AssignCorrelationIdMiddleware } from './common/middleware/assign-correlation-id.middleware';
-import { CorrelationIdService } from './common/services/correlation-id.service';
+import { LoggerServiceV2 } from './common/logger/logger-v2.service';
+import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { BodyPartModule } from './modules/body-part/body-part.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
@@ -31,10 +31,10 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     WorkoutTemplateModule,
   ],
   controllers: [],
-  providers: [CorrelationIdService],
+  providers: [LoggerServiceV2],
 })
-export class AppModule {
+export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AssignCorrelationIdMiddleware).forRoutes('*');
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
   }
 }

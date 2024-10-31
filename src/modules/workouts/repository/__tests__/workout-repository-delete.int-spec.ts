@@ -1,4 +1,4 @@
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { WorkoutRepository } from '../workout.repository';
 
 describe('WorkoutRepository: delete', () => {
@@ -6,7 +6,7 @@ describe('WorkoutRepository: delete', () => {
   let workoutRepo: WorkoutRepository;
 
   beforeAll(async () => {
-    const logger = new MyLoggerService(WorkoutRepository.name);
+    const logger = new LoggerServiceV2();
     workoutRepo = new WorkoutRepository(global.dbService, logger);
   });
 

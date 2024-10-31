@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { MyLoggerService } from 'src/common/logger/logger.service';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   InsertWorkoutTemplateExerciseModel,
   InsertWorkoutTemplateModel,
@@ -38,8 +38,10 @@ export class WorkoutTemplateRepository {
   `;
   constructor(
     private db: DbService,
-    @Inject('WorkoutTemplateRepoLogger') private logger: MyLoggerService,
-  ) {}
+    private logger: LoggerServiceV2,
+  ) {
+    this.logger.setContext(WorkoutTemplateRepository.name);
+  }
 
   /**
    * Inserts a workout template along with its exercises and sets.
@@ -55,7 +57,7 @@ export class WorkoutTemplateRepository {
   ): Promise<WorkoutTemplateModel> {
     const queryName = 'CreateWorkoutTemplate';
     try {
-      const { queryResult, elapsedTime } = await this.db.transaction<string>(
+      const { queryResult } = await this.db.transaction<string>(
         async (client) => {
           const insertedWorkoutTemplateId = await this.insertWorkoutTemplate(
             client,
@@ -85,7 +87,6 @@ export class WorkoutTemplateRepository {
         userId,
       );
 
-      this.logger.log(`Query ${queryName} took ${elapsedTime}ms`);
       return createdWorkoutTemplate!;
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
