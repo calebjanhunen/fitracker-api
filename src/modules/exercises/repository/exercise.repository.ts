@@ -8,7 +8,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
-import { ExerciseDetailsModel } from '../models/exercise-details.model';
+import { ExerciseWorkoutHistoryModel } from '../models/exercise-details.model';
 
 @Injectable()
 export class ExerciseRepository {
@@ -194,60 +194,50 @@ export class ExerciseRepository {
   }
 
   /**
-   * Gets an exercise along with it's details
+   * Gets the past workout history for an exercise
    * @param {string} exerciseId
    * @param {string} userId
-   * @returns {ExerciseDetailsModel | null}
+   * @returns {ExerciseWorkoutHistoryModel | null}
    *
    * @throws {DatabaseException}
    */
-  public async getExerciseDetails(
+  public async getExerciseWorkoutHistory(
     exerciseId: string,
     userId: string,
-  ): Promise<ExerciseDetailsModel | null> {
+  ): Promise<ExerciseWorkoutHistoryModel[]> {
     const query = `
       SELECT
-	      e.name,
+	      w.name,
+	      w.created_at,
 	      json_agg(
 		      json_build_object(
-			      'workout_name', w.name,
-			      'workout_date', w.created_at,
-			      'sets', (
-				      SELECT json_agg(
-					      json_build_object(
-						    'reps', ws.reps,
-						    'weight', ws.weight,
-						    'rpe', ws.rpe,
-						    'order', ws.order
-					    ) ORDER BY ws.order
-				    )
-				    FROM workout_set as ws
-				    WHERE ws.workout_exercise_id = we.id
-			    )
-		    ) ORDER BY w.created_at DESC
-	    ) as workout_details
-      FROM exercise as e
-      INNER JOIN workout_exercise we ON we.exercise_id = e.id
-      INNER JOIN workout w ON w.id = we.workout_id
+			      'id', ws.id,
+			      'reps', ws.reps,
+			      'weight', ws.weight,
+			      'rpe', ws.rpe
+		      )
+	      ) as sets
+      FROM workout as w
+      LEFT JOIN workout_exercise we
+        ON we.workout_id = w.id
+      LEFT JOIN workout_set ws
+        ON ws.workout_exercise_id = we.id
+      LEFT JOIN exercise e
+        ON e.id = we.exercise_id
       WHERE (is_custom = false AND e.id = $1) OR
-            (is_custom = true AND e.id = $1 AND e.user_id = $2)
-      GROUP BY e.name
+        (is_custom = true AND e.id = $1 AND e.user_id = $2)
+      GROUP BY w.name, w.created_at
+      ORDER BY w.created_at DESC
     `;
     const params = [exerciseId, userId];
 
     try {
-      const { queryResult } = await this.db.queryV2<ExerciseDetailsModel>(
-        query,
-        params,
-      );
+      const { queryResult } =
+        await this.db.queryV2<ExerciseWorkoutHistoryModel>(query, params);
 
-      if (!queryResult.length) {
-        return null;
-      }
-
-      return queryResult[0];
+      return queryResult;
     } catch (e) {
-      this.logger.error('Query getExerciseDetails failed: ', e);
+      this.logger.error('Query getExerciseWorkoutHistory failed: ', e);
       throw new DatabaseException(e.message);
     }
   }

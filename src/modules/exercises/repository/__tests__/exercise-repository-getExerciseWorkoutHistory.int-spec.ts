@@ -15,7 +15,9 @@ describe('ExerciseRepository: getExerciseDetails', () => {
   });
 
   beforeEach(async () => {
-    await loadDataIntoTestDb('exercise-repository/get_exercise_details.yml');
+    await loadDataIntoTestDb(
+      'exercise-repository/get_exercise_workout_history.yml',
+    );
   });
 
   afterEach(async () => {
@@ -23,16 +25,15 @@ describe('ExerciseRepository: getExerciseDetails', () => {
   });
 
   it('it should return exercise details', async () => {
-    const response = await exerciseRepo.getExerciseDetails(
+    const response = await exerciseRepo.getExerciseWorkoutHistory(
       'c7cd7efd-d6c2-4e04-a5a9-f2731e845a1d',
       '2a396411-9c45-45e1-92ba-59cffd258ed2',
     );
-
-    expect(response?.name).toBe('Test Exercise');
-    expect(response?.workoutDetails.length).toBe(2);
-    expect(response?.workoutDetails[0].workoutName).toBe('Test Workout 2');
-    expect(response?.workoutDetails[0].sets.length).toBe(2);
-    expect(response?.workoutDetails[1].workoutName).toBe('Test Workout 1');
-    expect(response?.workoutDetails[1].sets.length).toBe(3);
+    console.log(response);
+    expect(response.length).toBe(2);
+    expect(response[0].name).toBe('Test Workout 2');
+    expect(response[0].sets.length).toBe(2);
+    expect(response[1].name).toBe('Test Workout 1');
+    expect(response[1].sets.length).toBe(3);
   });
 });
