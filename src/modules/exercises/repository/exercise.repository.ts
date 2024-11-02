@@ -218,7 +218,7 @@ export class ExerciseRepository {
 			      'weight', ws.weight,
 			      'rpe', ws.rpe
 		      )
-	      ) as sets
+	      ORDER BY ws.order) as sets
       FROM workout as w
       LEFT JOIN workout_exercise we
         ON we.workout_id = w.id
