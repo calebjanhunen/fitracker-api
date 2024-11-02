@@ -26,5 +26,5 @@ export class WorkoutSetModel {
   @AutoMap()
   reps: number;
   @AutoMap()
-  rpe: number;
+  rpe: number | null;
 }

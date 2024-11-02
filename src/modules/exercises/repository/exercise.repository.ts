@@ -8,7 +8,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
-import { ExerciseWorkoutHistoryModel } from '../models/exercise-details.model';
+import { ExerciseWorkoutHistoryModel } from '../models/exercise-workout-history.model';
 
 @Injectable()
 export class ExerciseRepository {
@@ -207,8 +207,10 @@ export class ExerciseRepository {
   ): Promise<ExerciseWorkoutHistoryModel[]> {
     const query = `
       SELECT
+        w.id,
 	      w.name,
 	      w.created_at,
+        w.duration,
 	      json_agg(
 		      json_build_object(
 			      'id', ws.id,
@@ -226,7 +228,7 @@ export class ExerciseRepository {
         ON e.id = we.exercise_id
       WHERE (is_custom = false AND e.id = $1) OR
         (is_custom = true AND e.id = $1 AND e.user_id = $2)
-      GROUP BY w.name, w.created_at
+      GROUP BY w.id, w.name, w.created_at
       ORDER BY w.created_at DESC
     `;
     const params = [exerciseId, userId];
