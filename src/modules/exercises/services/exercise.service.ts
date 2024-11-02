@@ -12,7 +12,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
-import { ExerciseDetailsModel } from '../models/exercise-details.model';
+import { ExerciseWorkoutHistoryModel } from '../models/exercise-workout-history.model';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -173,18 +173,11 @@ export class ExerciseService {
     });
   }
 
-  public async getExerciseDetails(
+  public async getExerciseWorkoutHistory(
     exerciseId: string,
     userId: string,
-  ): Promise<ExerciseDetailsModel> {
-    const exercise = await this.exerciseRepo.getExerciseDetails(
-      exerciseId,
-      userId,
-    );
-    if (!exercise) {
-      throw new ResourceNotFoundException('Exercise not found.');
-    }
-    return exercise;
+  ): Promise<ExerciseWorkoutHistoryModel[]> {
+    return this.exerciseRepo.getExerciseWorkoutHistory(exerciseId, userId);
   }
 
   /**
