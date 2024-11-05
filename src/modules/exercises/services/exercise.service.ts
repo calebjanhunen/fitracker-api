@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { capitalizeFirstLetter } from 'src/common/utils/capitalize-first-letter.util';
 import { BodyPartService } from 'src/modules/body-part/service/body-part.service';
 import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
@@ -12,7 +14,7 @@ import {
   NumTimesUsedForExerciseModel,
   RecentSetsForExerciseModel,
 } from '../models';
-import { ExerciseWorkoutHistoryModel } from '../models/exercise-workout-history.model';
+import { ExerciseDetailsModel } from '../models/exercise-details.model';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -21,7 +23,10 @@ export class ExerciseService {
     private readonly bodyPartService: BodyPartService,
     private readonly equipmentService: EquipmentService,
     private readonly exerciseRepo: ExerciseRepository,
-  ) {}
+    private readonly logger: LoggerServiceV2,
+  ) {
+    this.logger.setContext(ExerciseService.name);
+  }
 
   /**
    * Creates a custom exercise
@@ -134,8 +139,16 @@ export class ExerciseService {
     if (!existingExercise.isCustom) {
       throw new ExerciseIsNotCustomException();
     }
-
-    return await this.exerciseRepo.update(exerciseId, exercise, userId);
+    const updatedExercise = await this.exerciseRepo.update(
+      exerciseId,
+      exercise,
+      userId,
+    );
+    return {
+      ...updatedExercise,
+      bodyPart: capitalizeFirstLetter(updatedExercise.bodyPart),
+      equipment: capitalizeFirstLetter(updatedExercise.equipment),
+    };
   }
 
   /**
@@ -173,11 +186,24 @@ export class ExerciseService {
     });
   }
 
-  public async getExerciseWorkoutHistory(
+  public async getExerciseDetails(
     exerciseId: string,
     userId: string,
-  ): Promise<ExerciseWorkoutHistoryModel[]> {
-    return this.exerciseRepo.getExerciseWorkoutHistory(exerciseId, userId);
+  ): Promise<ExerciseDetailsModel> {
+    const exercise = await this.exerciseRepo.findById(exerciseId, userId);
+    if (!exercise) {
+      this.logger.warn(
+        `User ${userId} tried accessing exercise ${exerciseId} which does not exist.`,
+      );
+      throw new ExerciseNotFoundException(exerciseId);
+    }
+
+    const workoutHistory = await this.exerciseRepo.getExerciseWorkoutHistory(
+      exerciseId,
+      userId,
+    );
+
+    return new ExerciseDetailsModel(exercise, workoutHistory);
   }
 
   /**

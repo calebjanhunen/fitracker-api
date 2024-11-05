@@ -19,13 +19,13 @@ import {
 import { plainToInstance } from 'class-transformer';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
-import { ExerciseWorkoutHistoryDto } from '../dtos/exercise-workout-history.dto';
 import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
-import { ExerciseWorkoutHistoryModel } from '../models/exercise-workout-history.model';
+import { ExerciseDetailsModel } from '../models/exercise-details.model';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseService } from '../services/exercise.service';
 
@@ -86,20 +86,20 @@ export default class ExercisesController {
     }
   }
 
-  @Get(':exerciseId/workout-history')
-  public async getExerciseById(
+  @Get(':exerciseId/details')
+  public async getExerciseDetails(
     @Headers('user-id') userId: string,
     @Param('exerciseId') exerciseId: string,
-  ): Promise<ExerciseWorkoutHistoryDto[]> {
+  ): Promise<ExerciseDetailsDto> {
     try {
-      const model = await this.exerciseService.getExerciseWorkoutHistory(
+      const exercise = await this.exerciseService.getExerciseDetails(
         exerciseId,
         userId,
       );
-      return this.mapper.mapArray(
-        model,
-        ExerciseWorkoutHistoryModel,
-        ExerciseWorkoutHistoryDto,
+      return this.mapper.map(
+        exercise,
+        ExerciseDetailsModel,
+        ExerciseDetailsDto,
       );
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {

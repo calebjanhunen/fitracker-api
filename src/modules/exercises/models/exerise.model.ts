@@ -1,9 +1,14 @@
-import { BodyPart } from 'src/common/enums/body-part.enum';
+import { AutoMap } from '@automapper/classes';
 
 export class ExerciseModel {
+  @AutoMap()
   id: string;
+  @AutoMap()
   name: string;
-  bodyPart: BodyPart;
+  @AutoMap()
+  bodyPart: string;
+  @AutoMap()
   equipment: string;
+  @AutoMap()
   isCustom: boolean;
 }

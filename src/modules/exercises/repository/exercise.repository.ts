@@ -13,16 +13,16 @@ import { ExerciseWorkoutHistoryModel } from '../models/exercise-workout-history.
 @Injectable()
 export class ExerciseRepository {
   private readonly COLUMNS_AND_JOINS = `
-     e.id,
-        e.name,
-        bp.name as body_part,
-        eq.name as equipment,
-        e.is_custom
-      FROM exercise e
-      INNER JOIN body_part bp
-      ON bp.id = e.body_part_id
-      INNER JOIN equipment eq
-      ON eq.id = e.equipment_id
+      e.id,
+      e.name,
+      bp.name as body_part,
+      eq.name as equipment,
+      e.is_custom
+    FROM exercise e
+    INNER JOIN body_part bp
+    ON bp.id = e.body_part_id
+    INNER JOIN equipment eq
+    ON eq.id = e.equipment_id
   `;
   constructor(
     private readonly db: DbService,
@@ -133,16 +133,7 @@ export class ExerciseRepository {
     const queryName = 'FindExerciseById';
     const query = `
       SELECT
-        e.id,
-        e.name,
-        bp.name as body_part,
-        eq.name as equipment,
-        e.is_custom
-      FROM exercise e
-      INNER JOIN body_part bp
-      ON bp.id = e.body_part_id
-      INNER JOIN equipment eq
-      ON eq.id = e.equipment_id
+        ${this.COLUMNS_AND_JOINS}
       WHERE
         (e.is_custom = false AND e.id = $1)
       OR
