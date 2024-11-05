@@ -1,6 +1,8 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class ExerciseRequestDto {
+  @IsUUID()
+  public id: string;
   @IsNotEmpty()
   @IsString()
   public name: string;
