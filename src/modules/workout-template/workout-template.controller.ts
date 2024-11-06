@@ -6,7 +6,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -14,7 +13,8 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { WorkoutTemplateRequestDto } from './dtos/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from './dtos/workout-template-response.dto';
@@ -23,7 +23,7 @@ import { InsertWorkoutTemplateModel } from './models/insert-workout-template.mod
 import { WorkoutTemplateService } from './workout-template.service';
 
 @Controller('/api/workout-templates')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 export class WorkoutTemplateController {
   constructor(
     @InjectMapper() private mapper: Mapper,
@@ -33,7 +33,7 @@ export class WorkoutTemplateController {
   @Post()
   public async createWorkoutTemplate(
     @Body() dto: WorkoutTemplateRequestDto,
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<WorkoutTemplateResponseDto> {
     const model = this.mapper.map(
       dto,
@@ -57,7 +57,7 @@ export class WorkoutTemplateController {
 
   @Get()
   public async getAllWorkoutTemplates(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<WorkoutTemplateResponseDto[]> {
     try {
       const workoutTemplates =
@@ -75,7 +75,7 @@ export class WorkoutTemplateController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteWorkoutTemplate(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') workoutTemplateId: string,
   ): Promise<void> {
     try {

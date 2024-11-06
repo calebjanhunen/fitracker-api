@@ -7,7 +7,6 @@ import {
   Delete,
   ForbiddenException,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   NotFoundException,
@@ -17,7 +16,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
@@ -30,7 +30,7 @@ import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseService } from '../services/exercise.service';
 
 @Controller('api/exercises')
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 export default class ExercisesController {
   constructor(
     private exerciseService: ExerciseService,
@@ -39,7 +39,7 @@ export default class ExercisesController {
 
   @Post()
   public async createExercise(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Body() createExerciseDto: ExerciseRequestDto,
   ): Promise<ExerciseResponseDto> {
     const insertExerciseModel = plainToInstance(
@@ -60,7 +60,7 @@ export default class ExercisesController {
 
   @Get()
   public async getAllExercises(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<ExerciseResponseDto[]> {
     try {
       const exercises = await this.exerciseService.findAll(userId);
@@ -72,7 +72,7 @@ export default class ExercisesController {
 
   @Get('/workout-details')
   public async getExercisesWithWorkoutDetails(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<ExerciseWithWorkoutDetailsDto[]> {
     try {
       const exercisesWithWorkout =
@@ -88,7 +88,7 @@ export default class ExercisesController {
 
   @Get(':exerciseId/details')
   public async getExerciseDetails(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('exerciseId') exerciseId: string,
   ): Promise<ExerciseDetailsDto> {
     try {
@@ -112,7 +112,7 @@ export default class ExercisesController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteExercise(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') exerciseId: string,
   ): Promise<void> {
     try {
@@ -129,7 +129,7 @@ export default class ExercisesController {
 
   @Put(':id')
   public async updateExercise(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') exerciseId: string,
     @Body() updateExerciseDto: ExerciseRequestDto,
   ): Promise<ExerciseResponseDto> {

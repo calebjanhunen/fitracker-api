@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   comparePasswords,
   generateHashPassword,
@@ -13,12 +15,13 @@ import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/u
 
 @Injectable()
 export class AuthService {
-  private userService;
-  private jwtService;
-
-  constructor(userService: UserService, jwtService: JwtService) {
-    this.userService = userService;
-    this.jwtService = jwtService;
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+    private logger: LoggerServiceV2,
+    private configService: ConfigService,
+  ) {
+    this.logger.setContext(AuthService.name);
   }
 
   async signIn(username: string, password: string): Promise<string> {
@@ -33,15 +36,41 @@ export class AuthService {
       const doPasswordsMatch = await comparePasswords(password, user.password);
 
       if (!doPasswordsMatch) {
-        throw new Error();
+        throw new UnauthorizedException();
       }
 
       const accessToken = await this.generateAcccessToken(user.id);
 
       return accessToken;
     } catch (error) {
-      throw error;
+      throw new UnauthorizedException(error);
     }
+  }
+
+  public async verifyUser(username: string, password: string): Promise<string> {
+    try {
+      const user = await this.userService.findByUsername(username);
+      if (!user) {
+        this.logger.warn(`Tried accessing non existed user: ${username}`);
+        throw new ResourceNotFoundException(
+          `User not found with username: ${username}`,
+        );
+      }
+
+      const doPasswordsMatch = await comparePasswords(password, user.password);
+
+      if (!doPasswordsMatch) {
+        throw new PasswordsDoNotMatchException();
+      }
+
+      return user.id;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  public async loginV2(userId: string): Promise<string> {
+    return await this.generateAcccessToken(userId);
   }
 
   public async signup(
@@ -69,8 +98,16 @@ export class AuthService {
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
-    return await this.jwtService.signAsync({
-      id: userId,
-    });
+    return await this.jwtService.signAsync(
+      {
+        userId,
+      },
+      {
+        secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow<string>(
+          'JWT_ACCESS_TOKEN_EXPIRATION_MS',
+        )}ms`,
+      },
+    );
   }
 }
