@@ -8,6 +8,7 @@ import {
   generateHashPassword,
 } from 'src/modules/auth/helpers/password-helper';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
+import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
 import { UserWithEmailAlreadyExistsException } from '../internal-exceptions/user-with-email-already-exists.exception';
@@ -17,6 +18,7 @@ import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/u
 export class AuthService {
   constructor(
     private userService: UserService,
+    private userRefreshTokenService: UserRefreshTokenService,
     private jwtService: JwtService,
     private logger: LoggerServiceV2,
     private configService: ConfigService,
@@ -69,8 +71,40 @@ export class AuthService {
     }
   }
 
-  public async loginV2(userId: string): Promise<string> {
-    return await this.generateAcccessToken(userId);
+  public async verifyRefreshToken(
+    refreshToken: string,
+    userId: string,
+    deviceId: string | null,
+  ): Promise<string> {
+    const existingRefreshToken =
+      await this.userRefreshTokenService.getRefreshToken(userId, deviceId);
+
+    const doRefreshTokensMatch = await comparePasswords(
+      refreshToken ?? '',
+      existingRefreshToken,
+    );
+
+    if (!doRefreshTokensMatch) {
+      throw new Error('Refresh token is not valid');
+    }
+
+    return userId;
+  }
+
+  public async login(
+    userId: string,
+    deviceId: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = await this.generateAcccessToken(userId);
+    const refreshToken = await this.generateRefreshToken(userId);
+
+    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    await this.userRefreshTokenService.upsertRefreshToken(
+      userId,
+      hashedRefreshToken,
+      deviceId,
+    );
+    return { accessToken, refreshToken };
   }
 
   public async signup(
@@ -99,15 +133,20 @@ export class AuthService {
 
   private async generateAcccessToken(userId: string): Promise<string> {
     return await this.jwtService.signAsync(
-      {
-        userId,
-      },
+      { userId },
       {
         secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
         expiresIn: `${this.configService.getOrThrow<string>(
           'JWT_ACCESS_TOKEN_EXPIRATION_MS',
         )}ms`,
       },
+    );
+  }
+
+  private async generateRefreshToken(userId: string): Promise<string> {
+    return await this.jwtService.signAsync(
+      { userId },
+      { secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET') },
     );
   }
 }

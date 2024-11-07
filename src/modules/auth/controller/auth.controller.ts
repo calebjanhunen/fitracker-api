@@ -2,8 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
-  HttpException,
-  HttpStatus,
+  Headers,
   InternalServerErrorException,
   Post,
   UseGuards,
@@ -12,8 +11,8 @@ import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { LoginResponseDto } from '../dto/login-response.dto';
-import { UserLoginDto } from '../dto/user-signin.dto';
 import UserSignupDto from '../dto/user-signup-dto';
+import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../service/auth.service';
 
@@ -26,26 +25,39 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() userLoginDto: UserLoginDto): Promise<LoginResponseDto> {
-    const { username, password } = userLoginDto;
+  @UseGuards(LocalAuthGuard)
+  public async login(
+    @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<LoginResponseDto> {
     try {
-      const accessToken = await this.authService.signIn(username, password);
-      const response = plainToInstance(LoginResponseDto, { accessToken });
-      return response;
-    } catch (error) {
-      throw new HttpException('Login failed', HttpStatus.CONFLICT);
+      const { accessToken, refreshToken } = await this.authService.login(
+        userId,
+        deviceId,
+      );
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException();
     }
   }
 
-  @Post('loginV2')
-  @UseGuards(LocalAuthGuard)
-  public async loginV2(
+  @Post('refresh')
+  @UseGuards(JwtRefreshAuthGuard)
+  public async refreshToken(
     @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
   ): Promise<LoginResponseDto> {
     try {
-      const jwtToken = await this.authService.loginV2(userId);
+      const { accessToken, refreshToken } = await this.authService.login(
+        userId,
+        deviceId,
+      );
       return {
-        accessToken: jwtToken,
+        accessToken,
+        refreshToken,
       };
     } catch (e) {
       throw new InternalServerErrorException();
