@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
@@ -26,29 +26,6 @@ export class AuthService {
     this.logger.setContext(AuthService.name);
   }
 
-  async signIn(username: string, password: string): Promise<string> {
-    try {
-      const user = await this.userService.findByUsername(username);
-      if (!user) {
-        throw new ResourceNotFoundException(
-          `User not found with username: ${username}`,
-        );
-      }
-
-      const doPasswordsMatch = await comparePasswords(password, user.password);
-
-      if (!doPasswordsMatch) {
-        throw new UnauthorizedException();
-      }
-
-      const accessToken = await this.generateAcccessToken(user.id);
-
-      return accessToken;
-    } catch (error) {
-      throw new UnauthorizedException(error);
-    }
-  }
-
   public async verifyUser(username: string, password: string): Promise<string> {
     try {
       const user = await this.userService.findByUsername(username);
@@ -74,7 +51,7 @@ export class AuthService {
   public async verifyRefreshToken(
     refreshToken: string,
     userId: string,
-    deviceId: string | null,
+    deviceId: string,
   ): Promise<string> {
     const existingRefreshToken =
       await this.userRefreshTokenService.getRefreshToken(userId, deviceId);
@@ -85,6 +62,10 @@ export class AuthService {
     );
 
     if (!doRefreshTokensMatch) {
+      this.logger.log(
+        'Refresh token in request does not match stored refresh token. Removing stored refresh token for user',
+      );
+      await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
       throw new Error('Refresh token is not valid');
     }
 
@@ -146,7 +127,12 @@ export class AuthService {
   private async generateRefreshToken(userId: string): Promise<string> {
     return await this.jwtService.signAsync(
       { userId },
-      { secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET') },
+      {
+        secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow<string>(
+          'JWT_REFRESH_TOKEN_EXPIRATION_MS',
+        )}ms`,
+      },
     );
   }
 }

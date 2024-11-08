@@ -37,7 +37,7 @@ export class UserRefreshTokenReposistory {
 
   public async getRefreshToken(
     userId: string,
-    deviceId: string | null,
+    deviceId: string,
   ): Promise<string | null> {
     const query = `
       SELECT 
@@ -61,6 +61,25 @@ export class UserRefreshTokenReposistory {
       return queryResult[0].refreshToken;
     } catch (e) {
       this.logger.error('Query getRefreshToken failed: ', e);
+      throw e;
+    }
+  }
+
+  public async deleteRefreshToken(
+    userId: string,
+    deviceId: string,
+  ): Promise<void> {
+    const query = `
+      DELETE FROM user_refresh_token
+      WHERE user_id = $1 AND
+        device_id = $2
+    `;
+    const params = [userId, deviceId];
+
+    try {
+      await this.db.queryV2(query, params);
+    } catch (e) {
+      this.logger.error('Query deleteRefreshToken failed: ', e);
       throw e;
     }
   }
