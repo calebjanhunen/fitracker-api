@@ -14,7 +14,7 @@ async function bootstrap() {
     }),
   );
 
-  const logger = app.get(LoggerServiceV2);
+  const logger = await app.resolve(LoggerServiceV2);
   logger.setContext('Bootstrap');
 
   await app.listen(3000);
