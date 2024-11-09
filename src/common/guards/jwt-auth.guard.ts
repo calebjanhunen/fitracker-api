@@ -29,7 +29,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   ): TUser {
     const request = context.switchToHttp().getRequest();
     const accessToken = request.headers['authorization']?.split(' ')[1]; // Get rid of 'Bearer'
-    if (!accessToken) {
+    if (!accessToken || accessToken === 'null') {
       throw new UnauthorizedException('No authorization header in request');
     }
     const deviceId = request.headers['x-device-id'] as string;
