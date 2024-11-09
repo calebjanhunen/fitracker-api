@@ -28,7 +28,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     context: ExecutionContext,
   ): TUser {
     const request = context.switchToHttp().getRequest();
-    const accessToken = request.headers['authorization'].split(' ')[1]; // Get rid of 'Bearer'
+    const accessToken = request.headers['authorization']?.split(' ')[1]; // Get rid of 'Bearer'
+    if (!accessToken) {
+      throw new UnauthorizedException('No authorization header in request');
+    }
     const deviceId = request.headers['x-device-id'] as string;
     const { userId } = this.jwtService.verify(accessToken, {
       secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
