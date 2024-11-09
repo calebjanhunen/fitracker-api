@@ -1,3 +1,5 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import {
   Body,
   ConflictException,
@@ -9,11 +11,10 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
-import { LoginResponseDto } from '../dto/login-response.dto';
+import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
@@ -21,18 +22,17 @@ import { AuthService } from '../service/auth.service';
 
 @Controller('auth')
 export class AuthController {
-  private authService;
-
-  constructor(authService: AuthService) {
-    this.authService = authService;
-  }
+  constructor(
+    private readonly authService: AuthService,
+    @InjectMapper() private readonly mapper: Mapper,
+  ) {}
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
   public async login(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken } = await this.authService.login(
         userId,
@@ -62,7 +62,7 @@ export class AuthController {
   public async refreshToken(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<LoginResponseDto> {
+  ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken } = await this.authService.login(
         userId,
@@ -80,14 +80,16 @@ export class AuthController {
   @Post('signup')
   public async signup(
     @Body() signupDto: UserSignupDto,
-  ): Promise<LoginResponseDto> {
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<AuthenticationResponseDto> {
     try {
-      const model = plainToInstance(InsertUserModel, signupDto);
-      const accessToken = await this.authService.signup(
+      const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);
+      const { accessToken, refreshToken } = await this.authService.signup(
         model,
         signupDto.confirmPassword,
+        deviceId,
       );
-      return plainToInstance(LoginResponseDto, { accessToken });
+      return { accessToken, refreshToken };
     } catch (e) {
       throw new ConflictException(e.message);
     }

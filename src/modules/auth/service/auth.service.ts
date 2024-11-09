@@ -95,7 +95,8 @@ export class AuthService {
   public async signup(
     userModel: InsertUserModel,
     confirmPassword: string,
-  ): Promise<string> {
+    deviceId: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     if (await this.userService.findByUsername(userModel.username)) {
       throw new UserWithUsernameAlreadyExistsException(userModel.username);
     }
@@ -113,7 +114,15 @@ export class AuthService {
     const createdUser = await this.userService.create(userModel);
 
     const accessToken = await this.generateAcccessToken(createdUser.id);
-    return accessToken;
+    const refreshToken = await this.generateRefreshToken(createdUser.id);
+
+    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    await this.userRefreshTokenService.upsertRefreshToken(
+      createdUser.id,
+      hashedRefreshToken,
+      deviceId,
+    );
+    return { accessToken, refreshToken };
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
