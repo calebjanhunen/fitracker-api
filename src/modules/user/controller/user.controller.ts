@@ -7,11 +7,9 @@ import {
   Get,
   NotFoundException,
   Patch,
-  UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { UpdateWeeklyWorkoutGoalDto } from '../dtos/update-weekly-workout-goal.dto';
 import { UserResponseDto } from '../dtos/user-response.dto';
@@ -20,7 +18,6 @@ import { UserStats } from '../models/user-stats.model';
 import { UserService } from '../service/user.service';
 
 @Controller('/api/users')
-@UseGuards(JwtAuthGuard)
 export class UserController {
   private userService;
 

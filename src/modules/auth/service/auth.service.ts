@@ -30,7 +30,7 @@ export class AuthService {
     try {
       const user = await this.userService.findByUsername(username);
       if (!user) {
-        this.logger.warn(`Tried accessing non existed user: ${username}`);
+        this.logger.warn(`Tried accessing non existing user: ${username}`);
         throw new ResourceNotFoundException(
           `User not found with username: ${username}`,
         );
