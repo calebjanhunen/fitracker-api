@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { LoginResponseDto } from '../dto/login-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
@@ -47,6 +48,7 @@ export class AuthController {
   }
 
   @Post('/logout')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   public async logout(
     @CurrentUser() userId: string,
