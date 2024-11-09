@@ -88,6 +88,10 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  public async logout(userId: string, deviceId: string) {
+    await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
+  }
+
   public async signup(
     userModel: InsertUserModel,
     confirmPassword: string,

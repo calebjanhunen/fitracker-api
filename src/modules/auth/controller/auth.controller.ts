@@ -3,6 +3,8 @@ import {
   ConflictException,
   Controller,
   Headers,
+  HttpCode,
+  HttpStatus,
   InternalServerErrorException,
   Post,
   UseGuards,
@@ -42,6 +44,15 @@ export class AuthController {
     } catch (e) {
       throw new InternalServerErrorException();
     }
+  }
+
+  @Post('/logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async logout(
+    @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<void> {
+    await this.authService.logout(userId, deviceId);
   }
 
   @Post('refresh')
