@@ -1,21 +1,14 @@
-export class InsertUserModel {
-  username: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+import { AutoMap } from '@automapper/classes';
 
-  constructor(
-    username: string,
-    password: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-  ) {
-    this.username = username;
-    this.password = password;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-  }
+export class InsertUserModel {
+  @AutoMap()
+  username: string;
+  @AutoMap()
+  password: string;
+  @AutoMap()
+  firstName: string;
+  @AutoMap()
+  lastName: string;
+  @AutoMap()
+  email: string;
 }

@@ -4,15 +4,13 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   NotFoundException,
   Param,
   Post,
   Put,
-  UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
 import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
@@ -22,14 +20,13 @@ import { InsertWorkoutModel } from '../models';
 import { WorkoutService } from '../service/workout.service';
 
 @Controller('api/workouts')
-@UseGuards(AuthGuard)
 export class WorkoutController {
   constructor(private readonly workoutService: WorkoutService) {}
 
   @Post()
   async createWorkout(
     @Body() createWorkoutDto: WorkoutRequestDto,
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<CreateWorkoutResponseDto> {
     try {
       const workoutModel = plainToInstance(
@@ -48,7 +45,7 @@ export class WorkoutController {
 
   @Get(':id')
   async getWorkoutById(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') workoutId: string,
   ): Promise<WorkoutResponseDto> {
     try {
@@ -63,7 +60,7 @@ export class WorkoutController {
 
   @Get()
   async getAllWorkouts(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
   ): Promise<WorkoutResponseDto[]> {
     try {
       const workouts = await this.workoutService.findAll(userId);
@@ -79,7 +76,7 @@ export class WorkoutController {
 
   @Delete(':id')
   async deleteWorkout(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') workoutId: string,
   ): Promise<DeleteWorkoutDto> {
     try {
@@ -96,7 +93,7 @@ export class WorkoutController {
 
   @Put(':id')
   async updateWorkout(
-    @Headers('user-id') userId: string,
+    @CurrentUser() userId: string,
     @Param('id') workoutId: string,
     @Body() updateWorkoutDto: WorkoutRequestDto,
   ): Promise<WorkoutResponseDto> {

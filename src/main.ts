@@ -2,6 +2,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
 import { LoggerServiceV2 } from './common/logger/logger-v2.service';
 
 async function bootstrap() {
@@ -13,8 +15,10 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+  app.useGlobalGuards(app.get(JwtAuthGlobalGuard));
+  app.useGlobalFilters(new HttpExceptionFilter());
 
-  const logger = app.get(LoggerServiceV2);
+  const logger = await app.resolve(LoggerServiceV2);
   logger.setContext('Bootstrap');
 
   await app.listen(3000);

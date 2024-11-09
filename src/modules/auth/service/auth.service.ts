@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   comparePasswords,
   generateHashPassword,
 } from 'src/modules/auth/helpers/password-helper';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
+import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
 import { UserWithEmailAlreadyExistsException } from '../internal-exceptions/user-with-email-already-exists.exception';
@@ -13,18 +16,21 @@ import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/u
 
 @Injectable()
 export class AuthService {
-  private userService;
-  private jwtService;
-
-  constructor(userService: UserService, jwtService: JwtService) {
-    this.userService = userService;
-    this.jwtService = jwtService;
+  constructor(
+    private userService: UserService,
+    private userRefreshTokenService: UserRefreshTokenService,
+    private jwtService: JwtService,
+    private logger: LoggerServiceV2,
+    private configService: ConfigService,
+  ) {
+    this.logger.setContext(AuthService.name);
   }
 
-  async signIn(username: string, password: string): Promise<string> {
+  public async verifyUser(username: string, password: string): Promise<string> {
     try {
       const user = await this.userService.findByUsername(username);
       if (!user) {
+        this.logger.warn(`Tried accessing non existing user: ${username}`);
         throw new ResourceNotFoundException(
           `User not found with username: ${username}`,
         );
@@ -33,21 +39,64 @@ export class AuthService {
       const doPasswordsMatch = await comparePasswords(password, user.password);
 
       if (!doPasswordsMatch) {
-        throw new Error();
+        throw new PasswordsDoNotMatchException();
       }
 
-      const accessToken = await this.generateAcccessToken(user.id);
-
-      return accessToken;
+      return user.id;
     } catch (error) {
-      throw error;
+      throw new Error(error);
     }
+  }
+
+  public async verifyRefreshToken(
+    refreshToken: string,
+    userId: string,
+    deviceId: string,
+  ): Promise<string> {
+    const existingRefreshToken =
+      await this.userRefreshTokenService.getRefreshToken(userId, deviceId);
+
+    const doRefreshTokensMatch = await comparePasswords(
+      refreshToken ?? '',
+      existingRefreshToken,
+    );
+
+    if (!doRefreshTokensMatch) {
+      this.logger.log(
+        'Refresh token in request does not match stored refresh token. Removing stored refresh token for user',
+      );
+      await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
+      throw new Error('Refresh token is not valid');
+    }
+
+    return userId;
+  }
+
+  public async login(
+    userId: string,
+    deviceId: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const accessToken = await this.generateAcccessToken(userId);
+    const refreshToken = await this.generateRefreshToken(userId);
+
+    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    await this.userRefreshTokenService.upsertRefreshToken(
+      userId,
+      hashedRefreshToken,
+      deviceId,
+    );
+    return { accessToken, refreshToken };
+  }
+
+  public async logout(userId: string, deviceId: string) {
+    await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
   }
 
   public async signup(
     userModel: InsertUserModel,
     confirmPassword: string,
-  ): Promise<string> {
+    deviceId: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     if (await this.userService.findByUsername(userModel.username)) {
       throw new UserWithUsernameAlreadyExistsException(userModel.username);
     }
@@ -65,12 +114,38 @@ export class AuthService {
     const createdUser = await this.userService.create(userModel);
 
     const accessToken = await this.generateAcccessToken(createdUser.id);
-    return accessToken;
+    const refreshToken = await this.generateRefreshToken(createdUser.id);
+
+    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    await this.userRefreshTokenService.upsertRefreshToken(
+      createdUser.id,
+      hashedRefreshToken,
+      deviceId,
+    );
+    return { accessToken, refreshToken };
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
-    return await this.jwtService.signAsync({
-      id: userId,
-    });
+    return await this.jwtService.signAsync(
+      { userId },
+      {
+        secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow<string>(
+          'JWT_ACCESS_TOKEN_EXPIRATION_MS',
+        )}ms`,
+      },
+    );
+  }
+
+  private async generateRefreshToken(userId: string): Promise<string> {
+    return await this.jwtService.signAsync(
+      { userId },
+      {
+        secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
+        expiresIn: `${this.configService.getOrThrow<string>(
+          'JWT_REFRESH_TOKEN_EXPIRATION_MS',
+        )}ms`,
+      },
+    );
   }
 }

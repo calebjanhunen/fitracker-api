@@ -1,49 +1,95 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import {
   Body,
   ConflictException,
   Controller,
-  HttpException,
+  Headers,
+  HttpCode,
   HttpStatus,
+  InternalServerErrorException,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { plainToInstance } from 'class-transformer';
+import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
-import { LoginResponseDto } from '../dto/login-response.dto';
-import { UserLoginDto } from '../dto/user-signin.dto';
+import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
+import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
+import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { AuthService } from '../service/auth.service';
 
 @Controller('auth')
 export class AuthController {
-  private authService;
-
-  constructor(authService: AuthService) {
-    this.authService = authService;
-  }
+  constructor(
+    private readonly authService: AuthService,
+    @InjectMapper() private readonly mapper: Mapper,
+  ) {}
 
   @Post('login')
-  async login(@Body() userLoginDto: UserLoginDto): Promise<LoginResponseDto> {
-    const { username, password } = userLoginDto;
+  @UseGuards(LocalAuthGuard)
+  public async login(
+    @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<AuthenticationResponseDto> {
     try {
-      const accessToken = await this.authService.signIn(username, password);
-      const response = plainToInstance(LoginResponseDto, { accessToken });
-      return response;
-    } catch (error) {
-      throw new HttpException('Login failed', HttpStatus.CONFLICT);
+      const { accessToken, refreshToken } = await this.authService.login(
+        userId,
+        deviceId,
+      );
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Post('/logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  public async logout(
+    @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<void> {
+    await this.authService.logout(userId, deviceId);
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshAuthGuard)
+  public async refreshToken(
+    @CurrentUser() userId: string,
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<AuthenticationResponseDto> {
+    try {
+      const { accessToken, refreshToken } = await this.authService.login(
+        userId,
+        deviceId,
+      );
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException();
     }
   }
 
   @Post('signup')
   public async signup(
     @Body() signupDto: UserSignupDto,
-  ): Promise<LoginResponseDto> {
+    @Headers('x-device-id') deviceId: string,
+  ): Promise<AuthenticationResponseDto> {
     try {
-      const model = plainToInstance(InsertUserModel, signupDto);
-      const accessToken = await this.authService.signup(
+      const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);
+      const { accessToken, refreshToken } = await this.authService.signup(
         model,
         signupDto.confirmPassword,
+        deviceId,
       );
-      return plainToInstance(LoginResponseDto, { accessToken });
+      return { accessToken, refreshToken };
     } catch (e) {
       throw new ConflictException(e.message);
     }

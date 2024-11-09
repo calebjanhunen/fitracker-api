@@ -1,19 +1,25 @@
 import { Module } from '@nestjs/common';
-
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { UserModule } from '../user/user.module';
+import { AuthMapperProfile } from './auth-mapper.profile';
 import { AuthController } from './controller/auth.controller';
 import { AuthService } from './service/auth.service';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
-  imports: [
-    UserModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    }),
-  ],
+  imports: [UserModule, PassportModule, JwtModule.register({ global: true })],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    LoggerServiceV2,
+    JwtRefreshStrategy,
+    AuthMapperProfile,
+  ],
 })
 export class AuthModule {}

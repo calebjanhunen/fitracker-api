@@ -2,7 +2,7 @@ import { Injectable, LoggerService, Scope } from '@nestjs/common';
 import * as winston from 'winston';
 const { combine, timestamp, printf, colorize } = winston.format;
 
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable({ scope: Scope.TRANSIENT })
 export class LoggerServiceV2 implements LoggerService {
   private readonly logger: winston.Logger;
   private context: string;

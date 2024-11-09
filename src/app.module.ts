@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ScheduleModule } from '@nestjs/schedule';
 import 'src/common/extensions/date.extensions';
+import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { LoggerServiceV2 } from './common/logger/logger-v2.service';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 import { AuthModule } from './modules/auth/auth.module';
@@ -31,7 +33,7 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     WorkoutTemplateModule,
   ],
   controllers: [],
-  providers: [LoggerServiceV2],
+  providers: [LoggerServiceV2, JwtAuthGuard, JwtAuthGlobalGuard],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

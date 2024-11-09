@@ -16,13 +16,12 @@ describe('UserRepository: create()', () => {
   });
 
   it('should successfully create user', async () => {
-    const userModel = new InsertUserModel(
-      'test_user1',
-      '123',
-      'test',
-      'user',
-      'test@test.com',
-    );
+    const userModel = new InsertUserModel();
+    userModel.username = 'test_user1';
+    userModel.password = '123';
+    userModel.firstName = 'test';
+    userModel.lastName = 'user';
+    userModel.email = 'test@test.com';
     const user = await userRepository.create(userModel);
     expect(user.email).toBe('test@test.com');
     expect(user.username).toBe('test_user1');
