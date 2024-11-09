@@ -1,12 +1,18 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { lastValueFrom, Observable } from 'rxjs';
 import { LoggerServiceV2 } from '../logger/logger-v2.service';
 import { JwtAuthGuard } from './jwt-auth.guard'; // Adjust the path if needed
 
 @Injectable()
 export class JwtAuthGlobalGuard extends JwtAuthGuard {
-  constructor(logger: LoggerServiceV2) {
-    super(logger); // Call the JwtAuthGuard constructor
+  constructor(
+    logger: LoggerServiceV2,
+    configService: ConfigService,
+    jwtService: JwtService,
+  ) {
+    super(logger, configService, jwtService); // Call the JwtAuthGuard constructor
   }
 
   canActivate(context: ExecutionContext): boolean | Promise<boolean> {
