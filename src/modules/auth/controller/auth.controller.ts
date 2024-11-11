@@ -15,6 +15,8 @@ import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
+import { CheckEmailRequestDto } from '../dto/check-email-request.dto';
+import { CheckEmailResponseDto } from '../dto/check-email-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
@@ -92,6 +94,23 @@ export class AuthController {
       return { accessToken, refreshToken };
     } catch (e) {
       throw new ConflictException(e.message);
+    }
+  }
+
+  @Post('check-email')
+  public async checkEmail(
+    @Body() checkEmailDto: CheckEmailRequestDto,
+  ): Promise<CheckEmailResponseDto> {
+    try {
+      const result = await this.authService.checkIfEmailIsAvailable(
+        checkEmailDto.email,
+      );
+      return {
+        isAvailable: result.isAvailable,
+        message: result.message,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException(e);
     }
   }
 }

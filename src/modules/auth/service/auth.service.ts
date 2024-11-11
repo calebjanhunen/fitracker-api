@@ -118,6 +118,23 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  public async checkIfEmailIsAvailable(
+    email: string,
+  ): Promise<{ isAvailable: boolean; message: string }> {
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      return {
+        isAvailable: false,
+        message: 'Email already in use',
+      };
+    }
+
+    return {
+      isAvailable: true,
+      message: 'Email is available',
+    };
+  }
+
   private async generateAcccessToken(userId: string): Promise<string> {
     return await this.jwtService.signAsync(
       { userId },
