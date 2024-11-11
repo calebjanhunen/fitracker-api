@@ -27,25 +27,18 @@ export class AuthService {
   }
 
   public async verifyUser(username: string, password: string): Promise<string> {
-    try {
-      const user = await this.userService.findByUsername(username);
-      if (!user) {
-        this.logger.warn(`Tried accessing non existing user: ${username}`);
-        throw new ResourceNotFoundException(
-          `User not found with username: ${username}`,
-        );
-      }
-
-      const doPasswordsMatch = await comparePasswords(password, user.password);
-
-      if (!doPasswordsMatch) {
-        throw new PasswordsDoNotMatchException();
-      }
-
-      return user.id;
-    } catch (error) {
-      throw new Error(error);
+    const user = await this.userService.findByUsername(username);
+    if (!user) {
+      throw new ResourceNotFoundException('User not found');
     }
+
+    const doPasswordsMatch = await comparePasswords(password, user.password);
+
+    if (!doPasswordsMatch) {
+      throw new PasswordsDoNotMatchException();
+    }
+
+    return user.id;
   }
 
   public async verifyRefreshToken(
