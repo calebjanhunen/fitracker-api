@@ -72,6 +72,40 @@ export class AuthSignupCodeRepository {
     }
   }
 
+  public async getSignupCodeByEmail(
+    email: string,
+  ): Promise<SignupCodeModel | null> {
+    const query = `
+      SELECT
+        id,
+        email,
+        code,
+        created_at,
+        expires_at,
+        used_at
+      FROM auth_signup_code
+      WHERE email = $1
+        AND used_at IS NULL
+    `;
+    const params = [email];
+
+    try {
+      const { queryResult } = await this.db.queryV2<SignupCodeModel>(
+        query,
+        params,
+      );
+
+      if (!queryResult[0]) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error('Query getSignupCode failed: ', e);
+      throw new DatabaseException(e);
+    }
+  }
+
   public async setSignupCodeAsUsed(id: number) {
     const query = `
       UPDATE auth_signup_code

@@ -141,6 +141,15 @@ export class AuthService {
       throw new EmailAlreadyInUseException();
     }
 
+    const signupCodeModel =
+      await this.authSignupCodeRepo.getSignupCodeByEmail(email);
+    if (signupCodeModel) {
+      this.logger.log(
+        `Valid signup code already exists for ${email}. Not sending email or creating a new code.`,
+      );
+      return;
+    }
+
     const signupCode = await this.saveSignupCode(email);
     await this.mailService.sendSignupCode(email, signupCode);
   }
