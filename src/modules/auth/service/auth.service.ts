@@ -100,7 +100,7 @@ export class AuthService {
     deviceId: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     if (await this.userService.findByUsername(userModel.username)) {
-      throw new UserWithUsernameAlreadyExistsException(userModel.username);
+      throw new UserWithUsernameAlreadyExistsException();
     }
     if (await this.userService.findByEmail(userModel.email)) {
       throw new EmailAlreadyInUseException();

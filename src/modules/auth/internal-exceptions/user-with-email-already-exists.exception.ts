@@ -1,6 +1,6 @@
-import { BaseException } from 'src/common/internal-exceptions/base.exception';
+import { SignupValidationException } from './signup-validation.exception';
 
-export class EmailAlreadyInUseException extends BaseException {
+export class EmailAlreadyInUseException extends SignupValidationException {
   constructor() {
     super('Email is already in use');
   }

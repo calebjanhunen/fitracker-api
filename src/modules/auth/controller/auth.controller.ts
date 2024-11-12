@@ -23,6 +23,7 @@ import UserSignupDto from '../dto/user-signup-dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { SignupCodeException } from '../internal-exceptions/signup-code.exception';
+import { SignupValidationException } from '../internal-exceptions/signup-validation.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
 
@@ -97,7 +98,10 @@ export class AuthController {
       );
       return { accessToken, refreshToken };
     } catch (e) {
-      throw new ConflictException(e.message);
+      if (e instanceof SignupValidationException) {
+        throw new ConflictException(e);
+      }
+      throw new InternalServerErrorException();
     }
   }
 
