@@ -19,19 +19,15 @@ export class MailService {
     code: string,
   ): Promise<void> {
     try {
-      if (this.configService.getOrThrow('NODE_ENV') !== 'development') {
-        const result = await this.mailerService.sendMail({
-          to: emailAddress,
-          subject: 'Welcome to Fitracker!',
-          template: './signup-code',
-          context: {
-            code,
-          },
-        });
-        this.logger.log(`Signup email successfully sent: ${result.response}`);
-      } else {
-        this.logger.log('In development environment. Email not sent');
-      }
+      const result = await this.mailerService.sendMail({
+        to: emailAddress,
+        subject: 'Welcome to Fitracker!',
+        template: './signup-code',
+        context: {
+          code,
+        },
+      });
+      this.logger.log(`Signup email successfully sent: ${result.response}`);
     } catch (e) {
       this.logger.error('Signup Code email failed to send: ', e);
       throw new MailFailedToSendException(e);

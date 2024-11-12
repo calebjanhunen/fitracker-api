@@ -13,6 +13,8 @@ import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
+import { SignupCodeAlreadyUsedException } from '../internal-exceptions/signup-code-alread-used.exception';
+import { SignupCodeExpiredException } from '../internal-exceptions/signup-code-expired.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
 import { AuthSignupCodeRepository } from '../repository/auth-signup-code.repository';
@@ -141,6 +143,27 @@ export class AuthService {
 
     const signupCode = await this.saveSignupCode(email);
     await this.mailService.sendSignupCode(email, signupCode);
+  }
+
+  public async confirmSignupCode(code: string, email: string): Promise<void> {
+    const signupCodeModel = await this.authSignupCodeRepo.getSignupCode(
+      code,
+      email,
+    );
+    if (!signupCodeModel) {
+      throw new ResourceNotFoundException('Code not found');
+    }
+
+    const now = new Date();
+    if (now > signupCodeModel.expiresAt) {
+      throw new SignupCodeExpiredException();
+    }
+
+    if (signupCodeModel.usedAt) {
+      throw new SignupCodeAlreadyUsedException();
+    }
+
+    await this.authSignupCodeRepo.setSignupCodeAsUsed(signupCodeModel.id);
   }
 
   private async saveSignupCode(email: string): Promise<string> {

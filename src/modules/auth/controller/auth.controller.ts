@@ -8,17 +8,21 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  NotFoundException,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
-import { CheckEmailRequestDto } from '../dto/check-email-request.dto';
+import { ConfirmSignupCodeDto } from '../dto/confirm-signup-code.dto';
+import { SendSignupCodeDto } from '../dto/send-signup-code.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { SignupCodeException } from '../internal-exceptions/signup-code.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
 
@@ -99,7 +103,7 @@ export class AuthController {
 
   @Post('send-signup-code')
   public async sendSignupCodeToEmail(
-    @Body() checkEmailDto: CheckEmailRequestDto,
+    @Body() checkEmailDto: SendSignupCodeDto,
   ): Promise<void> {
     try {
       await this.authService.sendSignupCodeToEmail(checkEmailDto.email);
@@ -108,6 +112,24 @@ export class AuthController {
         throw new ConflictException(e);
       }
       throw new InternalServerErrorException(e);
+    }
+  }
+
+  @Post('confirm-signup-code')
+  public async confirmSignupCode(
+    @Body() confirmSignupCodeDto: ConfirmSignupCodeDto,
+  ): Promise<void> {
+    try {
+      const { code, email } = confirmSignupCodeDto;
+      await this.authService.confirmSignupCode(code, email);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e);
+      }
+      if (e instanceof SignupCodeException) {
+        throw new ConflictException(e);
+      }
+      throw new InternalServerErrorException(e.message);
     }
   }
 }
