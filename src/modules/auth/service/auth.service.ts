@@ -135,7 +135,7 @@ export class AuthService {
    * @throws {DatabaseException}
    * @throws {MailFailedToSendException}
    */
-  public async sendSignupCodeToEmail(email: string): Promise<void> {
+  public async verifyEmail(email: string): Promise<void> {
     const user = await this.userService.findByEmail(email);
     if (user) {
       throw new EmailAlreadyInUseException();
@@ -151,7 +151,7 @@ export class AuthService {
     }
 
     const signupCode = await this.saveSignupCode(email);
-    await this.mailService.sendSignupCode(email, signupCode);
+    await this.mailService.sendVerificationEmail(email, signupCode);
   }
 
   public async confirmSignupCode(code: string, email: string): Promise<void> {

@@ -16,7 +16,7 @@ export async function mailConfig(
       },
     },
     defaults: {
-      from: `"No Reply" <no-reply@fitracker.com>`,
+      from: `"Fitracker" <${configService.getOrThrow('SMTP_EMAIL')}>`,
       // replyTo: configService.getOrThrow('SMTP_EMAIL'),
     },
     template: {

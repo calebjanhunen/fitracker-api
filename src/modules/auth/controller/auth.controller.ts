@@ -18,8 +18,8 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmSignupCodeDto } from '../dto/confirm-signup-code.dto';
-import { SendSignupCodeDto } from '../dto/send-signup-code.dto';
 import UserSignupDto from '../dto/user-signup-dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { SignupCodeException } from '../internal-exceptions/signup-code.exception';
@@ -105,12 +105,12 @@ export class AuthController {
     }
   }
 
-  @Post('send-signup-code')
-  public async sendSignupCodeToEmail(
-    @Body() checkEmailDto: SendSignupCodeDto,
+  @Post('verify-email')
+  public async verifyEmail(
+    @Body() verifyEmailDto: VerifyEmailDto,
   ): Promise<void> {
     try {
-      await this.authService.sendSignupCodeToEmail(checkEmailDto.email);
+      await this.authService.verifyEmail(verifyEmailDto.email);
     } catch (e) {
       if (e instanceof EmailAlreadyInUseException) {
         throw new ConflictException(e);

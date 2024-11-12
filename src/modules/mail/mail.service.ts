@@ -14,14 +14,14 @@ export class MailService {
     this.logger.setContext(MailService.name);
   }
 
-  public async sendSignupCode(
+  public async sendVerificationEmail(
     emailAddress: string,
     code: string,
   ): Promise<void> {
     try {
       const result = await this.mailerService.sendMail({
         to: emailAddress,
-        subject: 'Welcome to Fitracker!',
+        subject: 'Verify your email!',
         template: './signup-code',
         context: {
           code,
