@@ -1,7 +1,7 @@
 import { BaseException } from 'src/common/internal-exceptions/base.exception';
 
-export class UserWithEmailAlreadyExistsException extends BaseException {
-  constructor(email: string) {
-    super(`User with email ${email} already exists.`);
+export class EmailAlreadyInUseException extends BaseException {
+  constructor() {
+    super('Email is already in use');
   }
 }

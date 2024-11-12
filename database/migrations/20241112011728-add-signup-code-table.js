@@ -16,7 +16,7 @@ exports.setup = function (options, seedLink) {
 
 exports.up = function (db, callback) {
   db.createTable(
-    'user_signup_code',
+    'auth_signup_code',
     {
       columns: {
         id: {
@@ -54,50 +54,10 @@ exports.up = function (db, callback) {
     },
     callback,
   );
-  // db.createTable(
-  //   'user_signup_code',
-  //   {
-  //     columns: {
-  //       id: {
-  //         type: 'int',
-  //         primaryKey: true,
-  //         notNull: true,
-  //         unique: true,
-  //         autoIncrement: true,
-  //       },
-  //       created_at: {
-  //         type: 'timestamptz',
-  //         notNull: true,
-  //         defaultValue: new String('CURRENT_TIMESTAMP'),
-  //       },
-  //       expires_at: {
-  //         type: 'timestamptz',
-  //         notNull: true,
-  //         defaultValue: new String('CURRENT_TIMESTAMP'),
-  //       },
-  //       used_at: {
-  //         type: 'timestamptz',
-  //         defaultValue: null,
-  //       },
-  //       email: {
-  //         type: 'string',
-  //         length: 255,
-  //         notNull: true,
-  //         unique: true,
-  //       },
-  //       code: {
-  //         type: 'string',
-  //         length: 6,
-  //         notNull: true,
-  //       },
-  //     },
-  //   },
-  //   callback,
-  // );
 };
 
 exports.down = function (db, callback) {
-  db.dropTable('user_signup_code', callback);
+  db.dropTable('auth_signup_code', callback);
 };
 
 exports._meta = {

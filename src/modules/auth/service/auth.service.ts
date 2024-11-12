@@ -1,27 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as crypto from 'crypto';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   comparePasswords,
   generateHashPassword,
 } from 'src/modules/auth/helpers/password-helper';
+import { MailService } from 'src/modules/mail/mail.service';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
-import { UserWithEmailAlreadyExistsException } from '../internal-exceptions/user-with-email-already-exists.exception';
+import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
+import { AuthSignupCodeRepository } from '../repository/auth-signup-code.repository';
 
 @Injectable()
 export class AuthService {
+  private SIGNUP_CODE_LENGTH = 6;
+  private SIGNUP_CODE_EXPIRES_AT_OFFEST = 1;
   constructor(
     private userService: UserService,
     private userRefreshTokenService: UserRefreshTokenService,
     private jwtService: JwtService,
     private logger: LoggerServiceV2,
     private configService: ConfigService,
+    private readonly mailService: MailService,
+    private readonly authSignupCodeRepo: AuthSignupCodeRepository,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -94,7 +101,7 @@ export class AuthService {
       throw new UserWithUsernameAlreadyExistsException(userModel.username);
     }
     if (await this.userService.findByEmail(userModel.email)) {
-      throw new UserWithEmailAlreadyExistsException(userModel.email);
+      throw new EmailAlreadyInUseException();
     }
 
     if (userModel.password !== confirmPassword) {
@@ -118,21 +125,38 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  public async checkIfEmailIsAvailable(
-    email: string,
-  ): Promise<{ isAvailable: boolean; message: string }> {
+  /**
+   * Saves signup code and sends to email
+   * @param {string} email
+   *
+   * @throws {EmailAlreadyInUseException}
+   * @throws {DatabaseException}
+   * @throws {MailFailedToSendException}
+   */
+  public async sendSignupCodeToEmail(email: string): Promise<void> {
     const user = await this.userService.findByEmail(email);
     if (user) {
-      return {
-        isAvailable: false,
-        message: 'Email already in use',
-      };
+      throw new EmailAlreadyInUseException();
     }
 
-    return {
-      isAvailable: true,
-      message: 'Email is available',
-    };
+    const signupCode = await this.saveSignupCode(email);
+    await this.mailService.sendSignupCode(email, signupCode);
+  }
+
+  private async saveSignupCode(email: string): Promise<string> {
+    const signupCode = this.generateSignupCode();
+    const expiresAt = new Date();
+    expiresAt.setHours(
+      expiresAt.getHours() + this.SIGNUP_CODE_EXPIRES_AT_OFFEST,
+    );
+
+    await this.authSignupCodeRepo.upsertSignupCode(
+      email,
+      signupCode,
+      expiresAt,
+    );
+
+    return signupCode;
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
@@ -157,5 +181,13 @@ export class AuthService {
         )}ms`,
       },
     );
+  }
+
+  private generateSignupCode(): string {
+    return crypto
+      .randomBytes(this.SIGNUP_CODE_LENGTH)
+      .toString('hex')
+      .slice(0, this.SIGNUP_CODE_LENGTH)
+      .toUpperCase();
   }
 }

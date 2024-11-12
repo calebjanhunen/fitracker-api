@@ -16,10 +16,10 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { CheckEmailRequestDto } from '../dto/check-email-request.dto';
-import { CheckEmailResponseDto } from '../dto/check-email-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
 
 @Controller('auth')
@@ -97,19 +97,16 @@ export class AuthController {
     }
   }
 
-  @Post('check-email')
-  public async checkEmail(
+  @Post('send-signup-code')
+  public async sendSignupCodeToEmail(
     @Body() checkEmailDto: CheckEmailRequestDto,
-  ): Promise<CheckEmailResponseDto> {
+  ): Promise<void> {
     try {
-      const result = await this.authService.checkIfEmailIsAvailable(
-        checkEmailDto.email,
-      );
-      return {
-        isAvailable: result.isAvailable,
-        message: result.message,
-      };
+      await this.authService.sendSignupCodeToEmail(checkEmailDto.email);
     } catch (e) {
+      if (e instanceof EmailAlreadyInUseException) {
+        throw new ConflictException(e);
+      }
       throw new InternalServerErrorException(e);
     }
   }
