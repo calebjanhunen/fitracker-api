@@ -143,7 +143,12 @@ export class AuthService {
 
     const signupCodeModel =
       await this.authSignupCodeRepo.getSignupCodeByEmail(email);
-    if (signupCodeModel) {
+    const now = new Date();
+    if (
+      signupCodeModel &&
+      !signupCodeModel.usedAt &&
+      signupCodeModel.expiresAt > now
+    ) {
       this.logger.log(
         `Valid signup code already exists for ${email}. Not sending email or creating a new code.`,
       );
