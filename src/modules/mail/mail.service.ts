@@ -19,15 +19,19 @@ export class MailService {
     code: string,
   ): Promise<void> {
     try {
-      const result = await this.mailerService.sendMail({
-        to: emailAddress,
-        subject: 'Verify your Email',
-        template: './signup-code',
-        context: {
-          code,
-        },
-      });
-      this.logger.log(`Signup email successfully sent: ${result.response}`);
+      if (this.configService.get('SEND_EMAILS')) {
+        const result = await this.mailerService.sendMail({
+          to: emailAddress,
+          subject: 'Verify your Email',
+          template: './signup-code',
+          context: {
+            code,
+          },
+        });
+        this.logger.log(`Signup email successfully sent: ${result.response}`);
+      } else {
+        this.logger.log('Sending emails is not configured');
+      }
     } catch (e) {
       this.logger.error('Signup Code email failed to send: ', e);
       throw new MailFailedToSendException(e);
