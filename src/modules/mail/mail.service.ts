@@ -21,7 +21,7 @@ export class MailService {
     try {
       const result = await this.mailerService.sendMail({
         to: emailAddress,
-        subject: 'Verify your email!',
+        subject: 'Verify your Email',
         template: './signup-code',
         context: {
           code,

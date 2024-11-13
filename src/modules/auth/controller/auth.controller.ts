@@ -8,7 +8,6 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
-  NotFoundException,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -128,7 +127,7 @@ export class AuthController {
       await this.authService.confirmSignupCode(code, email);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
-        throw new NotFoundException(e);
+        throw new ConflictException('Code is not valid');
       }
       if (e instanceof SignupCodeException) {
         throw new ConflictException(e);
