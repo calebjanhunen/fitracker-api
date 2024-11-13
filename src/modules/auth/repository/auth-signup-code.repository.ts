@@ -23,6 +23,7 @@ export class AuthSignupCodeRepository {
         VALUES ($1, $2, $3)
         ON CONFLICT (email)
         DO UPDATE SET
+          used_at = NULL,
           code = EXCLUDED.code,
           expires_at = EXCLUDED.expires_at,
           created_at = NOW()
