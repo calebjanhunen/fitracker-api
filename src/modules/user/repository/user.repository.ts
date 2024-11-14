@@ -112,6 +112,8 @@ export class UserRepository {
       u.username,
       u.first_name,
       u.last_name,
+      u.email,
+      u.is_verified,
       us.total_xp,
       us.weekly_workout_goal
     FROM "user" as u
@@ -131,6 +133,24 @@ export class UserRepository {
     } catch (e) {
       this.logger.error(`Query ${queryName} failed: `, e);
       throw e;
+    }
+  }
+
+  public async verifyUserByEmail(email: string): Promise<void> {
+    const query = `
+      UPDATE "user"
+      SET
+        is_verified = true
+      WHERE
+        email = $1
+    `;
+    const params = [email];
+
+    try {
+      await this.db.queryV2(query, params);
+    } catch (e) {
+      this.logger.error('Query verifyUserByEmail failed: ', e);
+      throw new DatabaseException(e.message);
     }
   }
 

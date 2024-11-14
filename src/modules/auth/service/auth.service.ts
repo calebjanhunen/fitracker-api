@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as crypto from 'crypto';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
@@ -10,19 +9,18 @@ import {
 } from 'src/modules/auth/helpers/password-helper';
 import { MailService } from 'src/modules/mail/mail.service';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
+import { UserModel } from 'src/modules/user/models/user.model';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
+import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-valid.exception';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
-import { SignupCodeAlreadyUsedException } from '../internal-exceptions/signup-code-alread-used.exception';
-import { SignupCodeExpiredException } from '../internal-exceptions/signup-code-expired.exception';
+import { UserIsNotValidatedException } from '../internal-exceptions/user-is-not-validated.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
-import { AuthSignupCodeRepository } from '../repository/auth-signup-code.repository';
+import { EmailVerificationCodeService } from './email-verification-code.service';
 
 @Injectable()
 export class AuthService {
-  private SIGNUP_CODE_LENGTH = 6;
-  private SIGNUP_CODE_EXPIRES_AT_OFFEST = 1;
   constructor(
     private userService: UserService,
     private userRefreshTokenService: UserRefreshTokenService,
@@ -30,7 +28,7 @@ export class AuthService {
     private logger: LoggerServiceV2,
     private configService: ConfigService,
     private readonly mailService: MailService,
-    private readonly authSignupCodeRepo: AuthSignupCodeRepository,
+    private readonly emailVerificationCodeService: EmailVerificationCodeService,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -77,17 +75,18 @@ export class AuthService {
   public async login(
     userId: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
-    const accessToken = await this.generateAcccessToken(userId);
-    const refreshToken = await this.generateRefreshToken(userId);
-
-    const hashedRefreshToken = await generateHashPassword(refreshToken);
-    await this.userRefreshTokenService.upsertRefreshToken(
-      userId,
-      hashedRefreshToken,
-      deviceId,
-    );
-    return { accessToken, refreshToken };
+  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
+    const user = await this.userService.findById(userId);
+    if (!user.isVerified) {
+      this.logger.warn(
+        `User ${user.username} is not validated. Sending verification email`,
+      );
+      await this.generateEmailVerificationCodeAndSendEmail(user.email);
+      throw new UserIsNotValidatedException(user.email);
+    }
+    const { accessToken, refreshToken } =
+      await this.getNewAccessAndRefreshToken(userId, deviceId);
+    return { accessToken, refreshToken, user };
   }
 
   public async logout(userId: string, deviceId: string) {
@@ -113,27 +112,57 @@ export class AuthService {
     const hashedPassword = await generateHashPassword(userModel.password);
     userModel.password = hashedPassword;
 
-    const signupCodeModel = await this.authSignupCodeRepo.getSignupCodeByEmail(
-      userModel.email,
-    );
-    if (!signupCodeModel || !signupCodeModel.usedAt) {
+    const emailVerificationCodeModel =
+      await this.emailVerificationCodeService.getEmailVerificationCodeByEmail(
+        userModel.email,
+      );
+    if (!emailVerificationCodeModel || !emailVerificationCodeModel.usedAt) {
       throw new EmailIsNotValidException();
     }
 
     const createdUser = await this.userService.create(userModel);
 
-    const accessToken = await this.generateAcccessToken(createdUser.id);
-    const refreshToken = await this.generateRefreshToken(createdUser.id);
-
-    const hashedRefreshToken = await generateHashPassword(refreshToken);
-    await this.userRefreshTokenService.upsertRefreshToken(
-      createdUser.id,
-      hashedRefreshToken,
-      deviceId,
-    );
+    const { accessToken, refreshToken } =
+      await this.getNewAccessAndRefreshToken(createdUser.id, deviceId);
 
     const user = await this.userService.findById(createdUser.id);
     return { accessToken, refreshToken, user };
+  }
+
+  public async refreshToken(
+    userId: string,
+    deviceId: string,
+  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
+    const user = await this.userService.findById(userId);
+    const { accessToken, refreshToken } =
+      await this.getNewAccessAndRefreshToken(userId, deviceId);
+    return { accessToken, refreshToken, user };
+  }
+
+  public async verifyEmailOnSignup(email: string): Promise<void> {
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      throw new EmailAlreadyInUseException();
+    }
+
+    await this.generateEmailVerificationCodeAndSendEmail(email);
+  }
+
+  public async confirmEmailVerificationCode(
+    code: string,
+    email: string,
+  ): Promise<void> {
+    await this.emailVerificationCodeService.confirmEmailVerificationCodeIsValidAndSetAsUsed(
+      code,
+      email,
+    );
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      this.logger.log(
+        `User ${email} verified email in login process. Setting user as verified`,
+      );
+      await this.userService.verifyUser(email);
+    }
   }
 
   /**
@@ -144,19 +173,18 @@ export class AuthService {
    * @throws {DatabaseException}
    * @throws {MailFailedToSendException}
    */
-  public async verifyEmail(email: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
-    if (user) {
-      throw new EmailAlreadyInUseException();
-    }
-
-    const signupCodeModel =
-      await this.authSignupCodeRepo.getSignupCodeByEmail(email);
+  private async generateEmailVerificationCodeAndSendEmail(
+    email: string,
+  ): Promise<void> {
+    const emailVerificationCodeModel =
+      await this.emailVerificationCodeService.getEmailVerificationCodeByEmail(
+        email,
+      );
     const now = new Date();
     if (
-      signupCodeModel &&
-      !signupCodeModel.usedAt &&
-      signupCodeModel.expiresAt > now
+      emailVerificationCodeModel &&
+      !emailVerificationCodeModel.usedAt &&
+      emailVerificationCodeModel.expiresAt > now
     ) {
       this.logger.log(
         `Valid signup code already exists for ${email}. Not sending email or creating a new code.`,
@@ -164,45 +192,23 @@ export class AuthService {
       return;
     }
 
-    const signupCode = await this.saveSignupCode(email);
-    await this.mailService.sendVerificationEmail(email, signupCode);
+    const emailVerificationCode =
+      await this.emailVerificationCodeService.saveEmailVerificationCode(email);
+    await this.mailService.sendVerificationEmail(email, emailVerificationCode);
   }
 
-  public async confirmSignupCode(code: string, email: string): Promise<void> {
-    const signupCodeModel = await this.authSignupCodeRepo.getSignupCode(
-      code,
-      email,
-    );
-    if (!signupCodeModel) {
-      throw new ResourceNotFoundException('Code not found');
-    }
+  private async getNewAccessAndRefreshToken(userId: string, deviceId: string) {
+    const accessToken = await this.generateAcccessToken(userId);
+    const refreshToken = await this.generateRefreshToken(userId);
 
-    const now = new Date();
-    if (now > signupCodeModel.expiresAt) {
-      throw new SignupCodeExpiredException();
-    }
-
-    if (signupCodeModel.usedAt) {
-      throw new SignupCodeAlreadyUsedException();
-    }
-
-    await this.authSignupCodeRepo.setSignupCodeAsUsed(signupCodeModel.id);
-  }
-
-  private async saveSignupCode(email: string): Promise<string> {
-    const signupCode = this.generateSignupCode();
-    const expiresAt = new Date();
-    expiresAt.setHours(
-      expiresAt.getHours() + this.SIGNUP_CODE_EXPIRES_AT_OFFEST,
+    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    await this.userRefreshTokenService.upsertRefreshToken(
+      userId,
+      hashedRefreshToken,
+      deviceId,
     );
 
-    await this.authSignupCodeRepo.upsertSignupCode(
-      email,
-      signupCode,
-      expiresAt,
-    );
-
-    return signupCode;
+    return { accessToken, refreshToken };
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
@@ -227,13 +233,5 @@ export class AuthService {
         )}ms`,
       },
     );
-  }
-
-  private generateSignupCode(): string {
-    return crypto
-      .randomBytes(this.SIGNUP_CODE_LENGTH)
-      .toString('hex')
-      .slice(0, this.SIGNUP_CODE_LENGTH)
-      .toUpperCase();
   }
 }

@@ -2,24 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
-import { SignupCodeModel } from '../models/signup-code.model';
+import { EmailVerificationCodeModel } from '../models/email-verification-code.model';
 
 @Injectable()
-export class AuthSignupCodeRepository {
+export class EmailVerificationCodeRepository {
   constructor(
     private readonly db: DbService,
     private readonly logger: LoggerServiceV2,
   ) {
-    this.logger.setContext(AuthSignupCodeRepository.name);
+    this.logger.setContext(EmailVerificationCodeRepository.name);
   }
 
-  public async upsertSignupCode(
+  public async upsertEmailVerificationCode(
     email: string,
     code: string,
     expiresAt: Date,
   ): Promise<void> {
     const query = `
-        INSERT INTO auth_signup_code (email, code, expires_at)
+        INSERT INTO email_verification_code (email, code, expires_at)
         VALUES ($1, $2, $3)
         ON CONFLICT (email)
         DO UPDATE SET
@@ -33,15 +33,15 @@ export class AuthSignupCodeRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query insertSignupCode failed:', e);
+      this.logger.error('Query insertEmailVerificationCode failed:', e);
       throw new DatabaseException(e.message);
     }
   }
 
-  public async getSignupCode(
+  public async getEmailVerificationCode(
     code: string,
     email: string,
-  ): Promise<SignupCodeModel | null> {
+  ): Promise<EmailVerificationCodeModel | null> {
     const query = `
       SELECT
         id,
@@ -50,14 +50,14 @@ export class AuthSignupCodeRepository {
         created_at,
         expires_at,
         used_at
-      FROM auth_signup_code
+      FROM email_verification_code
       WHERE email = $1
         AND code = $2
     `;
     const params = [email, code];
 
     try {
-      const { queryResult } = await this.db.queryV2<SignupCodeModel>(
+      const { queryResult } = await this.db.queryV2<EmailVerificationCodeModel>(
         query,
         params,
       );
@@ -68,14 +68,14 @@ export class AuthSignupCodeRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query getSignupCode failed: ', e);
+      this.logger.error('Query getEmailVerificationCode failed: ', e);
       throw new DatabaseException(e);
     }
   }
 
-  public async getSignupCodeByEmail(
+  public async getEmailVerificationCodeByEmail(
     email: string,
-  ): Promise<SignupCodeModel | null> {
+  ): Promise<EmailVerificationCodeModel | null> {
     const query = `
       SELECT
         id,
@@ -84,14 +84,13 @@ export class AuthSignupCodeRepository {
         created_at,
         expires_at,
         used_at
-      FROM auth_signup_code
+      FROM email_verification_code
       WHERE email = $1
-        AND used_at IS NULL
     `;
     const params = [email];
 
     try {
-      const { queryResult } = await this.db.queryV2<SignupCodeModel>(
+      const { queryResult } = await this.db.queryV2<EmailVerificationCodeModel>(
         query,
         params,
       );
@@ -102,14 +101,14 @@ export class AuthSignupCodeRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query getSignupCode failed: ', e);
+      this.logger.error('Query getEmailVerificationCode failed: ', e);
       throw new DatabaseException(e);
     }
   }
 
-  public async setSignupCodeAsUsed(id: number) {
+  public async setEmailVerificationCodeAsUsed(id: number) {
     const query = `
-      UPDATE auth_signup_code
+      UPDATE email_verification_code
       SET
         used_at = NOW()
       WHERE id = $1
@@ -117,9 +116,9 @@ export class AuthSignupCodeRepository {
     const params = [id];
 
     try {
-      await this.db.queryV2<SignupCodeModel>(query, params);
+      await this.db.queryV2<EmailVerificationCodeModel>(query, params);
     } catch (e) {
-      this.logger.error('Query setSignupCodeAsUsed failed: ', e);
+      this.logger.error('Query setEmailVerificationCodeAsUsed failed: ', e);
       throw new DatabaseException(e);
     }
   }

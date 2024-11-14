@@ -42,6 +42,10 @@ export class UserService {
     return this.userRepo.getStatsByUserId(userId);
   }
 
+  public async verifyUser(email: string): Promise<void> {
+    this.userRepo.verifyUserByEmail(email);
+  }
+
   public async updateUserStats(
     userId: string,
     updatedUserStats: UserStats,

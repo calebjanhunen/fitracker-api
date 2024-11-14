@@ -16,7 +16,7 @@ exports.setup = function (options, seedLink) {
 
 exports.up = function (db, callback) {
   db.createTable(
-    'auth_signup_code',
+    'email_verification_code',
     {
       columns: {
         id: {
@@ -57,7 +57,7 @@ exports.up = function (db, callback) {
 };
 
 exports.down = function (db, callback) {
-  db.dropTable('auth_signup_code', callback);
+  db.dropTable('email_verification_code', callback);
 };
 
 exports._meta = {
