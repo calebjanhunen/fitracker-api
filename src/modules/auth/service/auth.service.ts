@@ -10,8 +10,10 @@ import {
 } from 'src/modules/auth/helpers/password-helper';
 import { MailService } from 'src/modules/mail/mail.service';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
+import { UserModel } from 'src/modules/user/models/user.model';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
+import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-valid.exception';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
 import { SignupCodeAlreadyUsedException } from '../internal-exceptions/signup-code-alread-used.exception';
 import { SignupCodeExpiredException } from '../internal-exceptions/signup-code-expired.exception';
