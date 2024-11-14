@@ -86,7 +86,6 @@ export class AuthSignupCodeRepository {
         used_at
       FROM auth_signup_code
       WHERE email = $1
-        AND used_at IS NULL
     `;
     const params = [email];
 
