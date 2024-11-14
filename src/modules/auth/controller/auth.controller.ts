@@ -18,8 +18,8 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { UserResponseDto } from 'src/modules/user/dtos/user-response.dto';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserModel } from 'src/modules/user/models/user.model';
+import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
-import { SignupResponseDto } from '../dto/signup-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
@@ -42,7 +42,7 @@ export class AuthController {
   public async login(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<SignupResponseDto> {
+  ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken, user } = await this.authService.login(
         userId,
@@ -76,7 +76,7 @@ export class AuthController {
   public async refreshToken(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<SignupResponseDto> {
+  ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken, user } =
         await this.authService.refreshToken(userId, deviceId);
@@ -94,7 +94,7 @@ export class AuthController {
   public async signup(
     @Body() signupDto: UserSignupDto,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<SignupResponseDto> {
+  ): Promise<AuthenticationResponseDto> {
     try {
       const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);
       const { accessToken, refreshToken, user } = await this.authService.signup(
