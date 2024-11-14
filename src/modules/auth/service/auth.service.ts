@@ -113,6 +113,13 @@ export class AuthService {
     const hashedPassword = await generateHashPassword(userModel.password);
     userModel.password = hashedPassword;
 
+    const signupCodeModel = await this.authSignupCodeRepo.getSignupCodeByEmail(
+      userModel.email,
+    );
+    if (!signupCodeModel || !signupCodeModel.usedAt) {
+      throw new EmailIsNotValidException();
+    }
+
     const createdUser = await this.userService.create(userModel);
 
     const accessToken = await this.generateAcccessToken(createdUser.id);

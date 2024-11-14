@@ -104,7 +104,10 @@ export class AuthController {
         user: this.mapper.map(user, UserModel, UserResponseDto),
       };
     } catch (e) {
-      if (e instanceof SignupValidationException) {
+      if (
+        e instanceof SignupValidationException ||
+        e instanceof SignupCodeException
+      ) {
         throw new ConflictException(e);
       }
       throw new InternalServerErrorException();
