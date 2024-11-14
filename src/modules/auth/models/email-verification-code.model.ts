@@ -1,4 +1,4 @@
-export class SignupCodeModel {
+export class EmailVerificationCodeModel {
   id: number;
   email: string;
   code: string;

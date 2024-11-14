@@ -18,13 +18,16 @@ import { UserResponseDto } from 'src/modules/user/dtos/user-response.dto';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserModel } from 'src/modules/user/models/user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
-import { ConfirmSignupCodeDto } from '../dto/confirm-signup-code.dto';
+import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
 import { SignupResponseDto } from '../dto/signup-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { SignupCodeException } from '../internal-exceptions/signup-code.exception';
+import {
+  EmailVerificationException,
+  SignupCodeException,
+} from '../internal-exceptions/email-verification.exception';
 import { SignupValidationException } from '../internal-exceptions/signup-validation.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
@@ -129,17 +132,17 @@ export class AuthController {
   }
 
   @Post('confirm-signup-code')
-  public async confirmSignupCode(
-    @Body() confirmSignupCodeDto: ConfirmSignupCodeDto,
+  public async confirmVerifyEmailCode(
+    @Body() confirmEmailVerificationCodeDto: ConfirmEmailVerificationCodeDto,
   ): Promise<void> {
     try {
-      const { code, email } = confirmSignupCodeDto;
-      await this.authService.confirmSignupCode(code, email);
+      const { code, email } = confirmEmailVerificationCodeDto;
+      await this.authService.confirmEmailVerificationCode(code, email);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new ConflictException('Code is not valid');
       }
-      if (e instanceof SignupCodeException) {
+      if (e instanceof EmailVerificationException) {
         throw new ConflictException(e);
       }
       throw new InternalServerErrorException(e.message);

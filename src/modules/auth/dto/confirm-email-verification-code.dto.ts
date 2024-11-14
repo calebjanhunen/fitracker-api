@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-export class ConfirmSignupCodeDto {
+export class ConfirmEmailVerificationCodeDto {
   @IsNotEmpty()
   @IsString()
   code: string;

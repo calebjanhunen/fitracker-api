@@ -14,12 +14,12 @@ import { UserModel } from 'src/modules/user/models/user.model';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 import { UserService } from '../../user/service/user.service';
 import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-valid.exception';
+import { EmailVerificationCodeAlreadyUsedException } from '../internal-exceptions/email-verification-code-alread-used.exception';
+import { EmailVerificationCodeExpiredException } from '../internal-exceptions/email-verification-expired.exception';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
-import { SignupCodeAlreadyUsedException } from '../internal-exceptions/signup-code-alread-used.exception';
-import { SignupCodeExpiredException } from '../internal-exceptions/signup-code-expired.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
-import { AuthSignupCodeRepository } from '../repository/auth-signup-code.repository';
+import { EmailVerificationCodeRepository } from '../repository/email-verification-code.repository';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +32,7 @@ export class AuthService {
     private logger: LoggerServiceV2,
     private configService: ConfigService,
     private readonly mailService: MailService,
-    private readonly authSignupCodeRepo: AuthSignupCodeRepository,
+    private readonly emailVerificationCodeRepo: EmailVerificationCodeRepository,
   ) {
     this.logger.setContext(AuthService.name);
   }
@@ -115,9 +115,10 @@ export class AuthService {
     const hashedPassword = await generateHashPassword(userModel.password);
     userModel.password = hashedPassword;
 
-    const signupCodeModel = await this.authSignupCodeRepo.getSignupCodeByEmail(
-      userModel.email,
-    );
+    const signupCodeModel =
+      await this.emailVerificationCodeRepo.getEmailVerificationCodeByEmail(
+        userModel.email,
+      );
     if (!signupCodeModel || !signupCodeModel.usedAt) {
       throw new EmailIsNotValidException();
     }
@@ -153,7 +154,9 @@ export class AuthService {
     }
 
     const signupCodeModel =
-      await this.authSignupCodeRepo.getSignupCodeByEmail(email);
+      await this.emailVerificationCodeRepo.getEmailVerificationCodeByEmail(
+        email,
+      );
     const now = new Date();
     if (
       signupCodeModel &&
@@ -166,39 +169,45 @@ export class AuthService {
       return;
     }
 
-    const signupCode = await this.saveSignupCode(email);
+    const signupCode = await this.saveVerifyEmailCode(email);
     await this.mailService.sendVerificationEmail(email, signupCode);
   }
 
-  public async confirmSignupCode(code: string, email: string): Promise<void> {
-    const signupCodeModel = await this.authSignupCodeRepo.getSignupCode(
-      code,
-      email,
-    );
+  public async confirmEmailVerificationCode(
+    code: string,
+    email: string,
+  ): Promise<void> {
+    const signupCodeModel =
+      await this.emailVerificationCodeRepo.getEmailVerificationCode(
+        code,
+        email,
+      );
     if (!signupCodeModel) {
       throw new ResourceNotFoundException('Code not found');
     }
 
     const now = new Date();
     if (now > signupCodeModel.expiresAt) {
-      throw new SignupCodeExpiredException();
+      throw new EmailVerificationCodeExpiredException();
     }
 
     if (signupCodeModel.usedAt) {
-      throw new SignupCodeAlreadyUsedException();
+      throw new EmailVerificationCodeAlreadyUsedException();
     }
 
-    await this.authSignupCodeRepo.setSignupCodeAsUsed(signupCodeModel.id);
+    await this.emailVerificationCodeRepo.setEmailVerificationCodeAsUsed(
+      signupCodeModel.id,
+    );
   }
 
-  private async saveSignupCode(email: string): Promise<string> {
+  private async saveVerifyEmailCode(email: string): Promise<string> {
     const signupCode = this.generateSignupCode();
     const expiresAt = new Date();
     expiresAt.setHours(
       expiresAt.getHours() + this.SIGNUP_CODE_EXPIRES_AT_OFFEST,
     );
 
-    await this.authSignupCodeRepo.upsertSignupCode(
+    await this.emailVerificationCodeRepo.upsertEmailVerificationCode(
       email,
       signupCode,
       expiresAt,

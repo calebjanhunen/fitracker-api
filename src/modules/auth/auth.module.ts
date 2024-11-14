@@ -7,7 +7,7 @@ import { MailModule } from '../mail/mail.module';
 import { UserModule } from '../user/user.module';
 import { AuthMapperProfile } from './auth-mapper.profile';
 import { AuthController } from './controller/auth.controller';
-import { AuthSignupCodeRepository } from './repository/auth-signup-code.repository';
+import { EmailVerificationCodeRepository } from './repository/email-verification-code.repository';
 import { AuthService } from './service/auth.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -29,7 +29,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     LoggerServiceV2,
     JwtRefreshStrategy,
     AuthMapperProfile,
-    AuthSignupCodeRepository,
+    EmailVerificationCodeRepository,
   ],
 })
 export class AuthModule {}
