@@ -80,14 +80,14 @@ export class AuthService {
   public async login(
     userId: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
     const user = await this.userService.findById(userId);
     if (!user.isVerified) {
       this.logger.warn(
         `User ${user.username} is not validated. Sending validation email`,
       );
       await this.verifyEmail(user.email);
-      throw new UserIsNotValidatedException();
+      throw new UserIsNotValidatedException(user.email);
     }
 
     const accessToken = await this.generateAcccessToken(userId);
@@ -99,7 +99,7 @@ export class AuthService {
       hashedRefreshToken,
       deviceId,
     );
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, user };
   }
 
   public async logout(userId: string, deviceId: string) {

@@ -43,15 +43,16 @@ export class AuthController {
   public async login(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<AuthenticationResponseDto> {
+  ): Promise<SignupResponseDto> {
     try {
-      const { accessToken, refreshToken } = await this.authService.login(
+      const { accessToken, refreshToken, user } = await this.authService.login(
         userId,
         deviceId,
       );
       return {
         accessToken,
         refreshToken,
+        user: this.mapper.map(user, UserModel, UserResponseDto),
       };
     } catch (e) {
       if (e instanceof UserIsNotValidatedException) {
