@@ -136,6 +136,24 @@ export class UserRepository {
     }
   }
 
+  public async verifyUserByEmail(email: string): Promise<void> {
+    const query = `
+      UPDATE "user"
+      SET
+        is_verified = true
+      WHERE
+        email = $1
+    `;
+    const params = [email];
+
+    try {
+      await this.db.queryV2(query, params);
+    } catch (e) {
+      this.logger.error('Query verifyUserByEmail failed: ', e);
+      throw new DatabaseException(e.message);
+    }
+  }
+
   public async getStatsByUserId(userId: string): Promise<UserStats> {
     const query = `
       SELECT

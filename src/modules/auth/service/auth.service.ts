@@ -212,6 +212,14 @@ export class AuthService {
     await this.emailVerificationCodeRepo.setEmailVerificationCodeAsUsed(
       signupCodeModel.id,
     );
+
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      this.logger.log(
+        `User ${email} verified email in login process. Setting user as verified`,
+      );
+      await this.userService.verifyUser(email);
+    }
   }
 
   private async saveEmailVerificationCode(email: string): Promise<string> {
