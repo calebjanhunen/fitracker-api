@@ -24,10 +24,7 @@ import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
-import {
-  EmailVerificationException,
-  SignupCodeException,
-} from '../internal-exceptions/email-verification.exception';
+import { EmailVerificationException } from '../internal-exceptions/email-verification.exception';
 import { SignupValidationException } from '../internal-exceptions/signup-validation.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
@@ -109,7 +106,7 @@ export class AuthController {
     } catch (e) {
       if (
         e instanceof SignupValidationException ||
-        e instanceof SignupCodeException
+        e instanceof EmailVerificationException
       ) {
         throw new ConflictException(e);
       }
