@@ -17,6 +17,7 @@ import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-va
 import { EmailVerificationCodeAlreadyUsedException } from '../internal-exceptions/email-verification-code-alread-used.exception';
 import { EmailVerificationCodeExpiredException } from '../internal-exceptions/email-verification-expired.exception';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
+import { UserIsNotValidatedException } from '../internal-exceptions/user-is-not-validated.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
 import { EmailVerificationCodeRepository } from '../repository/email-verification-code.repository';
@@ -80,6 +81,15 @@ export class AuthService {
     userId: string,
     deviceId: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.userService.findById(userId);
+    if (!user.isVerified) {
+      this.logger.warn(
+        `User ${user.username} is not validated. Sending validation email`,
+      );
+      await this.verifyEmail(user.email);
+      throw new UserIsNotValidatedException();
+    }
+
     const accessToken = await this.generateAcccessToken(userId);
     const refreshToken = await this.generateRefreshToken(userId);
 
@@ -173,7 +183,7 @@ export class AuthService {
       return;
     }
 
-    const emailVerificationCode = await this.saveVerifyEmailCode(email);
+    const emailVerificationCode = await this.saveEmailVerificationCode(email);
     await this.mailService.sendVerificationEmail(email, emailVerificationCode);
   }
 
@@ -204,8 +214,8 @@ export class AuthService {
     );
   }
 
-  private async saveVerifyEmailCode(email: string): Promise<string> {
-    const signupCode = this.generateSignupCode();
+  private async saveEmailVerificationCode(email: string): Promise<string> {
+    const signupCode = this.generateEmailVerificationCode();
     const expiresAt = new Date();
     expiresAt.setHours(
       expiresAt.getHours() + this.SIGNUP_CODE_EXPIRES_AT_OFFEST,
@@ -244,7 +254,7 @@ export class AuthService {
     );
   }
 
-  private generateSignupCode(): string {
+  private generateEmailVerificationCode(): string {
     return crypto
       .randomBytes(this.SIGNUP_CODE_LENGTH)
       .toString('hex')
