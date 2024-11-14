@@ -112,6 +112,8 @@ export class UserRepository {
       u.username,
       u.first_name,
       u.last_name,
+      u.email,
+      u.is_verified,
       us.total_xp,
       us.weekly_workout_goal
     FROM "user" as u
