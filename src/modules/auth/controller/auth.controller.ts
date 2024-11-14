@@ -114,12 +114,12 @@ export class AuthController {
     }
   }
 
-  @Post('verify-email')
-  public async verifyEmail(
+  @Post('verify-email-on-signup')
+  public async verifyEmailOnSignup(
     @Body() verifyEmailDto: VerifyEmailDto,
   ): Promise<void> {
     try {
-      await this.authService.verifyEmail(verifyEmailDto.email);
+      await this.authService.verifyEmailOnSignup(verifyEmailDto.email);
     } catch (e) {
       if (e instanceof EmailAlreadyInUseException) {
         throw new ConflictException(e);

@@ -139,6 +139,15 @@ export class AuthService {
     return { accessToken, refreshToken, user };
   }
 
+  public async verifyEmailOnSignup(email: string): Promise<void> {
+    const user = await this.userService.findByEmail(email);
+    if (user) {
+      throw new EmailAlreadyInUseException();
+    }
+
+    await this.verifyEmail(email);
+  }
+
   /**
    * Saves signup code and sends to email
    * @param {string} email
@@ -147,21 +156,16 @@ export class AuthService {
    * @throws {DatabaseException}
    * @throws {MailFailedToSendException}
    */
-  public async verifyEmail(email: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
-    if (user) {
-      throw new EmailAlreadyInUseException();
-    }
-
-    const signupCodeModel =
+  private async verifyEmail(email: string): Promise<void> {
+    const emailVerificationCodeModel =
       await this.emailVerificationCodeRepo.getEmailVerificationCodeByEmail(
         email,
       );
     const now = new Date();
     if (
-      signupCodeModel &&
-      !signupCodeModel.usedAt &&
-      signupCodeModel.expiresAt > now
+      emailVerificationCodeModel &&
+      !emailVerificationCodeModel.usedAt &&
+      emailVerificationCodeModel.expiresAt > now
     ) {
       this.logger.log(
         `Valid signup code already exists for ${email}. Not sending email or creating a new code.`,
@@ -169,8 +173,8 @@ export class AuthService {
       return;
     }
 
-    const signupCode = await this.saveVerifyEmailCode(email);
-    await this.mailService.sendVerificationEmail(email, signupCode);
+    const emailVerificationCode = await this.saveVerifyEmailCode(email);
+    await this.mailService.sendVerificationEmail(email, emailVerificationCode);
   }
 
   public async confirmEmailVerificationCode(
