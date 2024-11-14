@@ -98,7 +98,7 @@ export class AuthService {
     userModel: InsertUserModel,
     confirmPassword: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
     if (await this.userService.findByUsername(userModel.username)) {
       throw new UserWithUsernameAlreadyExistsException();
     }
@@ -124,7 +124,9 @@ export class AuthService {
       hashedRefreshToken,
       deviceId,
     );
-    return { accessToken, refreshToken };
+
+    const user = await this.userService.findById(createdUser.id);
+    return { accessToken, refreshToken, user };
   }
 
   /**

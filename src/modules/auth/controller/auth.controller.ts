@@ -14,9 +14,12 @@ import {
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { UserResponseDto } from 'src/modules/user/dtos/user-response.dto';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
+import { UserModel } from 'src/modules/user/models/user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmSignupCodeDto } from '../dto/confirm-signup-code.dto';
+import { SignupResponseDto } from '../dto/signup-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
@@ -87,15 +90,19 @@ export class AuthController {
   public async signup(
     @Body() signupDto: UserSignupDto,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<AuthenticationResponseDto> {
+  ): Promise<SignupResponseDto> {
     try {
       const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);
-      const { accessToken, refreshToken } = await this.authService.signup(
+      const { accessToken, refreshToken, user } = await this.authService.signup(
         model,
         signupDto.confirmPassword,
         deviceId,
       );
-      return { accessToken, refreshToken };
+      return {
+        accessToken,
+        refreshToken,
+        user: this.mapper.map(user, UserModel, UserResponseDto),
+      };
     } catch (e) {
       if (e instanceof SignupValidationException) {
         throw new ConflictException(e);
