@@ -1,7 +1,7 @@
-import { BaseException } from 'src/common/internal-exceptions/base.exception';
+import { SignupValidationException } from './signup-validation.exception';
 
-export class UserWithUsernameAlreadyExistsException extends BaseException {
-  constructor(username: string) {
-    super(`User with username ${username} already exists.`);
+export class UserWithUsernameAlreadyExistsException extends SignupValidationException {
+  constructor() {
+    super('Username is taken.');
   }
 }

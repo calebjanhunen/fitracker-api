@@ -18,8 +18,8 @@ export class UserRepository {
   public async create(user: InsertUserModel): Promise<UserModel> {
     const queryName = 'CreateUser';
     const query = `
-        INSERT INTO "user" (username, password, first_name, last_name, email)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO "user" (username, password, first_name, last_name, email, is_verified)
+        VALUES ($1, $2, $3, $4, $5, true)
         RETURNING *;
     `;
     const values = [
@@ -55,7 +55,8 @@ export class UserRepository {
           password,
           email,
           first_name,
-          last_name
+          last_name,
+          is_verified
         FROM "user"
         WHERE username = $1
     `;

@@ -3,7 +3,7 @@
 # Development environment
 #
 ###################
-FROM node:current-alpine AS development
+FROM node:18-alpine AS development
 
 # Create directory inside docker
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install depencencies
-RUN npm install
+RUN npm install --verbose
 
 # Copy source code to docker directory
 COPY . .
@@ -31,7 +31,7 @@ CMD ["npm", "run", "start:dev"]
 # Build the code for production
 #
 ###################
-FROM node:current-alpine AS build
+FROM node:18-alpine AS build
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -54,7 +54,7 @@ RUN npm ci --omit=dev
 # Production environment
 #
 ###################
-FROM node:current-alpine AS production
+FROM node:18-alpine AS production
 # Set working directory
 WORKDIR /usr/src/app
 

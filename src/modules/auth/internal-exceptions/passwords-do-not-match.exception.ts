@@ -1,6 +1,6 @@
-import { BaseException } from 'src/common/internal-exceptions/base.exception';
+import { SignupValidationException } from './signup-validation.exception';
 
-export class PasswordsDoNotMatchException extends BaseException {
+export class PasswordsDoNotMatchException extends SignupValidationException {
   constructor() {
     super('Passwords do not match.');
   }
