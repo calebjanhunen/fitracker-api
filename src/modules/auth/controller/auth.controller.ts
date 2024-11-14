@@ -4,6 +4,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  ForbiddenException,
   Headers,
   HttpCode,
   HttpStatus,
@@ -26,6 +27,7 @@ import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { EmailVerificationException } from '../internal-exceptions/email-verification.exception';
 import { SignupValidationException } from '../internal-exceptions/signup-validation.exception';
+import { UserIsNotValidatedException } from '../internal-exceptions/user-is-not-validated.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { AuthService } from '../service/auth.service';
 
@@ -52,6 +54,9 @@ export class AuthController {
         refreshToken,
       };
     } catch (e) {
+      if (e instanceof UserIsNotValidatedException) {
+        throw new ForbiddenException(e);
+      }
       throw new InternalServerErrorException();
     }
   }
