@@ -18,7 +18,6 @@ import { ResourceNotFoundException } from 'src/common/internal-exceptions/resour
 import { UserResponseDto } from 'src/modules/user/dtos/user-response.dto';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserModel } from 'src/modules/user/models/user.model';
-import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
 import { SignupResponseDto } from '../dto/signup-response.dto';
 import UserSignupDto from '../dto/user-signup-dto';
@@ -77,15 +76,14 @@ export class AuthController {
   public async refreshToken(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
-  ): Promise<AuthenticationResponseDto> {
+  ): Promise<SignupResponseDto> {
     try {
-      const { accessToken, refreshToken } = await this.authService.login(
-        userId,
-        deviceId,
-      );
+      const { accessToken, refreshToken, user } =
+        await this.authService.refreshToken(userId, deviceId);
       return {
         accessToken,
         refreshToken,
+        user: this.mapper.map(user, UserModel, UserResponseDto),
       };
     } catch (e) {
       throw new InternalServerErrorException();

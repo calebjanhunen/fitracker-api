@@ -9,6 +9,7 @@ import { AuthMapperProfile } from './auth-mapper.profile';
 import { AuthController } from './controller/auth.controller';
 import { EmailVerificationCodeRepository } from './repository/email-verification-code.repository';
 import { AuthService } from './service/auth.service';
+import { EmailVerificationCodeService } from './service/email-verification-code.service';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -29,6 +30,7 @@ import { LocalStrategy } from './strategies/local.strategy';
     LoggerServiceV2,
     JwtRefreshStrategy,
     AuthMapperProfile,
+    EmailVerificationCodeService,
     EmailVerificationCodeRepository,
   ],
 })
