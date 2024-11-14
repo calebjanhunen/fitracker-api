@@ -128,8 +128,8 @@ export class AuthController {
     }
   }
 
-  @Post('confirm-signup-code')
-  public async confirmVerifyEmailCode(
+  @Post('confirm-email-verification-code')
+  public async confirmEmailVerificationCode(
     @Body() confirmEmailVerificationCodeDto: ConfirmEmailVerificationCodeDto,
   ): Promise<void> {
     try {
