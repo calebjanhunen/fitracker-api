@@ -1,4 +1,4 @@
-name: Production Deploy
+name: Production Database Migration
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy-to-prod:
+  prod-db-migrate:
     runs-on: ubuntu-latest
 
     steps:
@@ -56,4 +56,4 @@ jobs:
                -e POSTGRES_USER=$POSTGRES_USER \
                -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
                -e POSTGRES_DATABAS=$POSTGRES_DATABASE \
-               db-migrate:latest
+               calebjanhunen/db-migrate:latest
