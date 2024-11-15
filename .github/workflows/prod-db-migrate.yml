@@ -52,9 +52,5 @@ jobs:
             echo "Running migrations"
             echo "$POSTGRES_PORT"
             docker run --rm \
-               -e POSTGRES_HOST=$POSTGRES_HOST \
-               -e POSTGRES_PORT=$POSTGRES_PORT \
-               -e POSTGRES_USER=$POSTGRES_USER \
-               -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
-               -e POSTGRES_DATABAS=$POSTGRES_DATABASE \
+               --env-file ${{ secrets.ENV_FILE_LOCATION }} \
                calebjanhunen/db-migrate:latest
