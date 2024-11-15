@@ -34,4 +34,4 @@ jobs:
         run: |
           VERSION=${{ env.VERSION }}
           git tag "v$VERSION"
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/calebjanhunen/fitracker-api.git "v$VERSION"
+          git push origin "v$VERSION"
