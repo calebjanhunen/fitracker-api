@@ -1,7 +1,9 @@
 name: Production Deploy
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   deploy-to-prod:
