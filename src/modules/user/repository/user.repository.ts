@@ -224,4 +224,22 @@ export class UserRepository {
       throw new DatabaseException(e.message);
     }
   }
+
+  public async resetPassword(userId: string, password: string): Promise<void> {
+    const query = `
+      UPDATE "user"
+      SET
+        password = $1,
+        updated_at = NOW()
+      WHERE id = $2
+    `;
+    const params = [password, userId];
+
+    try {
+      await this.db.queryV2(query, params);
+    } catch (e) {
+      this.logger.error('Query updatePassword failed: ', e);
+      throw new DatabaseException(e);
+    }
+  }
 }

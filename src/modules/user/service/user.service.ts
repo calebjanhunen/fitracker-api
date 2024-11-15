@@ -63,6 +63,10 @@ export class UserService {
     return await this.userRepo.updateUserStats(newUserStats, userId);
   }
 
+  public async resetPassword(userId: string, password: string): Promise<void> {
+    this.userRepo.resetPassword(userId, password);
+  }
+
   private getUpdatedUserStatsModel(
     updatedUserStats: UserStats,
     currentUserStats: UserStats,
