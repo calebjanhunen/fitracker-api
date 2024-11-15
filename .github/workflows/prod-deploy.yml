@@ -46,6 +46,7 @@ jobs:
 
             echo "Running the new container"
             docker run -d \
+              --network fitracker-infra_default
               --name fitracker-api-prod \
               --restart unless-stopped \
               --env-file ${{ secrets.ENV_FILE_LOCATION }} \
