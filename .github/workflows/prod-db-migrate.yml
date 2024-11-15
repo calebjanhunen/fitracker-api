@@ -53,4 +53,5 @@ jobs:
             echo "$POSTGRES_PORT"
             docker run --rm \
                --env-file ${{ secrets.ENV_FILE_LOCATION }} \
+               --network fitracker-infra_default \
                calebjanhunen/db-migrate:latest
