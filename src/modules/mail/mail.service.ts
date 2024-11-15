@@ -37,4 +37,29 @@ export class MailService {
       throw new MailFailedToSendException(e);
     }
   }
+
+  public async sendForgotPasswordEmail(emailAddress: string, token: string) {
+    try {
+      if (this.configService.get('SEND_EMAILS')) {
+        const result = await this.mailerService.sendMail({
+          to: emailAddress,
+          subject: 'Reset Password',
+          template: './reset-password',
+          context: {
+            resetLink: `${this.configService.getOrThrow(
+              'RESET_PASSWORD_LINK',
+            )}?token=${token}`,
+          },
+        });
+        this.logger.log(
+          `Reset password email successfully sent: ${result.response}`,
+        );
+      } else {
+        this.logger.log('Sending emails is not configured');
+      }
+    } catch (e) {
+      this.logger.error('Reset password email failed to send: ', e);
+      throw new MailFailedToSendException(e);
+    }
+  }
 }

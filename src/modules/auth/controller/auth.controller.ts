@@ -9,6 +9,8 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  NotFoundException,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +22,7 @@ import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { UserModel } from 'src/modules/user/models/user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
@@ -147,6 +150,30 @@ export class AuthController {
         throw new ConflictException(e);
       }
       throw new InternalServerErrorException(e.message);
+    }
+  }
+
+  @Post('forgotPassword')
+  public async forgotPassword(
+    @Body() forgotPasswordDto: VerifyEmailDto,
+  ): Promise<void> {
+    try {
+      await this.authService.sendForgotPasswordEmail(forgotPasswordDto.email);
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  @Patch('resetPassword')
+  public async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    try {
+      const { password, confirmPassword, token } = resetPasswordDto;
+      await this.authService.resetPassword(token, password, confirmPassword);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e);
+      }
+      throw new InternalServerErrorException(e);
     }
   }
 }

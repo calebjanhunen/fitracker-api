@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { BaseException } from 'src/common/internal-exceptions/base.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
@@ -163,6 +164,58 @@ export class AuthService {
       );
       await this.userService.verifyUser(email);
     }
+  }
+
+  public async sendForgotPasswordEmail(email: string): Promise<void> {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      this.logger.warn('No user with email. Not sending email');
+      return;
+    }
+
+    const resetToken = this.jwtService.sign(
+      {
+        email,
+      },
+      {
+        secret: this.configService.getOrThrow('RESET_PASSWORD_TOKEN_SECRET'),
+        expiresIn: this.configService.getOrThrow(
+          'RESET_PASSWORD_TOKEN_EXPIRATION_MS',
+        ),
+      },
+    );
+
+    await this.mailService.sendForgotPasswordEmail(email, resetToken);
+  }
+
+  public async resetPassword(
+    token: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<void> {
+    let emailAddress: string;
+    try {
+      const { email } = this.jwtService.verify(token, {
+        secret: this.configService.getOrThrow('RESET_PASSWORD_TOKEN_SECRET'),
+      });
+      emailAddress = email;
+    } catch (e) {
+      throw new BaseException(
+        'Email has expired. Send another forgot password email',
+      );
+    }
+    const user = await this.userService.findByEmail(emailAddress);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (password !== confirmPassword) {
+      throw new PasswordsDoNotMatchException();
+    }
+
+    const hashedPassword = await generateHashPassword(password);
+
+    await this.userService.resetPassword(user.id, hashedPassword);
   }
 
   /**
