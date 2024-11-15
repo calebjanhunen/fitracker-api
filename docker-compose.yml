@@ -11,6 +11,8 @@ services:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - fitracker-api-network
 
   fitracker-api:
     container_name: fitracker-api
@@ -34,6 +36,24 @@ services:
     volumes:
       - .:/usr/src/app:delegated
       - /usr/src/app/node_modules # excludes node_modules
+    networks:
+      - fitracker-api-network
+
+  db-migrate:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    depends_on:
+      - fitracker-db
+    environment:
+      POSTGRES_HOST: fitracker-db
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+    restart: no
+    networks:
+      - fitracker-api-network
 
   test-db:
     image: postgres:15
@@ -62,3 +82,6 @@ services:
 
 volumes:
   pgdata:
+
+networks:
+  fitracker-api-network:
