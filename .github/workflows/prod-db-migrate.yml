@@ -1,0 +1,55 @@
+name: Production Database Migration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  prod-db-migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.6.1
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and push migration image to Docker Hub
+        run: |
+          docker buildx create --use
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t calebjanhunen/db-migrate:latest \
+            --push ./database
+
+      - name: Pull migration image
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ secrets.RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
+            echo "Logging into Docker..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            echo "Pulling the new image..."
+            docker pull calebjanhunen/db-migrate:latest
+
+      - name: Run migrations
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ secrets.RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
+            echo "Running migrations"
+            echo "$POSTGRES_PORT"
+            docker run --rm \
+               --env-file ${{ secrets.ENV_FILE_LOCATION }} \
+               --network fitracker-infra_default \
+               calebjanhunen/db-migrate:latest

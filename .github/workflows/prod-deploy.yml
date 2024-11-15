@@ -1,0 +1,52 @@
+name: Production Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-to-prod:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.0
+
+      - name: Get Tag Name
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Pulling image for version ${{ env.TAG_NAME }}
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ secrets.RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
+            echo "Logging into Docker..."
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+            echo "Pulling the new image..."
+            docker pull calebjanhunen/fitracker-api:latest
+
+      - name: Starting container for version ${{ env.TAG_NAME }}
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ secrets.RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
+            echo "Stopping the old container..."
+            docker stop fitracker-api-prod || true
+            docker rm fitracker-api-prod || true
+
+            echo "Running the new container"
+            docker run -d \
+              --name fitracker-api-prod \
+              --restart unless-stopped \
+              --env-file ${{ secrets.ENV_FILE_LOCATION }} \
+              --network fitracker-infra_default \
+              -p 3000:3000 \
+              calebjanhunen/fitracker-api:latest
