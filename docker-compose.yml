@@ -64,6 +64,8 @@ services:
       POSTGRES_DB: testdb
     ports:
       - '5433:5432'
+    networks:
+      - fitracker-api-network
 
   # used when running npm run seed (for seeding the database)
   seed:
@@ -79,6 +81,8 @@ services:
       - ./scripts/run-seeds.sh:/scripts/run-seeds.sh
       - ./database/seeds:/database/seeds
     entrypoint: ['sh', '/scripts/run-seeds.sh']
+    networks:
+      - fitracker-api-network
 
 volumes:
   pgdata:
