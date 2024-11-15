@@ -51,7 +51,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DATABASE: ${POSTGRES_DATABASE}
-    restart: no
+    restart: 'no'
     networks:
       - fitracker-api-network
 
