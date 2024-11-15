@@ -22,6 +22,7 @@ async function bootstrap() {
   logger.setContext('Bootstrap');
 
   await app.listen(3000);
+  logger.log('Listening on port: 3000');
   logger.log(`Environment: ${process.env.NODE_ENV}`);
 }
 bootstrap();

@@ -27,7 +27,7 @@ jobs:
             -t calebjanhunen/db-migrate:latest \
             --push ./database
 
-      - name: Pull image and run migrations
+      - name: Pull migration image
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.RPI_IP }}
@@ -41,11 +41,19 @@ jobs:
             echo "Pulling the new image..."
             docker pull calebjanhunen/db-migrate:latest
 
+      - name: Run migrations
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.RPI_IP }}
+          username: ${{ secrets.RPI_USER }}
+          key: ${{ secrets.RPI_SSH_KEY }}
+          port: ${{ secrets.RPI_SSH_PORT }}
+          script: |
             echo "Running migrations"
             docker run --rm \
-                -e POSTGRES_HOST=$POSTGRES_HOST
-                -e POSTGRES_PORT=$POSTGRES_PORT
-                -e POSTGRES_USER=$POSTGRES_USER
-                -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-                -e POSTGRES_DATABAS=$POSTGRES_DATABASE \
-                db-migrate:latest
+               -e POSTGRES_HOST=$POSTGRES_HOST \
+               -e POSTGRES_PORT=$POSTGRES_PORT \
+               -e POSTGRES_USER=$POSTGRES_USER \
+               -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+               -e POSTGRES_DATABAS=$POSTGRES_DATABASE \
+               db-migrate:latest
