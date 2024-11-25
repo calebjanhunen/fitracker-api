@@ -62,6 +62,9 @@ WORKDIR /usr/src/app
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 
+# Copy email templates into mail module
+COPY --from=build /usr/src/app/dist/modules/mail/templates ./dist/modules/mail/templates
+
 # Set NODE_ENV environment variable for production
 ENV NODE_ENV=production
 
