@@ -28,7 +28,7 @@ jobs:
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
             echo "Pulling the new image..."
-            docker pull calebjanhunen/fitracker-api:latest
+            docker pull calebjanhunen/fitracker-api:${{ env.TAG_NAME }}
 
       - name: Starting container for version ${{ env.TAG_NAME }}
         uses: appleboy/ssh-action@v0.1.5
@@ -49,4 +49,4 @@ jobs:
               --env-file ${{ secrets.ENV_FILE_LOCATION }} \
               --network fitracker-infra_default \
               -p 3000:3000 \
-              calebjanhunen/fitracker-api:latest
+              calebjanhunen/fitracker-api:${{ env.TAG_NAME }}
