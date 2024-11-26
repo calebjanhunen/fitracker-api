@@ -7,7 +7,7 @@
     "assets": [
       {
         "include": "modules/mail/templates/**/*",
-        "outDir": "dist/modules/mail/templates"
+        "watchAssets": true
       }
     ]
   }
