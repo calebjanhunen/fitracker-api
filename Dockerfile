@@ -61,7 +61,6 @@ WORKDIR /usr/src/app
 # Copy the bundled code from the build stage to the production image
 COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/dist/modules/mail/templates ./dist/modules/mail/templates
 
 # Set NODE_ENV environment variable for production
 ENV NODE_ENV=production
