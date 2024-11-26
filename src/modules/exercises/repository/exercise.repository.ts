@@ -217,8 +217,9 @@ export class ExerciseRepository {
         ON ws.workout_exercise_id = we.id
       LEFT JOIN exercise e
         ON e.id = we.exercise_id
-      WHERE (is_custom = false AND e.id = $1) OR
-        (is_custom = true AND e.id = $1 AND e.user_id = $2)
+      WHERE ((is_custom = false AND e.id = $1) OR
+        (is_custom = true AND e.id = $1 AND e.user_id = $2)) AND
+        w.user_id = $2
       GROUP BY w.id, w.name, w.created_at
       ORDER BY w.created_at DESC
     `;
