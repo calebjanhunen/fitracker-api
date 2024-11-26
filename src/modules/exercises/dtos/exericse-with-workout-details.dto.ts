@@ -4,6 +4,7 @@ export class ExerciseWithWorkoutDetailsDto {
   id: string;
   name: string;
   bodyPart: BodyPart;
+  equipment: string;
   numTimesUsed: number;
   recentSets: RecentSetDto[];
 }
