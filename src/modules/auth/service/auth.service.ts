@@ -254,7 +254,14 @@ export class AuthService {
     const accessToken = await this.generateAcccessToken(userId);
     const refreshToken = await this.generateRefreshToken(userId);
 
-    const hashedRefreshToken = await generateHashPassword(refreshToken);
+    let hashedRefreshToken: string;
+    try {
+      hashedRefreshToken = await generateHashPassword(refreshToken);
+    } catch (e) {
+      this.logger.error(`Error hashing refresh token for user ${userId}`, e);
+      throw e;
+    }
+
     await this.userRefreshTokenService.upsertRefreshToken(
       userId,
       hashedRefreshToken,
@@ -265,26 +272,42 @@ export class AuthService {
   }
 
   private async generateAcccessToken(userId: string): Promise<string> {
-    return await this.jwtService.signAsync(
-      { userId },
-      {
-        secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
-        expiresIn: `${this.configService.getOrThrow<string>(
-          'JWT_ACCESS_TOKEN_EXPIRATION_MS',
-        )}ms`,
-      },
-    );
+    try {
+      return await this.jwtService.signAsync(
+        { userId },
+        {
+          secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
+          expiresIn: `${this.configService.getOrThrow<string>(
+            'JWT_ACCESS_TOKEN_EXPIRATION_MS',
+          )}ms`,
+        },
+      );
+    } catch (e) {
+      this.logger.error(
+        `Error generating access token for user ${userId}`,
+        e.message,
+      );
+      throw e;
+    }
   }
 
   private async generateRefreshToken(userId: string): Promise<string> {
-    return await this.jwtService.signAsync(
-      { userId },
-      {
-        secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
-        expiresIn: `${this.configService.getOrThrow<string>(
-          'JWT_REFRESH_TOKEN_EXPIRATION_MS',
-        )}ms`,
-      },
-    );
+    try {
+      return await this.jwtService.signAsync(
+        { userId },
+        {
+          secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
+          expiresIn: `${this.configService.getOrThrow<string>(
+            'JWT_REFRESH_TOKEN_EXPIRATION_MS',
+          )}ms`,
+        },
+      );
+    } catch (e) {
+      this.logger.error(
+        `Error generating refresh token for user ${userId}`,
+        e.message,
+      );
+      throw e;
+    }
   }
 }
