@@ -283,10 +283,7 @@ export class AuthService {
         },
       );
     } catch (e) {
-      this.logger.error(
-        `Error generating access token for user ${userId}`,
-        e.message,
-      );
+      this.logger.error(`Error generating access token for user ${userId}`, e);
       throw e;
     }
   }
@@ -303,10 +300,7 @@ export class AuthService {
         },
       );
     } catch (e) {
-      this.logger.error(
-        `Error generating refresh token for user ${userId}`,
-        e.message,
-      );
+      this.logger.error(`Error generating refresh token for user ${userId}`, e);
       throw e;
     }
   }
