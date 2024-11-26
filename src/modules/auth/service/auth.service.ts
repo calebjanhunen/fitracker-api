@@ -277,9 +277,9 @@ export class AuthService {
         { userId },
         {
           secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
-          expiresIn: `${this.configService.getOrThrow<string>(
+          expiresIn: this.configService.getOrThrow(
             'JWT_ACCESS_TOKEN_EXPIRATION_MS',
-          )}ms`,
+          ),
         },
       );
     } catch (e) {
@@ -294,9 +294,9 @@ export class AuthService {
         { userId },
         {
           secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
-          expiresIn: `${this.configService.getOrThrow<string>(
+          expiresIn: this.configService.getOrThrow(
             'JWT_REFRESH_TOKEN_EXPIRATION_MS',
-          )}ms`,
+          ),
         },
       );
     } catch (e) {
