@@ -22,6 +22,10 @@ export class WorkoutRequestDto {
   @IsNotEmpty()
   public createdAt: Date;
 
+  @IsDate()
+  @IsNotEmpty()
+  public lastUpdatedAt: Date;
+
   @IsInt()
   @IsNotEmpty()
   @Min(0)
