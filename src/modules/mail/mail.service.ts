@@ -47,7 +47,7 @@ export class MailService {
           template: './reset-password',
           context: {
             resetLink: `${this.configService.getOrThrow(
-              'RESET_PASSWORD_LINK',
+              'FITRACKER_WEBSITE_URL',
             )}?token=${token}`,
           },
         });
