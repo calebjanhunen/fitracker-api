@@ -179,7 +179,8 @@ export class ExerciseService {
       return {
         id: e.id,
         name: e.name,
-        bodyPart: e.bodyPart,
+        bodyPart: capitalizeFirstLetter(e.bodyPart),
+        equipment: capitalizeFirstLetter(e.equipment),
         numTimesUsed: numTimesUsed ? Number(numTimesUsed) : 0,
         recentSets: recentSetsMap.get(e.id)?.recentSets ?? [],
       };
