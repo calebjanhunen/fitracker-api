@@ -18,6 +18,12 @@ async function bootstrap() {
   app.useGlobalGuards(app.get(JwtAuthGlobalGuard));
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  app.enableCors({
+    origin: process.env.FITRACKER_WEBSITE_URL,
+    methods: 'PATCH',
+    credentials: true,
+  });
+
   const logger = await app.resolve(LoggerServiceV2);
   logger.setContext('Bootstrap');
 
