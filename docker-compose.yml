@@ -36,7 +36,7 @@ services:
     volumes:
       - .:/usr/src/app:delegated
       - /usr/src/app/node_modules # excludes node_modules
-      - logs/fitracker.log:/usr/src/app/logs/fitracker.log
+      - ./logs/fitracker.log:/usr/src/app/logs/fitracker.log
     networks:
       - fitracker-api-network
 
