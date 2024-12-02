@@ -46,8 +46,10 @@ export class WorkoutService {
 
     const userStats = await this.userService.getStatsByUserId(userId);
 
-    const { totalWorkoutXp, workoutEffortXp } =
-      this.calculateWorkoutXp(workout);
+    const { totalWorkoutXp, workoutEffortXp } = this.calculateWorkoutXp(
+      workout,
+      userId,
+    );
     workout.gainedXp = totalWorkoutXp;
 
     try {
@@ -172,9 +174,14 @@ export class WorkoutService {
    * @param {InsertWorkoutModel} workout
    * @returns {ICalculateWorkoutXp}
    */
-  private calculateWorkoutXp(workout: InsertWorkoutModel): ICalculateWorkoutXp {
-    const workoutEffortXp =
-      this.workoutEffortXpHelper.calculateWorkoutEffortXp(workout);
+  private calculateWorkoutXp(
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): ICalculateWorkoutXp {
+    const workoutEffortXp = this.workoutEffortXpHelper.calculateWorkoutEffortXp(
+      workout,
+      userId,
+    );
     const totalWorkoutXp = workoutEffortXp;
 
     return { totalWorkoutXp, workoutEffortXp };

@@ -8,24 +8,42 @@ export class LoggerServiceV2 implements LoggerService {
   private context: string;
 
   constructor() {
+    const jsonFormat = printf(({ timestamp, level, message, ...meta }) => {
+      const properties =
+        meta['0'] && typeof meta['0'] === 'object' ? meta['0'] : meta;
+      return JSON.stringify({
+        timestamp,
+        level,
+        message,
+        properties,
+      });
+    });
+
     this.logger = winston.createLogger({
       level: 'info',
-      format: combine(
-        colorize({ level: true }),
-        timestamp(),
-        printf(({ level, message, timestamp, stack }) => {
-          return `[${timestamp}] | ${level} | [${this.context}]: ${message} ${
-            stack ? `| ${stack}` : ''
-          }`;
+      format: combine(timestamp()),
+      transports: [
+        new winston.transports.Console({
+          format: combine(
+            colorize(),
+            printf(({ level, message, timestamp, stack }) => {
+              return `[${timestamp}] | ${level} | [${
+                this.context
+              }]: ${message} ${stack ? `| ${stack}` : ''}`;
+            }),
+          ),
         }),
-      ),
-      transports: [new winston.transports.Console()],
+        new winston.transports.File({
+          filename: 'logs/fitracker.log',
+          format: jsonFormat,
+        }),
+      ],
     });
   }
 
-  log(message: string) {
+  log(message: string, ...meta: any[]) {
     if (this.isTestEnvironment()) return;
-    this.logger.info(message);
+    this.logger.info(message, meta);
   }
 
   error(message: string, error: Error) {

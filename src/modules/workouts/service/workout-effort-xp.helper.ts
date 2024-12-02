@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { InsertWorkoutModel, InsertWorkoutSetModel } from '../models';
 
 @Injectable()
@@ -13,14 +14,19 @@ export class WorkoutEffortXpHelper {
   private readonly TRANSITION_TIME_BETWEEN_EXERCISES_SECONDS = 60 * 5; // 5 minutes
   private readonly DURATION_FACTOR_DECAY_RATE = 0.02;
   private readonly WORKOUT_EFFORT_XP_MULTIPLIER = 1;
-  constructor() {}
+  constructor(private readonly logger: LoggerServiceV2) {
+    this.logger.setContext(WorkoutEffortXpHelper.name);
+  }
 
   /**
    * Calculates the amount of xp gained from workout effort
    * @param {InsertWorkoutModel} workout
    * @returns {number}
    */
-  public calculateWorkoutEffortXp(workout: InsertWorkoutModel): number {
+  public calculateWorkoutEffortXp(
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): number {
     const actualWorkoutDurationSeconds =
       (workout.lastUpdatedAt.getTime() - workout.createdAt.getTime()) /
       this.MS_TO_SECOND_CONVERSION;
@@ -28,6 +34,7 @@ export class WorkoutEffortXpHelper {
     const totalWorkoutEffort = this.calculateWorkoutEffortWithWorkoutDuration(
       workout,
       actualWorkoutDurationSeconds,
+      userId,
     );
 
     const workoutEffortXp = Math.round(
@@ -46,6 +53,7 @@ export class WorkoutEffortXpHelper {
   private calculateWorkoutEffortWithWorkoutDuration(
     workout: InsertWorkoutModel,
     workoutDurationSeconds: number,
+    userId: string,
   ): number {
     const { numExercises, numSets } =
       this.getNumberOfExercisesAndSetsInWorkout(workout);
@@ -72,7 +80,16 @@ export class WorkoutEffortXpHelper {
     }
 
     const workoutEffort = this.calculateWorkoutEffort(workout);
-
+    this.logger.log(
+      `Workout effort calculated for user ${userId}. Workout Duration: ${workoutDurationSeconds}, Min Baseline Duration: ${minBaselineDurationSeconds}, Max Baseline Duration: ${maxBaselineDurationSeconds} Effort: ${workoutEffort}, Duration Factor: ${durationFactor}.`,
+      {
+        workoutDuration: workoutDurationSeconds,
+        minBaselineDuration: minBaselineDurationSeconds,
+        maxBaselineDuration: maxBaselineDurationSeconds,
+        workoutEffort,
+        durationFactor,
+      },
+    );
     return workoutEffort * durationFactor;
   }
 
