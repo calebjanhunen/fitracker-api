@@ -6,7 +6,6 @@ export interface ICreateWorkout {
 }
 
 export interface WorkoutStats {
-  xpGainedFromWeeklyGoal: number;
-  totalGainedXp: number;
-  totalUserXp: number;
+  totalWorkoutXp: number;
+  workoutEffortXp: number;
 }

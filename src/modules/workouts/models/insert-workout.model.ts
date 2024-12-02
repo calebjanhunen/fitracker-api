@@ -1,6 +1,7 @@
 export class InsertWorkoutModel {
   name: string;
   createdAt: Date;
+  lastUpdatedAt: Date;
   duration: number;
   gainedXp: number;
   exercises: InsertWorkoutExerciseModel[];

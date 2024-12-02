@@ -10,7 +10,12 @@ import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
-import { WorkoutCalculator } from './workout.calculator';
+import { WorkoutEffortXpHelper } from './workout-effort-xp.helper';
+
+interface ICalculateWorkoutXp {
+  totalWorkoutXp: number;
+  workoutEffortXp: number;
+}
 
 @Injectable()
 export class WorkoutService {
@@ -18,7 +23,7 @@ export class WorkoutService {
     private exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
-    private readonly workoutCalculator: WorkoutCalculator,
+    private readonly workoutEffortXpHelper: WorkoutEffortXpHelper,
   ) {}
 
   /**
@@ -41,28 +46,23 @@ export class WorkoutService {
 
     const userStats = await this.userService.getStatsByUserId(userId);
 
-    const { totalGainedXp, xpGainedFromWeeklyGoal, newUserStats } =
-      await this.workoutCalculator.calculateXpGainedFromWorkout(
-        workout,
-        userStats,
-        userId,
-      );
-    workout.gainedXp = totalGainedXp;
+    const { totalWorkoutXp, workoutEffortXp } = this.calculateWorkoutXp(
+      workout,
+      userId,
+    );
+    workout.gainedXp = totalWorkoutXp;
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
 
-      const updatedUserStats = await this.userService.updateUserStats(
-        userId,
-        newUserStats,
-      );
+      userStats.totalXp += totalWorkoutXp;
+      await this.userService.updateUserStats(userId, userStats);
 
       return {
         workout: createdWorkout,
         workoutStats: {
-          xpGainedFromWeeklyGoal,
-          totalGainedXp,
-          totalUserXp: updatedUserStats.totalXp,
+          totalWorkoutXp,
+          workoutEffortXp,
         },
       };
     } catch (e) {
@@ -167,5 +167,23 @@ export class WorkoutService {
         }
       }
     }
+  }
+
+  /**
+   * Returns the total xp gained from a created workout.
+   * @param {InsertWorkoutModel} workout
+   * @returns {ICalculateWorkoutXp}
+   */
+  private calculateWorkoutXp(
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): ICalculateWorkoutXp {
+    const workoutEffortXp = this.workoutEffortXpHelper.calculateWorkoutEffortXp(
+      workout,
+      userId,
+    );
+    const totalWorkoutXp = workoutEffortXp;
+
+    return { totalWorkoutXp, workoutEffortXp };
   }
 }

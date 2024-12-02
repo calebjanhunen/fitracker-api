@@ -6,7 +6,6 @@ export class CreateWorkoutResponseDto {
 }
 
 class WorkoutStatsDto {
-  xpGainedFromWeeklyGoal: number;
-  totalGainedXp: number;
-  totalUserXp: number;
+  totalWorkoutXp: number;
+  workoutEffortXp: number;
 }
