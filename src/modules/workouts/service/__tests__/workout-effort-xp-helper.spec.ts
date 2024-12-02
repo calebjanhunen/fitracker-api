@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -10,7 +11,7 @@ describe('WorkoutEffortXpHelper', () => {
   let workoutEffortXpHelper: WorkoutEffortXpHelper;
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [WorkoutEffortXpHelper],
+      providers: [WorkoutEffortXpHelper, LoggerServiceV2],
     }).compile();
 
     workoutEffortXpHelper = module.get(WorkoutEffortXpHelper);
@@ -195,12 +196,9 @@ describe('WorkoutEffortXpHelper', () => {
       exercise4.sets = [e4Set1, e4Set2, e4Set3];
       workout.exercises = [exercise1, exercise2, exercise3, exercise4];
 
-      console.log(JSON.stringify(workout, null, 2));
-
       const result = workoutEffortXpHelper['calculateWorkoutEffort'](workout);
-      console.log(result);
 
-      expect(1).toBe(1);
+      expect(Number(result.toFixed(2))).toBe(74.9);
     });
   });
 
@@ -229,7 +227,7 @@ describe('WorkoutEffortXpHelper', () => {
 
       const result = workoutEffortXpHelper[
         'calculateWorkoutEffortWithWorkoutDuration'
-      ](workout, 40);
+      ](workout, 40, 'user-id');
 
       expect(result).toBe(100);
     });
@@ -257,7 +255,7 @@ describe('WorkoutEffortXpHelper', () => {
 
       const result = workoutEffortXpHelper[
         'calculateWorkoutEffortWithWorkoutDuration'
-      ](workout, 15);
+      ](workout, 15, 'user-id');
 
       expect(Number(result.toFixed(2))).toBe(90.48);
     });
@@ -285,7 +283,7 @@ describe('WorkoutEffortXpHelper', () => {
 
       const result = workoutEffortXpHelper[
         'calculateWorkoutEffortWithWorkoutDuration'
-      ](workout, 60);
+      ](workout, 60, 'user-id');
 
       expect(Number(result.toFixed(2))).toBe(81.87);
     });
@@ -313,7 +311,7 @@ describe('WorkoutEffortXpHelper', () => {
 
       const result = workoutEffortXpHelper[
         'calculateWorkoutEffortWithWorkoutDuration'
-      ](workout, 36050);
+      ](workout, 36050, 'user-id');
 
       expect(Number(result.toFixed(2))).toBe(0);
     });
