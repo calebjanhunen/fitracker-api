@@ -5,6 +5,7 @@ import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import { WorkoutController } from './controller/workout.controller';
 import { WorkoutRepository } from './repository/workout.repository';
+import { WorkoutEffortXpHelper } from './service/workout-effort-xp.helper';
 import { WorkoutCalculator } from './service/workout.calculator';
 import { WorkoutService } from './service/workout.service';
 
@@ -15,6 +16,7 @@ import { WorkoutService } from './service/workout.service';
     WorkoutRepository,
     WorkoutCalculator,
     LoggerServiceV2,
+    WorkoutEffortXpHelper,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],

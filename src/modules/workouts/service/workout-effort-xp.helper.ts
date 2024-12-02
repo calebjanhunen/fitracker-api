@@ -1,11 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { InsertWorkoutModel, InsertWorkoutSetModel } from '../models';
 
-interface ICalculateWorkoutXp {
-  totalXp: number;
-  workoutEffortXp: number;
-}
-
-export class WorkoutXpCalculator {
+@Injectable()
+export class WorkoutEffortXpHelper {
   private readonly MS_TO_SECOND_CONVERSION = 1000;
   private readonly MAX_RPE = 10;
   private readonly MIN_RPE = 5;
@@ -18,30 +15,24 @@ export class WorkoutXpCalculator {
   private readonly WORKOUT_EFFORT_XP_MULTIPLIER = 1;
   constructor() {}
 
-  public calculateTotalXp(workout: InsertWorkoutModel): ICalculateWorkoutXp {
-    const workoutEffortXp = this.calculateWorkoutEffortXp(workout);
-    const totalXp = workoutEffortXp;
-    return { totalXp, workoutEffortXp };
-  }
-
   /**
    * Calculates the amount of xp gained from workout effort
    * @param {InsertWorkoutModel} workout
    * @returns {number}
    */
-  private calculateWorkoutEffortXp(workout: InsertWorkoutModel): number {
+  public calculateWorkoutEffortXp(workout: InsertWorkoutModel): number {
     const actualWorkoutDurationSeconds =
       (workout.lastUpdatedAt.getTime() - workout.createdAt.getTime()) /
       this.MS_TO_SECOND_CONVERSION;
-    console.log(actualWorkoutDurationSeconds);
 
     const totalWorkoutEffort = this.calculateWorkoutEffortWithWorkoutDuration(
       workout,
       actualWorkoutDurationSeconds,
     );
 
-    const workoutEffortXp =
-      totalWorkoutEffort * this.WORKOUT_EFFORT_XP_MULTIPLIER;
+    const workoutEffortXp = Math.round(
+      totalWorkoutEffort * this.WORKOUT_EFFORT_XP_MULTIPLIER,
+    );
 
     return workoutEffortXp;
   }
@@ -95,7 +86,6 @@ export class WorkoutXpCalculator {
     for (const exercise of workout.exercises) {
       let exerciseEffort = 0;
       for (const set of exercise.sets) {
-        console.log(set, this.calculateSetEffort(set));
         exerciseEffort += this.calculateSetEffort(set);
       }
       workoutEffort += exerciseEffort;
@@ -112,7 +102,10 @@ export class WorkoutXpCalculator {
    */
   private calculateSetEffort(set: InsertWorkoutSetModel): number {
     const oneRepMaxInLbs = this.getOneRepMax(set);
-    const relativeWeight = set.weight / oneRepMaxInLbs;
+    let relativeWeight = 0;
+    if (oneRepMaxInLbs > 0) {
+      relativeWeight = set.weight / oneRepMaxInLbs;
+    }
     const intensityFactor = set.rpe
       ? (set.rpe - this.MIN_RPE) / this.MIN_RPE
       : 1;
