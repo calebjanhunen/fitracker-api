@@ -1,6 +1,4 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { LoggerModule } from 'src/common/logger/logger.module';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { MockLoggerService } from 'test/mocks/mock-logger.service';
 import {
@@ -16,12 +14,6 @@ describe('WorkoutEffortXpHelper', () => {
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      imports: [
-        LoggerModule,
-        ConfigModule.forRoot({
-          isGlobal: true,
-        }),
-      ],
       providers: [
         WorkoutEffortXpHelper,
         { provide: LoggerService, useValue: mockLoggerService },
