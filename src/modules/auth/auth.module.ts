@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { DbModule } from 'src/common/database/database.module';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { MailModule } from '../mail/mail.module';
 import { UserModule } from '../user/user.module';
 import { AuthMapperProfile } from './auth-mapper.profile';
@@ -27,7 +26,6 @@ import { LocalStrategy } from './strategies/local.strategy';
     AuthService,
     LocalStrategy,
     JwtStrategy,
-    LoggerServiceV2,
     JwtRefreshStrategy,
     AuthMapperProfile,
     EmailVerificationCodeService,

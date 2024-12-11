@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -44,7 +44,7 @@ export class WorkoutRepository {
 
   constructor(
     private readonly dbService: DbService,
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutRepository.name);
   }
@@ -94,7 +94,7 @@ export class WorkoutRepository {
 
       return createdWorkout;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -130,7 +130,7 @@ export class WorkoutRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -169,8 +169,8 @@ export class WorkoutRepository {
       return queryResult;
     } catch (e) {
       this.logger.error(
-        `Query findWorkoutsThisWeekWithDistinctDates failed: `,
         e,
+        `Query findWorkoutsThisWeekWithDistinctDates failed: `,
       );
       throw new DatabaseException(e.message);
     }
@@ -195,7 +195,7 @@ export class WorkoutRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -212,7 +212,7 @@ export class WorkoutRepository {
     try {
       await this.dbService.queryV2(query, params);
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -263,7 +263,7 @@ export class WorkoutRepository {
         }
       });
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
 

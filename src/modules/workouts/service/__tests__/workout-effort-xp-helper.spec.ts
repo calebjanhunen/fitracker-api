@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
+import { MockLoggerService } from 'test/mocks/mock-logger.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -9,9 +10,14 @@ import { WorkoutEffortXpHelper } from '../workout-effort-xp.helper';
 
 describe('WorkoutEffortXpHelper', () => {
   let workoutEffortXpHelper: WorkoutEffortXpHelper;
+  const mockLoggerService = new MockLoggerService();
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [WorkoutEffortXpHelper, LoggerServiceV2],
+      providers: [
+        WorkoutEffortXpHelper,
+        { provide: LoggerService, useValue: mockLoggerService },
+      ],
     }).compile();
 
     workoutEffortXpHelper = module.get(WorkoutEffortXpHelper);

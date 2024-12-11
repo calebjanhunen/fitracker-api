@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { EmailVerificationCodeModel } from '../models/email-verification-code.model';
 
 @Injectable()
 export class EmailVerificationCodeRepository {
   constructor(
     private readonly db: DbService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(EmailVerificationCodeRepository.name);
   }
@@ -33,7 +33,7 @@ export class EmailVerificationCodeRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query insertEmailVerificationCode failed:', e);
+      this.logger.error(e, 'Query insertEmailVerificationCode failed:');
       throw new DatabaseException(e.message);
     }
   }
@@ -68,7 +68,7 @@ export class EmailVerificationCodeRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query getEmailVerificationCode failed: ', e);
+      this.logger.error(e, 'Query getEmailVerificationCode failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -101,7 +101,7 @@ export class EmailVerificationCodeRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query getEmailVerificationCode failed: ', e);
+      this.logger.error(e, 'Query getEmailVerificationCode failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -118,7 +118,7 @@ export class EmailVerificationCodeRepository {
     try {
       await this.db.queryV2<EmailVerificationCodeModel>(query, params);
     } catch (e) {
-      this.logger.error('Query setEmailVerificationCodeAsUsed failed: ', e);
+      this.logger.error(e, 'Query setEmailVerificationCodeAsUsed failed: ');
       throw new DatabaseException(e);
     }
   }

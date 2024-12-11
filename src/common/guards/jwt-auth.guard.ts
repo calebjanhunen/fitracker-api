@@ -6,14 +6,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { LoggerServiceV2 } from '../logger/logger-v2.service';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private TOKEN_EXPIRED_ERROR_NAME = 'TokenExpiredError';
   private JSON_WEB_TOKEN_ERROR = 'JsonWebTokenError';
   constructor(
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {

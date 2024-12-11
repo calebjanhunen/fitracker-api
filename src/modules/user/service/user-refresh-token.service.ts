@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { UserRefreshTokenReposistory } from '../repository/user-refresh-token.repository';
 
 @Injectable()
 export class UserRefreshTokenService {
   constructor(
     private readonly userRefreshTokenRepo: UserRefreshTokenReposistory,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(UserRefreshTokenService.name);
   }

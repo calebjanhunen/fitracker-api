@@ -1,14 +1,15 @@
 import { classes } from '@automapper/classes';
 import { AutomapperModule } from '@automapper/nestjs';
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import 'src/common/extensions/date.extensions';
 import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
-import { LoggerServiceV2 } from './common/logger/logger-v2.service';
-import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
+import { LoggingInterceptor } from './common/interceptors/request-logger.interceptor';
+import { LoggerModule } from './common/logger/logger.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BodyPartModule } from './modules/body-part/body-part.module';
 import { EquipmentModule } from './modules/equipment/equipment.module';
@@ -31,12 +32,16 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     BodyPartModule,
     EquipmentModule,
     WorkoutTemplateModule,
+    LoggerModule,
   ],
   controllers: [],
-  providers: [LoggerServiceV2, JwtAuthGuard, JwtAuthGlobalGuard],
+  providers: [
+    JwtAuthGuard,
+    JwtAuthGlobalGuard,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

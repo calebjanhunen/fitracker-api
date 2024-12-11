@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { AuthService } from '../service/auth.service';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   constructor(
     configService: ConfigService,
     private authService: AuthService,
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromHeader('x-refresh-token'),
@@ -29,8 +29,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
       if (!deviceId) {
         // This should never happen
         this.logger.error(
-          'Request header did not contain device id',
           new Error('No device id in request header'),
+          'Request header did not contain device id',
         );
         throw new Error();
       }
@@ -39,8 +39,8 @@ export class JwtRefreshStrategy extends PassportStrategy(
       if (!refreshToken) {
         // This should never happen
         this.logger.error(
-          'Request header did not contain refresh token',
           new Error('No refresh token in request header'),
+          'Request header did not contain refresh token',
         );
         throw new Error();
       }

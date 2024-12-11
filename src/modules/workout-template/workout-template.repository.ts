@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DbClient, DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutTemplateExerciseModel,
   InsertWorkoutTemplateModel,
@@ -38,7 +38,7 @@ export class WorkoutTemplateRepository {
   `;
   constructor(
     private db: DbService,
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutTemplateRepository.name);
   }
@@ -89,7 +89,7 @@ export class WorkoutTemplateRepository {
 
       return createdWorkoutTemplate!;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw new DatabaseException(e);
     }
   }
@@ -124,7 +124,7 @@ export class WorkoutTemplateRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query FindWorkoutTemplateById failed: ', e);
+      this.logger.error(e, 'Query FindWorkoutTemplateById failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -148,7 +148,7 @@ export class WorkoutTemplateRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error('Query FindAllWorkoutTemplates failed: ', e);
+      this.logger.error(e, 'Query FindAllWorkoutTemplates failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -166,7 +166,7 @@ export class WorkoutTemplateRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query DeleteWorkoutTemplate failed: ', e);
+      this.logger.error(e, 'Query DeleteWorkoutTemplate failed: ');
       throw new DatabaseException(e);
     }
   }

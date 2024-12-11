@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from '../exercises/services/exercise.service';
 import { InsertWorkoutTemplateModel, WorkoutTemplateModel } from './models';
 import { WorkoutTemplateRepository } from './workout-template.repository';
@@ -11,7 +11,7 @@ export class WorkoutTemplateService {
   constructor(
     private workoutTemplateRepo: WorkoutTemplateRepository,
     private exerciseService: ExerciseService,
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutTemplateService.name);
   }
