@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -11,7 +11,7 @@ describe('WorkoutEffortXpHelper', () => {
   let workoutEffortXpHelper: WorkoutEffortXpHelper;
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [WorkoutEffortXpHelper, LoggerServiceV2],
+      providers: [WorkoutEffortXpHelper, LoggerService],
     }).compile();
 
     workoutEffortXpHelper = module.get(WorkoutEffortXpHelper);

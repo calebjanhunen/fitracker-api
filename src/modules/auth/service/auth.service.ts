@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { BaseException } from 'src/common/internal-exceptions/base.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import {
   comparePasswords,
   generateHashPassword,
@@ -26,7 +26,7 @@ export class AuthService {
     private userService: UserService,
     private userRefreshTokenService: UserRefreshTokenService,
     private jwtService: JwtService,
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
     private configService: ConfigService,
     private readonly mailService: MailService,
     private readonly emailVerificationCodeService: EmailVerificationCodeService,
@@ -258,7 +258,7 @@ export class AuthService {
     try {
       hashedRefreshToken = await generateHashPassword(refreshToken);
     } catch (e) {
-      this.logger.error(`Error hashing refresh token for user ${userId}`, e);
+      this.logger.error(e, `Error hashing refresh token for user ${userId}`);
       throw e;
     }
 
@@ -283,7 +283,7 @@ export class AuthService {
         },
       );
     } catch (e) {
-      this.logger.error(`Error generating access token for user ${userId}`, e);
+      this.logger.error(e, `Error generating access token for user ${userId}`);
       throw e;
     }
   }
@@ -300,7 +300,7 @@ export class AuthService {
         },
       );
     } catch (e) {
-      this.logger.error(`Error generating refresh token for user ${userId}`, e);
+      this.logger.error(e, `Error generating refresh token for user ${userId}`);
       throw e;
     }
   }

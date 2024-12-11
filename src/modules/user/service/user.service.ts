@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
@@ -11,7 +11,7 @@ import { UserRepository } from '../repository/user.repository';
 export class UserService {
   constructor(
     private readonly userRepo: UserRepository,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(UserService.name);
   }

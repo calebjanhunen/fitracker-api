@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 
 @Injectable()
 export class UserRefreshTokenReposistory {
   constructor(
     private readonly db: DbService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(UserRefreshTokenReposistory.name);
   }
@@ -30,7 +30,7 @@ export class UserRefreshTokenReposistory {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query insertRefreshToken failed: ', e);
+      this.logger.error(e, 'Query insertRefreshToken failed: ');
       throw e;
     }
   }
@@ -60,7 +60,7 @@ export class UserRefreshTokenReposistory {
 
       return queryResult[0].refreshToken;
     } catch (e) {
-      this.logger.error('Query getRefreshToken failed: ', e);
+      this.logger.error(e, 'Query getRefreshToken failed.');
       throw e;
     }
   }
@@ -79,7 +79,7 @@ export class UserRefreshTokenReposistory {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query deleteRefreshToken failed: ', e);
+      this.logger.error(e, 'Query deleteRefreshToken failed.');
       throw e;
     }
   }

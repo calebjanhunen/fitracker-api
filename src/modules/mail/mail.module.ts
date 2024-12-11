@@ -1,7 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
 import { mailConfig } from './config/mail.config';
 import { MailService } from './mail.service';
 
@@ -13,7 +12,7 @@ import { MailService } from './mail.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [MailService, LoggerServiceV2],
+  providers: [MailService],
   exports: [MailService],
 })
 export class MailModule {}

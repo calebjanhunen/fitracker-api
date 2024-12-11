@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
   private JSON_WEB_TOKEN_ERROR = 'JsonWebTokenError';
   constructor(
     private readonly userRefreshTokenService: UserRefreshTokenService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {
@@ -48,7 +48,7 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
         this.userRefreshTokenService
           .deleteRefreshToken(userId, deviceId)
           .catch((e) => {
-            this.logger.error('Error deleting refresh token', e);
+            this.logger.error(e, 'Error deleting refresh token');
           });
       }
 

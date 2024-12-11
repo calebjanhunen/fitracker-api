@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import {
   ExerciseModel,
   InsertExerciseModel,
@@ -26,7 +26,7 @@ export class ExerciseRepository {
   `;
   constructor(
     private readonly db: DbService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(ExerciseRepository.name);
   }
@@ -73,7 +73,7 @@ export class ExerciseRepository {
 
       return createdExercise;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -113,7 +113,7 @@ export class ExerciseRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -152,7 +152,7 @@ export class ExerciseRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -179,7 +179,7 @@ export class ExerciseRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -231,7 +231,7 @@ export class ExerciseRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error('Query getExerciseWorkoutHistory failed: ', e);
+      this.logger.error(e, 'Query getExerciseWorkoutHistory failed: ');
       throw new DatabaseException(e.message);
     }
   }
@@ -255,7 +255,7 @@ export class ExerciseRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -347,7 +347,7 @@ export class ExerciseRepository {
       );
       return queryResult;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -382,7 +382,7 @@ export class ExerciseRepository {
 
       return queryResult;
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }

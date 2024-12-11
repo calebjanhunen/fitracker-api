@@ -1,14 +1,14 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { MailFailedToSendException } from './internal-exceptions/mail-failed-to-send.exception';
 
 @Injectable()
 export class MailService {
   constructor(
     private readonly mailerService: MailerService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
     private readonly configService: ConfigService,
   ) {
     this.logger.setContext(MailService.name);
@@ -33,7 +33,7 @@ export class MailService {
         this.logger.log('Sending emails is not configured');
       }
     } catch (e) {
-      this.logger.error('Signup Code email failed to send: ', e);
+      this.logger.error(e, 'Signup Code email failed to send.');
       throw new MailFailedToSendException(e);
     }
   }
@@ -58,7 +58,7 @@ export class MailService {
         this.logger.log('Sending emails is not configured');
       }
     } catch (e) {
-      this.logger.error('Reset password email failed to send: ', e);
+      this.logger.error(e, 'Reset password email failed to send.');
       throw new MailFailedToSendException(e);
     }
   }

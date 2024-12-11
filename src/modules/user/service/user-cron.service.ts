@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserCronService {
   constructor(
-    private logger: LoggerServiceV2,
+    private logger: LoggerService,
     private userRepo: UserRepository,
   ) {
     this.logger.setContext(UserCronService.name);
@@ -35,9 +35,7 @@ export class UserCronService {
         ) {
           stat.weeklyWorkoutGoalStreak = 0;
           await this.userRepo.updateUserStats(stat, stat.userId);
-          this.logger.debug(
-            `Reset weekly goal streak for user: ${stat.userId}`,
-          );
+          this.logger.log(`Reset weekly goal streak for user: ${stat.userId}`);
         }
       });
       this.logger.log(
@@ -45,8 +43,8 @@ export class UserCronService {
       );
     } catch (e) {
       this.logger.error(
-        `Cron job 'handleResetUserWeeklyWorkoutGoalStreak' failed with error: `,
         e,
+        `Cron job 'handleResetUserWeeklyWorkoutGoalStreak' failed with error: `,
       );
     }
   }

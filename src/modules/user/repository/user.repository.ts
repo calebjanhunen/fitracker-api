@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertUserModel } from '../models/insert-user.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserModel } from '../models/user.model';
@@ -10,7 +10,7 @@ import { UserModel } from '../models/user.model';
 export class UserRepository {
   constructor(
     private readonly db: DbService,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(UserRepository.name);
   }
@@ -41,7 +41,7 @@ export class UserRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -71,7 +71,7 @@ export class UserRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -99,7 +99,7 @@ export class UserRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -131,7 +131,7 @@ export class UserRepository {
 
       return queryResult[0];
     } catch (e) {
-      this.logger.error(`Query ${queryName} failed: `, e);
+      this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
   }
@@ -149,7 +149,7 @@ export class UserRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query verifyUserByEmail failed: ', e);
+      this.logger.error(e, 'Query verifyUserByEmail failed: ');
       throw new DatabaseException(e.message);
     }
   }
@@ -170,7 +170,7 @@ export class UserRepository {
       const { queryResult } = await this.db.queryV2<UserStats>(query, params);
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query GetStatsByUserId failed: ', e);
+      this.logger.error(e, 'Query GetStatsByUserId failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -190,7 +190,7 @@ export class UserRepository {
       const { queryResult } = await this.db.queryV2<UserStats>(query, []);
       return queryResult;
     } catch (e) {
-      this.logger.error('Query getStatsForAllUsers failed: ', e);
+      this.logger.error(e, 'Query getStatsForAllUsers failed: ');
       throw new DatabaseException(e);
     }
   }
@@ -220,7 +220,7 @@ export class UserRepository {
       const { queryResult } = await this.db.queryV2<UserStats>(query, params);
       return queryResult[0];
     } catch (e) {
-      this.logger.error('Query updateUserStats failed: ', e);
+      this.logger.error(e, 'Query updateUserStats failed: ');
       throw new DatabaseException(e.message);
     }
   }
@@ -238,7 +238,7 @@ export class UserRepository {
     try {
       await this.db.queryV2(query, params);
     } catch (e) {
-      this.logger.error('Query updatePassword failed: ', e);
+      this.logger.error(e, 'Query updatePassword failed: ');
       throw new DatabaseException(e);
     }
   }

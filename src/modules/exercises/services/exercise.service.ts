@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { capitalizeFirstLetter } from 'src/common/utils/capitalize-first-letter.util';
 import { BodyPartService } from 'src/modules/body-part/service/body-part.service';
 import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
@@ -23,7 +23,7 @@ export class ExerciseService {
     private readonly bodyPartService: BodyPartService,
     private readonly equipmentService: EquipmentService,
     private readonly exerciseRepo: ExerciseRepository,
-    private readonly logger: LoggerServiceV2,
+    private readonly logger: LoggerService,
   ) {
     this.logger.setContext(ExerciseService.name);
   }

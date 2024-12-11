@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
-import { LoggerServiceV2 } from './common/logger/logger-v2.service';
+import { LoggerService } from './common/logger/logger.service';
 
 async function bootstrap() {
   setEnvFile();
@@ -24,7 +24,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const logger = await app.resolve(LoggerServiceV2);
+  const logger = await app.resolve(LoggerService);
   logger.setContext('Bootstrap');
 
   await app.listen(3000);

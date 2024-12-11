@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LoggerServiceV2 } from 'src/common/logger/logger-v2.service';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel, InsertWorkoutSetModel } from '../models';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class WorkoutEffortXpHelper {
   private readonly TRANSITION_TIME_BETWEEN_EXERCISES_SECONDS = 60 * 5; // 5 minutes
   private readonly DURATION_FACTOR_DECAY_RATE = 0.02;
   private readonly WORKOUT_EFFORT_XP_MULTIPLIER = 1;
-  constructor(private readonly logger: LoggerServiceV2) {
+  constructor(private readonly logger: LoggerService) {
     this.logger.setContext(WorkoutEffortXpHelper.name);
   }
 
