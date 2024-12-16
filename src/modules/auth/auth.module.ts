@@ -8,6 +8,7 @@ import { AuthController } from './controller/auth.controller';
 import { EmailVerificationCodeRepository } from './repository/email-verification-code.repository';
 import { RefreshTokenRepository } from './repository/refresh-token.repository';
 import { UserRepository } from './repository/user.repository';
+import { AuthStrategyService } from './service/auth-strategy.service';
 import { AuthTokenService } from './service/auth-token-service';
 import { AuthService } from './service/auth.service';
 import { EmailVerificationCodeService } from './service/email-verification-code.service';
@@ -25,15 +26,16 @@ import { LocalStrategy } from './strategies/local.strategy';
   controllers: [AuthController],
   providers: [
     AuthService,
+    AuthTokenService,
+    AuthStrategyService,
+    EmailVerificationCodeService,
+    EmailVerificationCodeRepository,
+    RefreshTokenRepository,
+    UserRepository,
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,
     AuthMapperProfile,
-    EmailVerificationCodeService,
-    EmailVerificationCodeRepository,
-    UserRepository,
-    AuthTokenService,
-    RefreshTokenRepository,
   ],
 })
 export class AuthModule {}
