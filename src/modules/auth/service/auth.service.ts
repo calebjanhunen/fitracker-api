@@ -4,10 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { BaseException } from 'src/common/internal-exceptions/base.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
-import {
-  comparePasswords,
-  generateHashPassword,
-} from 'src/modules/auth/helpers/password-helper';
+import { generateHashPassword } from 'src/modules/auth/helpers/password-helper';
 import { MailService } from 'src/modules/mail/mail.service';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-valid.exception';
@@ -30,47 +27,6 @@ export class AuthService {
     private readonly authTokenService: AuthTokenService,
   ) {
     this.logger.setContext(AuthService.name);
-  }
-
-  public async verifyUser(username: string, password: string): Promise<string> {
-    const user = await this.userRepo.getUserByUsername(username);
-    if (!user) {
-      throw new ResourceNotFoundException('User not found');
-    }
-
-    const doPasswordsMatch = await comparePasswords(password, user.password);
-
-    if (!doPasswordsMatch) {
-      throw new PasswordsDoNotMatchException();
-    }
-
-    return user.id;
-  }
-
-  public async verifyRefreshToken(
-    refreshToken: string,
-    userId: string,
-    deviceId: string,
-  ): Promise<string> {
-    const existingRefreshToken = await this.authTokenService.getRefreshToken(
-      userId,
-      deviceId,
-    );
-
-    const doRefreshTokensMatch = await comparePasswords(
-      refreshToken ?? '',
-      existingRefreshToken,
-    );
-
-    if (!doRefreshTokensMatch) {
-      this.logger.log(
-        'Refresh token in request does not match stored refresh token. Removing stored refresh token for user',
-      );
-      await this.authTokenService.deleteRefreshToken(userId, deviceId);
-      throw new Error('Refresh token is not valid');
-    }
-
-    return userId;
   }
 
   public async login(
