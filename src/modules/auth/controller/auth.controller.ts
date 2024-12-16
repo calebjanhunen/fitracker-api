@@ -17,9 +17,7 @@ import {
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { UserResponseDto } from 'src/modules/user/dtos/user-response.dto';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
-import { UserModel } from 'src/modules/user/models/user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
@@ -47,14 +45,12 @@ export class AuthController {
     @Headers('x-device-id') deviceId: string,
   ): Promise<AuthenticationResponseDto> {
     try {
-      const { accessToken, refreshToken, user } = await this.authService.login(
-        userId,
-        deviceId,
-      );
+      const { accessToken, refreshToken, username } =
+        await this.authService.login(userId, deviceId);
       return {
         accessToken,
         refreshToken,
-        user: this.mapper.map(user, UserModel, UserResponseDto),
+        username,
       };
     } catch (e) {
       if (e instanceof UserIsNotValidatedException) {
@@ -81,12 +77,12 @@ export class AuthController {
     @Headers('x-device-id') deviceId: string,
   ): Promise<AuthenticationResponseDto> {
     try {
-      const { accessToken, refreshToken, user } =
+      const { accessToken, refreshToken, username } =
         await this.authService.refreshToken(userId, deviceId);
       return {
         accessToken,
         refreshToken,
-        user: this.mapper.map(user, UserModel, UserResponseDto),
+        username,
       };
     } catch (e) {
       throw new InternalServerErrorException();
@@ -100,15 +96,16 @@ export class AuthController {
   ): Promise<AuthenticationResponseDto> {
     try {
       const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);
-      const { accessToken, refreshToken, user } = await this.authService.signup(
-        model,
-        signupDto.confirmPassword,
-        deviceId,
-      );
+      const { accessToken, refreshToken, username } =
+        await this.authService.signup(
+          model,
+          signupDto.confirmPassword,
+          deviceId,
+        );
       return {
         accessToken,
         refreshToken,
-        user: this.mapper.map(user, UserModel, UserResponseDto),
+        username,
       };
     } catch (e) {
       if (

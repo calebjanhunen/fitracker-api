@@ -6,7 +6,6 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import 'src/common/extensions/date.extensions';
-import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { LoggingInterceptor } from './common/interceptors/request-logger.interceptor';
 import { LoggerModule } from './common/logger/logger.module';
@@ -37,7 +36,6 @@ import { WorkoutModule } from './modules/workouts/workout.module';
   controllers: [],
   providers: [
     JwtAuthGuard,
-    JwtAuthGlobalGuard,
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,

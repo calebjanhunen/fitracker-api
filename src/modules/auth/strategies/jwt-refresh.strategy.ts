@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { AuthService } from '../service/auth.service';
+import { AuthStrategyService } from '../service/auth-strategy.service';
 
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
@@ -13,7 +13,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 ) {
   constructor(
     configService: ConfigService,
-    private authService: AuthService,
+    private authStrategyService: AuthStrategyService,
     private logger: LoggerService,
   ) {
     super({
@@ -45,7 +45,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
         throw new Error();
       }
 
-      return await this.authService.verifyRefreshToken(
+      return await this.authStrategyService.verifyRefreshToken(
         refreshToken,
         payload.userId,
         deviceId,

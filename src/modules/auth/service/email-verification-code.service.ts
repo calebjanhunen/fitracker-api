@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { EmailVerificationCodeAlreadyUsedException } from '../internal-exceptions/email-verification-code-alread-used.exception';
 import { EmailVerificationCodeExpiredException } from '../internal-exceptions/email-verification-expired.exception';
 import { EmailVerificationCodeModel } from '../models/email-verification-code.model';
@@ -12,7 +13,31 @@ export class EmailVerificationCodeService {
   private EMAIL_VERIFICATION_CODE_EXPIRES_AT_OFFEST = 1;
   constructor(
     private readonly emailVerificationCodeRepo: EmailVerificationCodeRepository,
-  ) {}
+    private readonly logger: LoggerService,
+  ) {
+    this.logger.setContext(EmailVerificationCodeService.name);
+  }
+
+  public async generateAndSaveEmailVerificationCode(
+    email: string,
+  ): Promise<string | null> {
+    const emailVerificationCodeModel =
+      await this.getEmailVerificationCodeByEmail(email);
+    const now = new Date();
+    if (
+      emailVerificationCodeModel &&
+      !emailVerificationCodeModel.usedAt &&
+      emailVerificationCodeModel.expiresAt > now
+    ) {
+      this.logger.log(`Valid signup code already exists for ${email}`, {
+        email,
+      });
+      return null;
+    }
+
+    const emailVerificationCode = await this.saveEmailVerificationCode(email);
+    return emailVerificationCode;
+  }
 
   public async saveEmailVerificationCode(email: string): Promise<string> {
     const signupCode = this.generateEmailVerificationCode();

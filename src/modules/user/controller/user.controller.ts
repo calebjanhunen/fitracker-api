@@ -1,13 +1,21 @@
 import { Mapper } from '@automapper/core';
 import { InjectMapper } from '@automapper/nestjs';
-import { Body, ConflictException, Controller, Patch } from '@nestjs/common';
+import {
+  Body,
+  ConflictException,
+  Controller,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateWeeklyWorkoutGoalDto } from '../dtos/update-weekly-workout-goal.dto';
 import { UserStatsResponseDto } from '../dtos/user-stats-response.dto';
 import { UserStats } from '../models/user-stats.model';
 import { UserService } from '../service/user.service';
 
 @Controller('/api/users')
+@UseGuards(JwtAuthGuard)
 export class UserController {
   private userService;
 

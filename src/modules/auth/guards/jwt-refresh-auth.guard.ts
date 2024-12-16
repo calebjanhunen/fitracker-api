@@ -7,14 +7,14 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
+import { AuthTokenService } from '../service/auth-token-service';
 
 @Injectable()
 export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
   private TOKEN_EXPIRED_ERROR_NAME = 'TokenExpiredError';
   private JSON_WEB_TOKEN_ERROR = 'JsonWebTokenError';
   constructor(
-    private readonly userRefreshTokenService: UserRefreshTokenService,
+    private readonly authTokenService: AuthTokenService,
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
@@ -45,7 +45,7 @@ export class JwtRefreshAuthGuard extends AuthGuard('jwt-refresh') {
         this.logger.log(
           `Refresh token has expired. Removing refresh token for user '${userId}' and device: '${deviceId}'.`,
         );
-        this.userRefreshTokenService
+        this.authTokenService
           .deleteRefreshToken(userId, deviceId)
           .catch((e) => {
             this.logger.error(e, 'Error deleting refresh token');

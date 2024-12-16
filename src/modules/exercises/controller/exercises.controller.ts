@@ -13,9 +13,11 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
@@ -28,6 +30,7 @@ import { InsertExerciseModel } from '../models/insert-exercise.model';
 import { ExerciseService } from '../services/exercise.service';
 
 @Controller('api/exercises')
+@UseGuards(JwtAuthGuard)
 export default class ExercisesController {
   constructor(
     private exerciseService: ExerciseService,

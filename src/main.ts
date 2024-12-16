@@ -3,7 +3,6 @@ import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { JwtAuthGlobalGuard } from './common/guards/jwt-auth-global.guard';
 import { LoggerService } from './common/logger/logger.service';
 
 async function bootstrap() {
@@ -15,7 +14,6 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
-  app.useGlobalGuards(app.get(JwtAuthGlobalGuard));
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({

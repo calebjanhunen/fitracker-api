@@ -3,12 +3,12 @@ import { DbService } from 'src/common/database';
 import { LoggerService } from 'src/common/logger/logger.service';
 
 @Injectable()
-export class UserRefreshTokenReposistory {
+export class RefreshTokenRepository {
   constructor(
     private readonly db: DbService,
     private readonly logger: LoggerService,
   ) {
-    this.logger.setContext(UserRefreshTokenReposistory.name);
+    this.logger.setContext(RefreshTokenRepository.name);
   }
 
   public async upsertRefreshToken(
@@ -17,7 +17,7 @@ export class UserRefreshTokenReposistory {
     deviceId: string,
   ): Promise<void> {
     const query = `
-      INSERT INTO user_refresh_token (user_id, refresh_token, device_id)
+      INSERT INTO auth.refresh_token (user_id, refresh_token, device_id)
       VALUES ($1, $2, $3)
       ON CONFLICT (user_id, device_id)
       DO UPDATE SET
@@ -42,7 +42,7 @@ export class UserRefreshTokenReposistory {
     const query = `
       SELECT 
         refresh_token
-      FROM user_refresh_token
+      FROM auth.refresh_token
       WHERE user_id = $1 AND
         device_id = $2
     `;
@@ -70,7 +70,7 @@ export class UserRefreshTokenReposistory {
     deviceId: string,
   ): Promise<void> {
     const query = `
-      DELETE FROM user_refresh_token
+      DELETE FROM auth.refresh_token
       WHERE user_id = $1 AND
         device_id = $2
     `;

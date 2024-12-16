@@ -4,8 +4,8 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
@@ -23,11 +23,19 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
+        const elapsed = Date.now() - now;
         this.logger.log(
-          `Ending request ${request.method}: ${request.url} | Status: ${
-            response.statusCode
-          } - ${Date.now() - now}ms`,
+          `Ending request ${request.method}: ${request.url} | Status: ${response.statusCode} - ${elapsed}ms`,
         );
+      }),
+      catchError((error) => {
+        const elapsed = Date.now() - now;
+        this.logger.log(
+          `Ending request ${request.method}: ${request.url} | Status: ${error.status}, message: ${error.message} - ${elapsed}ms`,
+        );
+
+        // Re-throw the error so NestJS can handle it
+        return throwError(() => error);
       }),
     );
   }

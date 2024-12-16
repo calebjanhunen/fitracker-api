@@ -19,7 +19,7 @@ export class EmailVerificationCodeRepository {
     expiresAt: Date,
   ): Promise<void> {
     const query = `
-        INSERT INTO email_verification_code (email, code, expires_at)
+        INSERT INTO auth.email_verification_code (email, code, expires_at)
         VALUES ($1, $2, $3)
         ON CONFLICT (email)
         DO UPDATE SET
@@ -50,7 +50,7 @@ export class EmailVerificationCodeRepository {
         created_at,
         expires_at,
         used_at
-      FROM email_verification_code
+      FROM auth.email_verification_code
       WHERE email = $1
         AND code = $2
     `;
@@ -84,7 +84,7 @@ export class EmailVerificationCodeRepository {
         created_at,
         expires_at,
         used_at
-      FROM email_verification_code
+      FROM auth.email_verification_code
       WHERE email = $1
     `;
     const params = [email];
@@ -108,7 +108,7 @@ export class EmailVerificationCodeRepository {
 
   public async setEmailVerificationCodeAsUsed(id: number) {
     const query = `
-      UPDATE email_verification_code
+      UPDATE auth.email_verification_code
       SET
         used_at = NOW()
       WHERE id = $1
