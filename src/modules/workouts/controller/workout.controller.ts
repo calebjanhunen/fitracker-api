@@ -10,6 +10,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -23,10 +24,15 @@ import { WorkoutService } from '../service/workout.service';
 
 @Controller('api/workouts')
 @UseGuards(JwtAuthGuard)
+@ApiTags('Workouts')
+@ApiBearerAuth('access-token')
 export class WorkoutController {
   constructor(private readonly workoutService: WorkoutService) {}
 
   @Post()
+  @ApiResponse({ status: 201, type: CreateWorkoutResponseDto })
+  @ApiResponse({ status: 404 })
+  @ApiResponse({ status: 409 })
   async createWorkout(
     @Body() createWorkoutDto: WorkoutRequestDto,
     @CurrentUser() userId: string,
