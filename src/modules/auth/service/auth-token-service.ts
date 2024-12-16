@@ -13,7 +13,9 @@ export class AuthTokenService {
     private readonly jwtService: JwtService,
     private readonly logger: LoggerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.logger.setContext(AuthTokenService.name);
+  }
 
   public async generateAccessAndRefreshToken(userId: string, deviceId: string) {
     const accessToken = await this.generateAcccessToken(userId);

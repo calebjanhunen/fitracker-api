@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { capitalizeFirstLetter } from 'src/common/utils/capitalize-first-letter.util';
-import { BodyPartService } from 'src/modules/body-part/service/body-part.service';
-import { EquipmentService } from 'src/modules/equipment/service/equipment.service';
+import { BodyPartService } from 'src/modules/exercises/services/body-part.service';
+import { EquipmentService } from 'src/modules/exercises/services/equipment.service';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import {

@@ -18,7 +18,9 @@ export class UserRepository {
   constructor(
     private readonly db: DbService,
     private readonly logger: LoggerService,
-  ) {}
+  ) {
+    this.logger.setContext(UserRepository.name);
+  }
 
   public async createUser(user: InsertUserModel): Promise<UserModel> {
     let queryName = 'CreateUser';

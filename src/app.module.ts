@@ -10,8 +10,6 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { LoggingInterceptor } from './common/interceptors/request-logger.interceptor';
 import { LoggerModule } from './common/logger/logger.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { BodyPartModule } from './modules/body-part/body-part.module';
-import { EquipmentModule } from './modules/equipment/equipment.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
 import { UserModule } from './modules/user/user.module';
 import { WorkoutTemplateModule } from './modules/workout-template/workout-template.module';
@@ -28,8 +26,6 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     AuthModule,
     ExerciseModule,
     WorkoutModule,
-    BodyPartModule,
-    EquipmentModule,
     WorkoutTemplateModule,
     LoggerModule,
   ],

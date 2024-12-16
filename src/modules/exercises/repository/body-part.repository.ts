@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
-import { BodyPartModel } from '../models/body-part.model';
+import { BodyPartModel } from '../../exercises/models/body-part.model';
 
 @Injectable()
 export class BodyPartRepository {

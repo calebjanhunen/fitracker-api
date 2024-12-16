@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { comparePasswords } from '../helpers/password-helper';
@@ -5,12 +6,15 @@ import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-d
 import { UserRepository } from '../repository/user.repository';
 import { AuthTokenService } from './auth-token-service';
 
+@Injectable()
 export class AuthStrategyService {
   constructor(
     private readonly userRepo: UserRepository,
     private readonly authTokenService: AuthTokenService,
     private readonly logger: LoggerService,
-  ) {}
+  ) {
+    this.logger.setContext(AuthStrategyService.name);
+  }
 
   public async verifyUser(username: string, password: string): Promise<string> {
     const user = await this.userRepo.getUserByUsername(username);
