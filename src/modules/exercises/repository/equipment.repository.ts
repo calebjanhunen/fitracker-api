@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
-import { EquipmentModel } from '../models/equipment.model';
+import { EquipmentModel } from '../../exercises/models/equipment.model';
 
 @Injectable()
 export class EquipmentRepository {

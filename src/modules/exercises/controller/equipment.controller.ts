@@ -2,7 +2,7 @@ import { ConflictException, Controller, Get, UseGuards } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { EquipmentDto } from '../dtos/equipment.dto';
-import { EquipmentService } from '../service/equipment.service';
+import { EquipmentService } from '../services/equipment.service';
 
 @Controller('/api/equipment')
 @UseGuards(JwtAuthGuard)
