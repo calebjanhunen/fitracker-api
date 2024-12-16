@@ -58,26 +58,6 @@ exports.up = async function (db) {
       ALTER TABLE public.user_stats
       DROP COLUMN weekly_workout_goal
   `);
-
-  // create trigger function to be run when user is inserted into auth.user
-  await db.runSql(`
-    CREATE OR REPLACE FUNCTION create_user_profile()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      INSERT INTO public.user_profile (id, first_name, last_name, bio)
-      VALUES (NEW.id, '', '');
-      RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;  
-  `);
-
-  // create trigger to run when row is inserted into auth.user
-  await db.runSql(`
-    CREATE TRIGGER after_user_insert
-    AFTER INSERT ON auth.user
-    FOR EACH ROW
-    EXECUTE FUNCTION create_user_profile();  
-  `);
 };
 
 exports.down = async function (db) {
@@ -106,18 +86,6 @@ exports.down = async function (db) {
     ADD COLUMN first_name VARCHAR(100) NOT NULL DEFAULT '',
     ADD COLUMN last_name VARCHAR(100) NOT NULL DEFAULT '' 
   `);
-
-  await db.runSql(`
-    UPDATE auth.user u SET
-      first_name = up.first_name,
-      last_name = up.last_name  
-    FROM public.user_profile up
-    WHERE up.id = u.id
-  `);
-
-  await db.runSql(`
-    DROP TABLE IF EXISTS public.user_profile;
-    `);
 };
 
 exports._meta = {
