@@ -11,8 +11,10 @@ import {
   NotFoundException,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/common/decorators';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { WorkoutTemplateRequestDto } from './dtos/workout-template-request.dto';
 import { WorkoutTemplateResponseDto } from './dtos/workout-template-response.dto';
@@ -21,6 +23,7 @@ import { InsertWorkoutTemplateModel } from './models/insert-workout-template.mod
 import { WorkoutTemplateService } from './workout-template.service';
 
 @Controller('/api/workout-templates')
+@UseGuards(JwtAuthGuard)
 export class WorkoutTemplateController {
   constructor(
     @InjectMapper() private mapper: Mapper,
