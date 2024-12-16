@@ -10,32 +10,30 @@ import {
 } from 'src/modules/auth/helpers/password-helper';
 import { MailService } from 'src/modules/mail/mail.service';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
-import { UserModel } from 'src/modules/user/models/user.model';
-import { UserRefreshTokenService } from 'src/modules/user/service/user-refresh-token.service';
-import { UserService } from '../../user/service/user.service';
 import { EmailIsNotValidException } from '../internal-exceptions/email-is-not-valid.exception';
 import { PasswordsDoNotMatchException } from '../internal-exceptions/passwords-do-not-match.exception';
-import { UserIsNotValidatedException } from '../internal-exceptions/user-is-not-validated.exception';
 import { EmailAlreadyInUseException } from '../internal-exceptions/user-with-email-already-exists.exception';
 import { UserWithUsernameAlreadyExistsException } from '../internal-exceptions/user-with-username-already-exists.exception';
+import { UserRepository } from '../repository/user.repository';
+import { AuthTokenService } from './auth-token-service';
 import { EmailVerificationCodeService } from './email-verification-code.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
-    private userRefreshTokenService: UserRefreshTokenService,
     private jwtService: JwtService,
     private logger: LoggerService,
     private configService: ConfigService,
     private readonly mailService: MailService,
     private readonly emailVerificationCodeService: EmailVerificationCodeService,
+    private readonly userRepo: UserRepository,
+    private readonly authTokenService: AuthTokenService,
   ) {
     this.logger.setContext(AuthService.name);
   }
 
   public async verifyUser(username: string, password: string): Promise<string> {
-    const user = await this.userService.findByUsername(username);
+    const user = await this.userRepo.getUserByUsername(username);
     if (!user) {
       throw new ResourceNotFoundException('User not found');
     }
@@ -54,8 +52,10 @@ export class AuthService {
     userId: string,
     deviceId: string,
   ): Promise<string> {
-    const existingRefreshToken =
-      await this.userRefreshTokenService.getRefreshToken(userId, deviceId);
+    const existingRefreshToken = await this.authTokenService.getRefreshToken(
+      userId,
+      deviceId,
+    );
 
     const doRefreshTokensMatch = await comparePasswords(
       refreshToken ?? '',
@@ -66,7 +66,7 @@ export class AuthService {
       this.logger.log(
         'Refresh token in request does not match stored refresh token. Removing stored refresh token for user',
       );
-      await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
+      await this.authTokenService.deleteRefreshToken(userId, deviceId);
       throw new Error('Refresh token is not valid');
     }
 
@@ -76,33 +76,37 @@ export class AuthService {
   public async login(
     userId: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
-    const user = await this.userService.findById(userId);
-    if (!user.isVerified) {
-      this.logger.warn(
-        `User ${user.username} is not validated. Sending verification email`,
-      );
-      await this.generateEmailVerificationCodeAndSendEmail(user.email);
-      throw new UserIsNotValidatedException(user.email);
+  ): Promise<{ accessToken: string; refreshToken: string; username: string }> {
+    const user = await this.userRepo.getUserById(userId);
+    if (!user) {
+      throw new ResourceNotFoundException('User is not foudn');
     }
+
     const { accessToken, refreshToken } =
-      await this.getNewAccessAndRefreshToken(userId, deviceId);
-    return { accessToken, refreshToken, user };
+      await this.authTokenService.generateAccessAndRefreshToken(
+        userId,
+        deviceId,
+      );
+    return { accessToken, refreshToken, username: user.username };
   }
 
   public async logout(userId: string, deviceId: string) {
-    await this.userRefreshTokenService.deleteRefreshToken(userId, deviceId);
+    await this.authTokenService.deleteRefreshToken(userId, deviceId);
   }
 
   public async signup(
     userModel: InsertUserModel,
     confirmPassword: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
-    if (await this.userService.findByUsername(userModel.username)) {
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    username: string;
+  }> {
+    if (await this.userRepo.getUserByUsername(userModel.username)) {
       throw new UserWithUsernameAlreadyExistsException();
     }
-    if (await this.userService.findByEmail(userModel.email)) {
+    if (await this.userRepo.getUserByEmail(userModel.email)) {
       throw new EmailAlreadyInUseException();
     }
 
@@ -121,32 +125,54 @@ export class AuthService {
       throw new EmailIsNotValidException();
     }
 
-    const createdUser = await this.userService.create(userModel);
+    const createdUser = await this.userRepo.createUser(userModel);
 
     const { accessToken, refreshToken } =
-      await this.getNewAccessAndRefreshToken(createdUser.id, deviceId);
+      await this.authTokenService.generateAccessAndRefreshToken(
+        createdUser.id,
+        deviceId,
+      );
 
-    const user = await this.userService.findById(createdUser.id);
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken, username: createdUser.username };
   }
 
   public async refreshToken(
     userId: string,
     deviceId: string,
-  ): Promise<{ accessToken: string; refreshToken: string; user: UserModel }> {
-    const user = await this.userService.findById(userId);
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    username: string;
+  }> {
+    const user = await this.userRepo.getUserById(userId);
+    if (!user) {
+      throw new ResourceNotFoundException('User not found');
+    }
     const { accessToken, refreshToken } =
-      await this.getNewAccessAndRefreshToken(userId, deviceId);
-    return { accessToken, refreshToken, user };
+      await this.authTokenService.generateAccessAndRefreshToken(
+        userId,
+        deviceId,
+      );
+    return { accessToken, refreshToken, username: user.username };
   }
 
   public async verifyEmailOnSignup(email: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userRepo.getUserByEmail(email);
     if (user) {
       throw new EmailAlreadyInUseException();
     }
 
-    await this.generateEmailVerificationCodeAndSendEmail(email);
+    const emailVerificationCode =
+      await this.emailVerificationCodeService.generateAndSaveEmailVerificationCode(
+        email,
+      );
+
+    if (emailVerificationCode) {
+      await this.mailService.sendVerificationEmail(
+        email,
+        emailVerificationCode,
+      );
+    }
   }
 
   public async confirmEmailVerificationCode(
@@ -157,17 +183,10 @@ export class AuthService {
       code,
       email,
     );
-    const user = await this.userService.findByEmail(email);
-    if (user) {
-      this.logger.log(
-        `User ${email} verified email in login process. Setting user as verified`,
-      );
-      await this.userService.verifyUser(email);
-    }
   }
 
   public async sendForgotPasswordEmail(email: string): Promise<void> {
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userRepo.getUserByEmail(email);
     if (!user) {
       this.logger.warn('No user with email. Not sending email');
       return;
@@ -204,7 +223,7 @@ export class AuthService {
         'Email has expired. Send another forgot password email',
       );
     }
-    const user = await this.userService.findByEmail(emailAddress);
+    const user = await this.userRepo.getUserByEmail(emailAddress);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -215,93 +234,6 @@ export class AuthService {
 
     const hashedPassword = await generateHashPassword(password);
 
-    await this.userService.resetPassword(user.id, hashedPassword);
-  }
-
-  /**
-   * Saves signup code and sends to email
-   * @param {string} email
-   *
-   * @throws {EmailAlreadyInUseException}
-   * @throws {DatabaseException}
-   * @throws {MailFailedToSendException}
-   */
-  private async generateEmailVerificationCodeAndSendEmail(
-    email: string,
-  ): Promise<void> {
-    const emailVerificationCodeModel =
-      await this.emailVerificationCodeService.getEmailVerificationCodeByEmail(
-        email,
-      );
-    const now = new Date();
-    if (
-      emailVerificationCodeModel &&
-      !emailVerificationCodeModel.usedAt &&
-      emailVerificationCodeModel.expiresAt > now
-    ) {
-      this.logger.log(
-        `Valid signup code already exists for ${email}. Not sending email or creating a new code.`,
-      );
-      return;
-    }
-
-    const emailVerificationCode =
-      await this.emailVerificationCodeService.saveEmailVerificationCode(email);
-    await this.mailService.sendVerificationEmail(email, emailVerificationCode);
-  }
-
-  private async getNewAccessAndRefreshToken(userId: string, deviceId: string) {
-    const accessToken = await this.generateAcccessToken(userId);
-    const refreshToken = await this.generateRefreshToken(userId);
-
-    let hashedRefreshToken: string;
-    try {
-      hashedRefreshToken = await generateHashPassword(refreshToken);
-    } catch (e) {
-      this.logger.error(e, `Error hashing refresh token for user ${userId}`);
-      throw e;
-    }
-
-    await this.userRefreshTokenService.upsertRefreshToken(
-      userId,
-      hashedRefreshToken,
-      deviceId,
-    );
-
-    return { accessToken, refreshToken };
-  }
-
-  private async generateAcccessToken(userId: string): Promise<string> {
-    try {
-      return await this.jwtService.signAsync(
-        { userId },
-        {
-          secret: this.configService.getOrThrow<string>('ACCESS_TOKEN_SECRET'),
-          expiresIn: this.configService.getOrThrow(
-            'JWT_ACCESS_TOKEN_EXPIRATION_MS',
-          ),
-        },
-      );
-    } catch (e) {
-      this.logger.error(e, `Error generating access token for user ${userId}`);
-      throw e;
-    }
-  }
-
-  private async generateRefreshToken(userId: string): Promise<string> {
-    try {
-      return await this.jwtService.signAsync(
-        { userId },
-        {
-          secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
-          expiresIn: this.configService.getOrThrow(
-            'JWT_REFRESH_TOKEN_EXPIRATION_MS',
-          ),
-        },
-      );
-    } catch (e) {
-      this.logger.error(e, `Error generating refresh token for user ${userId}`);
-      throw e;
-    }
+    await this.userRepo.resetPassword(user.id, hashedPassword);
   }
 }
