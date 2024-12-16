@@ -1,11 +1,16 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { WorkoutResponseDto } from './workout-response.dto';
 
-export class CreateWorkoutResponseDto {
-  workout: WorkoutResponseDto;
-  workoutStats: WorkoutStatsDto;
+class WorkoutStatsDto {
+  @ApiProperty()
+  totalWorkoutXp: number;
+  @ApiProperty()
+  workoutEffortXp: number;
 }
 
-class WorkoutStatsDto {
-  totalWorkoutXp: number;
-  workoutEffortXp: number;
+export class CreateWorkoutResponseDto {
+  @ApiProperty()
+  workout: WorkoutResponseDto;
+  @ApiProperty()
+  workoutStats: WorkoutStatsDto;
 }
