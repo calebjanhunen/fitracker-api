@@ -1,8 +1,10 @@
 name: Integration Tests
 
+# Add pull request trigger back when adding integration tests
 on:
-  pull_request:
-    branches: ['main']
+  workflow_dispatch:
+  # pull_request:
+  #   branches: ['main']
 
 jobs:
   integration-tests:
