@@ -6,6 +6,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -36,9 +37,9 @@ export class WorkoutController {
   ) {}
 
   @Post()
-  @ApiResponse({ status: 201, type: CreateWorkoutResponseDto })
-  @ApiResponse({ status: 404 })
-  @ApiResponse({ status: 409 })
+  @ApiResponse({ status: HttpStatus.CREATED, type: CreateWorkoutResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   async createWorkout(
     @Body() createWorkoutDto: WorkoutRequestDto,
     @CurrentUser() userId: string,
@@ -60,6 +61,8 @@ export class WorkoutController {
   }
 
   @Get(':id')
+  @ApiResponse({ status: HttpStatus.OK, type: WorkoutResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
   async getWorkoutById(
     @CurrentUser() userId: string,
     @Param('id') workoutId: string,
