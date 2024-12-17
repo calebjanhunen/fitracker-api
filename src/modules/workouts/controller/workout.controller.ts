@@ -76,6 +76,12 @@ export class WorkoutController {
   }
 
   @Get()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: WorkoutResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   async getAllWorkouts(
     @CurrentUser() userId: string,
   ): Promise<WorkoutResponseDto[]> {
@@ -92,6 +98,9 @@ export class WorkoutController {
   }
 
   @Delete(':id')
+  @ApiResponse({ status: HttpStatus.OK, type: DeleteWorkoutDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   async deleteWorkout(
     @CurrentUser() userId: string,
     @Param('id') workoutId: string,
@@ -109,6 +118,9 @@ export class WorkoutController {
   }
 
   @Put(':id')
+  @ApiResponse({ status: HttpStatus.OK, type: WorkoutResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   async updateWorkout(
     @CurrentUser() userId: string,
     @Param('id') workoutId: string,
