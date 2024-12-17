@@ -126,14 +126,18 @@ export class WorkoutController {
     @Param('id') workoutId: string,
     @Body() updateWorkoutDto: WorkoutRequestDto,
   ): Promise<WorkoutResponseDto> {
-    const workoutModel = plainToInstance(InsertWorkoutModel, updateWorkoutDto);
+    const workoutModel = this.mapper.map(
+      updateWorkoutDto,
+      WorkoutRequestDto,
+      InsertWorkoutModel,
+    );
     try {
       const updatedWorkout = await this.workoutService.update(
         workoutId,
         userId,
         workoutModel,
       );
-      return plainToInstance(WorkoutResponseDto, updatedWorkout);
+      return this.mapper.map(updatedWorkout, WorkoutModel, WorkoutResponseDto);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
