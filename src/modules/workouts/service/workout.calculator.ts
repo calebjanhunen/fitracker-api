@@ -35,56 +35,56 @@ export class WorkoutCalculator {
     //     workoutLengthInMinutes * this.XP_FOR_EACH_WORKOUT_MINUTE;
     // }
 
-    const workoutsCompletedThisWeek =
-      await this.workoutRepo.findWorkoutsThisWeekWithDistinctDates(
-        userId,
-        workout.createdAt,
-      );
+    // const workoutsCompletedThisWeek =
+    //   await this.workoutRepo.findWorkoutsThisWeekWithDistinctDates(
+    //     userId,
+    //     workout.createdAt,
+    //   );
 
-    if (
-      !this.alreadyReceivedWeeklyWorkoutGoalXpThisWeek(
-        userStats.weeklyBonusAwardedAt,
-      )
-    ) {
-      // Give bonus xp if a user hits their weekly workout goal
-      let newWeeklyGoalStreak = 0;
-      if (
-        workoutsCompletedThisWeek.length + 1 ===
-        userStats.weeklyWorkoutGoal
-      ) {
-        updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
-        newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
+    // if (
+    //   !this.alreadyReceivedWeeklyWorkoutGoalXpThisWeek(
+    //     userStats.weeklyBonusAwardedAt,
+    //   )
+    // ) {
+    //   // Give bonus xp if a user hits their weekly workout goal
+    //   let newWeeklyGoalStreak = 0;
+    //   if (
+    //     workoutsCompletedThisWeek.length + 1 ===
+    //     userStats.weeklyWorkoutGoal
+    //   ) {
+    //     updatedUserStats.weeklyBonusAwardedAt = new Date(workout.createdAt);
+    //     newWeeklyGoalStreak = userStats.weeklyWorkoutGoalStreak + 1;
 
-        if (
-          process.env.NODE_ENV === 'development' ||
-          process.env.NODE_ENV === 'test'
-        ) {
-          xpGainedFromWeeklyGoal =
-            this.WEEKLY_GOAL_XP_VALUES.baseXp +
-            userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
-        }
-      }
+    //     if (
+    //       process.env.NODE_ENV === 'development' ||
+    //       process.env.NODE_ENV === 'test'
+    //     ) {
+    //       xpGainedFromWeeklyGoal =
+    //         this.WEEKLY_GOAL_XP_VALUES.baseXp +
+    //         userStats.weeklyWorkoutGoal * this.WEEKLY_GOAL_XP_VALUES.multiplier;
+    //     }
+    //   }
 
-      if (
-        process.env.NODE_ENV === 'development' ||
-        process.env.NODE_ENV === 'test'
-      ) {
-        // Give bonus xp if user hit weekly goal at least 2 weeks in a row
-        if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
-          if (newWeeklyGoalStreak >= 10) {
-            // Cap bonus xp at 100 (10 weeks * 10xp for each week)
-            xpGainedFromWeeklyGoal +=
-              this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
-          } else {
-            xpGainedFromWeeklyGoal +=
-              this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
-              newWeeklyGoalStreak;
-          }
-        }
-      }
+    //   if (
+    //     process.env.NODE_ENV === 'development' ||
+    //     process.env.NODE_ENV === 'test'
+    //   ) {
+    //     // Give bonus xp if user hit weekly goal at least 2 weeks in a row
+    //     if (newWeeklyGoalStreak >= this.MIN_STREAK_TO_RECEIVE_XP) {
+    //       if (newWeeklyGoalStreak >= 10) {
+    //         // Cap bonus xp at 100 (10 weeks * 10xp for each week)
+    //         xpGainedFromWeeklyGoal +=
+    //           this.WEEKLY_GOAL_XP_VALUES.maxWeeklyGoalStreakXp;
+    //       } else {
+    //         xpGainedFromWeeklyGoal +=
+    //           this.WEEKLY_GOAL_XP_VALUES.weeklyGoalStreakBaseXp *
+    //           newWeeklyGoalStreak;
+    //       }
+    //     }
+    //   }
 
-      updatedUserStats.weeklyWorkoutGoalStreak = newWeeklyGoalStreak;
-    }
+    //   updatedUserStats.weeklyWorkoutGoalStreak = newWeeklyGoalStreak;
+    // }
 
     const totalGainedXp = xpGainedFromWeeklyGoal;
     updatedUserStats.totalXp = userStats.totalXp + totalGainedXp;

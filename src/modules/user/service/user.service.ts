@@ -44,8 +44,6 @@ export class UserService {
     newUserStats.weeklyBonusAwardedAt =
       updatedUserStats.weeklyBonusAwardedAt ??
       currentUserStats.weeklyBonusAwardedAt;
-    newUserStats.weeklyWorkoutGoal =
-      updatedUserStats.weeklyWorkoutGoal ?? currentUserStats.weeklyWorkoutGoal;
     newUserStats.weeklyWorkoutGoalStreak =
       updatedUserStats.weeklyWorkoutGoalStreak ??
       currentUserStats.weeklyWorkoutGoalStreak;

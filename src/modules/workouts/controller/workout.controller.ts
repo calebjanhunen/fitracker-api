@@ -1,3 +1,5 @@
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
 import {
   Body,
   ConflictException,
@@ -20,6 +22,7 @@ import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
 import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
 import { InsertWorkoutModel } from '../models';
+import { CreateWorkout } from '../models/create-workout';
 import { WorkoutService } from '../service/workout.service';
 
 @Controller('api/workouts')
@@ -27,7 +30,10 @@ import { WorkoutService } from '../service/workout.service';
 @ApiTags('Workouts')
 @ApiBearerAuth('access-token')
 export class WorkoutController {
-  constructor(private readonly workoutService: WorkoutService) {}
+  constructor(
+    private readonly workoutService: WorkoutService,
+    @InjectMapper() private mapper: Mapper,
+  ) {}
 
   @Post()
   @ApiResponse({ status: 201, type: CreateWorkoutResponseDto })
@@ -38,12 +44,13 @@ export class WorkoutController {
     @CurrentUser() userId: string,
   ): Promise<CreateWorkoutResponseDto> {
     try {
-      const workoutModel = plainToInstance(
-        InsertWorkoutModel,
+      const workout = this.mapper.map(
         createWorkoutDto,
+        WorkoutRequestDto,
+        InsertWorkoutModel,
       );
-      const result = await this.workoutService.create(workoutModel, userId);
-      return plainToInstance(CreateWorkoutResponseDto, result);
+      const response = await this.workoutService.create(workout, userId);
+      return this.mapper.map(response, CreateWorkout, CreateWorkoutResponseDto);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);

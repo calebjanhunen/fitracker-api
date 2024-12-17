@@ -3,12 +3,12 @@ import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-or
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
-import { ICreateWorkout } from '../interfaces/create-workout.interface';
 import { IDeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
+import { CreateWorkout } from '../models/create-workout';
 import { WorkoutRepository } from '../repository/workout.repository';
 import { WorkoutEffortXpHelper } from './workout-effort-xp.helper';
 
@@ -39,7 +39,7 @@ export class WorkoutService {
   public async create(
     workout: InsertWorkoutModel,
     userId: string,
-  ): Promise<ICreateWorkout> {
+  ): Promise<CreateWorkout> {
     const exerciseIds = workout.exercises.map((e) => e.exerciseId);
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
     this.validateOrderForExercisesAndSets(workout);
