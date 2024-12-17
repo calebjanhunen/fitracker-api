@@ -22,7 +22,7 @@ import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
 import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
 import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
-import { InsertWorkoutModel } from '../models';
+import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { CreateWorkout } from '../models/create-workout';
 import { WorkoutService } from '../service/workout.service';
 
@@ -69,9 +69,7 @@ export class WorkoutController {
   ): Promise<WorkoutResponseDto> {
     try {
       const workout = await this.workoutService.findById(workoutId, userId);
-      return plainToInstance(WorkoutResponseDto, workout, {
-        excludeExtraneousValues: true,
-      });
+      return this.mapper.map(workout, WorkoutModel, WorkoutResponseDto);
     } catch (e) {
       throw new NotFoundException(e.message);
     }
