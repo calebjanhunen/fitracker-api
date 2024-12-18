@@ -14,6 +14,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
@@ -40,6 +41,8 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @ApiResponse({ status: HttpStatus.CREATED, type: AuthenticationResponseDto })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async login(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
@@ -63,6 +66,8 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: HttpStatus.CREATED })
   public async logout(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
@@ -72,6 +77,9 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(JwtRefreshAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: HttpStatus.CREATED, type: AuthenticationResponseDto })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async refreshToken(
     @CurrentUser() userId: string,
     @Headers('x-device-id') deviceId: string,
@@ -90,6 +98,8 @@ export class AuthController {
   }
 
   @Post('signup')
+  @ApiResponse({ status: HttpStatus.CREATED, type: AuthenticationResponseDto })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async signup(
     @Body() signupDto: UserSignupDto,
     @Headers('x-device-id') deviceId: string,
@@ -119,6 +129,8 @@ export class AuthController {
   }
 
   @Post('verify-email-on-signup')
+  @ApiResponse({ status: HttpStatus.CREATED, type: AuthenticationResponseDto })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async verifyEmailOnSignup(
     @Body() verifyEmailDto: VerifyEmailDto,
   ): Promise<void> {

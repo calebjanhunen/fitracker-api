@@ -1,4 +1,5 @@
 import { AutoMap } from '@automapper/classes';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -10,6 +11,7 @@ export default class UserSignupDto {
   @IsNotEmpty()
   @IsString()
   @AutoMap()
+  @ApiProperty()
   username: string;
 
   @IsNotEmpty()
@@ -21,25 +23,30 @@ export default class UserSignupDto {
     minSymbols: 1,
   })
   @AutoMap()
+  @ApiProperty()
   password: string;
 
   @IsNotEmpty()
   @IsString()
+  @ApiProperty()
   confirmPassword: string;
 
   @IsNotEmpty()
   @IsString()
   @IsEmail()
   @AutoMap()
+  @ApiProperty()
   email: string;
 
   @IsNotEmpty()
   @IsString()
   @AutoMap()
+  @ApiProperty()
   firstName: string;
 
   @IsNotEmpty()
   @IsString()
   @AutoMap()
+  @ApiProperty()
   lastName: string;
 }
