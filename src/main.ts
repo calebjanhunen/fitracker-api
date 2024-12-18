@@ -35,7 +35,7 @@ async function bootstrap() {
   // Setup swagger
   const config = new DocumentBuilder()
     .setTitle('Fitracker API')
-    .setDescription('Api documentation for Fitracker')
+    .setDescription('Fitracker API documentation. [View JSON Spec](./api-json)')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -47,7 +47,9 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/', app, document);
+  SwaggerModule.setup('api', app, document, {
+    customSiteTitle: 'Fitracker API',
+  });
 
   // Start app
   await app.listen(3000);
