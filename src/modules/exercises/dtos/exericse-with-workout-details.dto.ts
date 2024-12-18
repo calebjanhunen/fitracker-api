@@ -1,17 +1,28 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { BodyPart } from 'src/common/enums/body-part.enum';
 
-export class ExerciseWithWorkoutDetailsDto {
+export class RecentSetDto {
+  @ApiProperty()
   id: string;
-  name: string;
-  bodyPart: BodyPart;
-  equipment: string;
-  numTimesUsed: number;
-  recentSets: RecentSetDto[];
+  @ApiProperty()
+  weight: number;
+  @ApiProperty()
+  reps: number;
+  @ApiProperty()
+  rpe: number;
 }
 
-export class RecentSetDto {
+export class ExerciseWithWorkoutDetailsDto {
+  @ApiProperty()
   id: string;
-  weight: number;
-  reps: number;
-  rpe: number;
+  @ApiProperty()
+  name: string;
+  @ApiProperty()
+  bodyPart: BodyPart;
+  @ApiProperty()
+  equipment: string;
+  @ApiProperty()
+  numTimesUsed: number;
+  @ApiProperty({ type: RecentSetDto, isArray: true })
+  recentSets: RecentSetDto[];
 }
