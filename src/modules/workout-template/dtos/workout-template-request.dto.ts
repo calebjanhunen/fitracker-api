@@ -1,4 +1,5 @@
 import { AutoMap } from '@automapper/classes';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -10,40 +11,46 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class WorkoutTemplateRequestDto {
-  @IsString()
-  @IsNotEmpty()
+export class WorkoutTemplateSetRequestDto {
+  @IsInt()
+  @Min(1)
   @AutoMap()
-  public name: string;
-
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => WorkoutTemplateExerciseRequestDto)
-  @AutoMap(() => WorkoutTemplateExerciseRequestDto)
-  public exercises: WorkoutTemplateExerciseRequestDto[];
+  @ApiProperty()
+  public order: number;
 }
 
 export class WorkoutTemplateExerciseRequestDto {
   @IsUUID()
   @IsNotEmpty()
   @AutoMap()
+  @ApiProperty()
   public exerciseId: string;
 
   @IsInt()
   @Min(1)
   @AutoMap()
+  @ApiProperty()
   public order: number;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => WorkoutTemplateSetRequestDto)
   @AutoMap(() => WorkoutTemplateSetRequestDto)
+  @ApiProperty({ type: WorkoutTemplateSetRequestDto, isArray: true })
   public sets: WorkoutTemplateSetRequestDto[];
 }
 
-export class WorkoutTemplateSetRequestDto {
-  @IsInt()
-  @Min(1)
+export class WorkoutTemplateRequestDto {
+  @IsString()
+  @IsNotEmpty()
   @AutoMap()
-  public order: number;
+  @ApiProperty()
+  public name: string;
+
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => WorkoutTemplateExerciseRequestDto)
+  @AutoMap(() => WorkoutTemplateExerciseRequestDto)
+  @ApiProperty({ type: WorkoutTemplateExerciseRequestDto, isArray: true })
+  public exercises: WorkoutTemplateExerciseRequestDto[];
 }

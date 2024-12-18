@@ -13,6 +13,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
@@ -24,6 +25,8 @@ import { WorkoutTemplateService } from './workout-template.service';
 
 @Controller('/api/workout-templates')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('access-token')
+@ApiTags('Workout Templates')
 export class WorkoutTemplateController {
   constructor(
     @InjectMapper() private mapper: Mapper,
@@ -31,6 +34,8 @@ export class WorkoutTemplateController {
   ) {}
 
   @Post()
+  @ApiResponse({ status: HttpStatus.CREATED, type: WorkoutTemplateResponseDto })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async createWorkoutTemplate(
     @Body() dto: WorkoutTemplateRequestDto,
     @CurrentUser() userId: string,
@@ -56,6 +61,12 @@ export class WorkoutTemplateController {
   }
 
   @Get()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: WorkoutTemplateResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async getAllWorkoutTemplates(
     @CurrentUser() userId: string,
   ): Promise<WorkoutTemplateResponseDto[]> {
@@ -74,6 +85,7 @@ export class WorkoutTemplateController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({ status: HttpStatus.NO_CONTENT })
   public async deleteWorkoutTemplate(
     @CurrentUser() userId: string,
     @Param('id') workoutTemplateId: string,
