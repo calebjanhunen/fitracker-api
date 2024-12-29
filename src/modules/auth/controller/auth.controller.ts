@@ -5,7 +5,6 @@ import {
   ConflictException,
   Controller,
   ForbiddenException,
-  Headers,
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
@@ -14,14 +13,16 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators';
+import { DeviceId } from 'src/common/decorators/device-id.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { InsertUserModel } from 'src/modules/user/models/insert-user.model';
 import { AuthenticationResponseDto } from '../dto/authentication-response.dto';
 import { ConfirmEmailVerificationCodeDto } from '../dto/confirm-email-verification-code.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { UserLoginDto } from '../dto/user-signin.dto';
 import UserSignupDto from '../dto/user-signup-dto';
 import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtRefreshAuthGuard } from '../guards/jwt-refresh-auth.guard';
@@ -42,11 +43,12 @@ export class AuthController {
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
+  @ApiBody({ type: UserLoginDto })
   @ApiResponse({ status: HttpStatus.CREATED, type: AuthenticationResponseDto })
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async login(
     @CurrentUser() userId: string,
-    @Headers('x-device-id') deviceId: string,
+    @DeviceId() deviceId: string,
   ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken, username } =
@@ -71,7 +73,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.CREATED })
   public async logout(
     @CurrentUser() userId: string,
-    @Headers('x-device-id') deviceId: string,
+    @DeviceId() deviceId: string,
   ): Promise<void> {
     await this.authService.logout(userId, deviceId);
   }
@@ -83,7 +85,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async refreshToken(
     @CurrentUser() userId: string,
-    @Headers('x-device-id') deviceId: string,
+    @DeviceId() deviceId: string,
   ): Promise<AuthenticationResponseDto> {
     try {
       const { accessToken, refreshToken, username } =
@@ -103,7 +105,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
   public async signup(
     @Body() signupDto: UserSignupDto,
-    @Headers('x-device-id') deviceId: string,
+    @DeviceId() deviceId: string,
   ): Promise<AuthenticationResponseDto> {
     try {
       const model = this.mapper.map(signupDto, UserSignupDto, InsertUserModel);

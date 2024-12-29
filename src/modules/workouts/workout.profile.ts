@@ -5,6 +5,7 @@ import {
   CreateWorkoutResponseDto,
   WorkoutStatsDto,
 } from './dtos/create-workout-response.dto';
+import { DeleteWorkoutDto } from './dtos/delete-workout-response.dto';
 import {
   WorkoutExerciseRequestDto,
   WorkoutRequestDto,
@@ -15,6 +16,7 @@ import {
   WorkoutResponseDto,
   WorkoutSetResponseDto,
 } from './dtos/workout-response.dto';
+import { DeleteWorkout } from './interfaces/delete-workout.interface';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
@@ -41,6 +43,7 @@ export class WorkoutProfile extends AutomapperProfile {
       createMap(mapper, WorkoutExerciseModel, WorkoutExerciseResponseDto);
       createMap(mapper, WorkoutSetModel, WorkoutSetResponseDto);
       createMap(mapper, WorkoutStats, WorkoutStatsDto);
+      createMap(mapper, DeleteWorkout, DeleteWorkoutDto);
     };
   }
 }

@@ -21,11 +21,10 @@ export class WorkoutCalculator {
   public async calculateXpGainedFromWorkout(
     workout: InsertWorkoutModel,
     userStats: UserStats,
-    userId: string,
   ): Promise<ICalculateGainedXp> {
     const updatedUserStats = new UserStats();
     // let xpGainedFromWorkoutDuration = 0;
-    let xpGainedFromWeeklyGoal = 0;
+    const xpGainedFromWeeklyGoal = 0;
 
     // TODO: Rework to discourage unnecessarily long workouts
     // If workout >= 15 mins -> add 10 xp for each minute of the workout

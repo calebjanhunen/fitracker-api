@@ -46,7 +46,10 @@ async function bootstrap() {
       'access-token',
     )
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    operationIdFactory: (controllerKey: string, methodKey: string) =>
+      `${methodKey}`,
+  });
   SwaggerModule.setup('api', app, document, {
     customSiteTitle: 'Fitracker API',
   });

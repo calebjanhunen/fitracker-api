@@ -1,10 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class ExerciseRequestDto {
-  @IsUUID()
-  @ApiProperty()
-  public id: string;
   @IsNotEmpty()
   @IsString()
   @ApiProperty()

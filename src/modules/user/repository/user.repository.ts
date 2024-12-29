@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database/database.service';
 import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { UserProfileModel } from '../models/user-profile.model';
 import { UserStats } from '../models/user-stats.model';
 
 @Injectable()
@@ -11,6 +12,32 @@ export class UserRepository {
     private readonly logger: LoggerService,
   ) {
     this.logger.setContext(UserRepository.name);
+  }
+
+  public async getUserProfile(userId: string): Promise<UserProfileModel> {
+    const query = `
+      SELECT
+        up.first_name,
+        up.last_name,
+        up.weekly_workout_goal,
+        us.total_xp
+      FROM user_profile up
+      LEFT JOIN user_stats us
+        ON us.user_id = up.id
+      WHERE id = $1
+    `;
+    const params = [userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<UserProfileModel>(
+        query,
+        params,
+      );
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error(e, 'Query getUserProfile failed: ');
+      throw new DatabaseException(e);
+    }
   }
 
   public async getStatsByUserId(userId: string): Promise<UserStats> {
@@ -76,6 +103,25 @@ export class UserRepository {
       return queryResult[0];
     } catch (e) {
       this.logger.error(e, 'Query updateUserStats failed: ');
+      throw new DatabaseException(e.message);
+    }
+  }
+
+  public async updateWeeklyWorkoutGoal(
+    updatedGoal: number,
+    userId: string,
+  ): Promise<void> {
+    const query = `
+      UPDATE user_profile SET
+        weekly_workout_goal = $1
+      WHERE id = $2
+    `;
+    const params = [updatedGoal, userId];
+
+    try {
+      await this.db.queryV2<UserStats>(query, params);
+    } catch (e) {
+      this.logger.error(e, 'Query updateWeeklyWorkoutGoal failed: ');
       throw new DatabaseException(e.message);
     }
   }

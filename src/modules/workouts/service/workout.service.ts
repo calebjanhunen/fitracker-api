@@ -3,7 +3,7 @@ import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-or
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
-import { IDeleteWorkout } from '../interfaces/delete-workout.interface';
+import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
@@ -111,7 +111,7 @@ export class WorkoutService {
   public async delete(
     workoutId: string,
     userId: string,
-  ): Promise<IDeleteWorkout> {
+  ): Promise<DeleteWorkout> {
     const workoutToBeDeleted = await this.findById(workoutId, userId);
     const userStats = await this.userService.getStatsByUserId(userId);
 

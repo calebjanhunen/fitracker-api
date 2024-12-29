@@ -6,7 +6,7 @@ export class UserProfileModel {
   @AutoMap()
   lastName: string;
   @AutoMap()
-  totalXp: number;
-  @AutoMap()
   weeklyWorkoutGoal: number;
+  @AutoMap()
+  totalXp: number;
 }

@@ -14,7 +14,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
@@ -22,6 +21,7 @@ import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
 import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
 import { WorkoutRequestDto } from '../dtos/workout-request.dto';
 import { WorkoutResponseDto } from '../dtos/workout-response.dto';
+import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { CreateWorkout } from '../models/create-workout';
 import { WorkoutService } from '../service/workout.service';
@@ -87,11 +87,7 @@ export class WorkoutController {
   ): Promise<WorkoutResponseDto[]> {
     try {
       const workouts = await this.workoutService.findAll(userId);
-      return workouts.map((workout) =>
-        plainToInstance(WorkoutResponseDto, workout, {
-          excludeExtraneousValues: true,
-        }),
-      );
+      return this.mapper.mapArray(workouts, WorkoutModel, WorkoutResponseDto);
     } catch (e) {
       throw new ConflictException(e.message);
     }
@@ -107,7 +103,7 @@ export class WorkoutController {
   ): Promise<DeleteWorkoutDto> {
     try {
       const response = await this.workoutService.delete(workoutId, userId);
-      return plainToInstance(DeleteWorkoutDto, response);
+      return this.mapper.map(response, DeleteWorkout, DeleteWorkoutDto);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
         throw new NotFoundException(e.message);
