@@ -1,51 +1,53 @@
 import { AutoMap } from '@automapper/classes';
-import { Expose } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class WorkoutResponseDto {
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   id: string;
-
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   name: string;
-
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   createdAt: Date;
-
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   duration: number;
-
-  @Expose()
+  @ApiProperty({ type: () => WorkoutExerciseResponseDto, isArray: true })
+  @AutoMap(() => WorkoutExerciseResponseDto)
   exercises: WorkoutExerciseResponseDto[];
 }
 
 export class WorkoutExerciseResponseDto {
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   id: string;
-
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   name: string;
-
-  @Expose()
+  @ApiProperty()
+  @AutoMap()
   order: number;
-
-  @Expose()
+  @ApiProperty({ type: () => WorkoutSetResponseDto, isArray: true })
+  @AutoMap(() => WorkoutSetResponseDto)
   sets: WorkoutSetResponseDto[];
 }
 
 export class WorkoutSetResponseDto {
+  @ApiProperty()
   @AutoMap()
-  @Expose()
   id: string;
+  @ApiProperty()
   @AutoMap()
-  @Expose()
   order: number;
+  @ApiProperty()
   @AutoMap()
-  @Expose()
   weight: number;
+  @ApiProperty()
   @AutoMap()
-  @Expose()
   reps: number;
+  @ApiProperty({ type: Number, nullable: true })
   @AutoMap()
-  @Expose()
   rpe: number | null;
 }

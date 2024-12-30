@@ -1,11 +1,21 @@
+import { AutoMap } from '@automapper/classes';
+import { ApiProperty } from '@nestjs/swagger';
 import { WorkoutResponseDto } from './workout-response.dto';
 
-export class CreateWorkoutResponseDto {
-  workout: WorkoutResponseDto;
-  workoutStats: WorkoutStatsDto;
+export class WorkoutStatsDto {
+  @ApiProperty()
+  @AutoMap()
+  totalWorkoutXp: number;
+  @ApiProperty()
+  @AutoMap()
+  workoutEffortXp: number;
 }
 
-class WorkoutStatsDto {
-  totalWorkoutXp: number;
-  workoutEffortXp: number;
+export class CreateWorkoutResponseDto {
+  @ApiProperty()
+  @AutoMap()
+  workout: WorkoutResponseDto;
+  @ApiProperty()
+  @AutoMap(() => WorkoutStatsDto)
+  workoutStats: WorkoutStatsDto;
 }

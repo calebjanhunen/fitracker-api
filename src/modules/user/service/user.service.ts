@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { UserProfileModel } from '../models/user-profile.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserRepository } from '../repository/user.repository';
 
@@ -35,6 +36,14 @@ export class UserService {
     return await this.userRepo.updateUserStats(newUserStats, userId);
   }
 
+  public async updateWeeklyWorkoutGoal(
+    weeklyWorkoutGoal: number,
+    userId: string,
+  ): Promise<UserProfileModel> {
+    await this.userRepo.updateWeeklyWorkoutGoal(weeklyWorkoutGoal, userId);
+    return await this.userRepo.getUserProfile(userId);
+  }
+
   private getUpdatedUserStatsModel(
     updatedUserStats: UserStats,
     currentUserStats: UserStats,
@@ -44,8 +53,6 @@ export class UserService {
     newUserStats.weeklyBonusAwardedAt =
       updatedUserStats.weeklyBonusAwardedAt ??
       currentUserStats.weeklyBonusAwardedAt;
-    newUserStats.weeklyWorkoutGoal =
-      updatedUserStats.weeklyWorkoutGoal ?? currentUserStats.weeklyWorkoutGoal;
     newUserStats.weeklyWorkoutGoalStreak =
       updatedUserStats.weeklyWorkoutGoalStreak ??
       currentUserStats.weeklyWorkoutGoalStreak;

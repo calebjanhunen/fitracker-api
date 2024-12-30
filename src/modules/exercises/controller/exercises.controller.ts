@@ -15,6 +15,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -31,6 +32,8 @@ import { ExerciseService } from '../services/exercise.service';
 
 @Controller('api/exercises')
 @UseGuards(JwtAuthGuard)
+@ApiTags('Exercises')
+@ApiBearerAuth('access-token')
 export default class ExercisesController {
   constructor(
     private exerciseService: ExerciseService,
@@ -38,6 +41,8 @@ export default class ExercisesController {
   ) {}
 
   @Post()
+  @ApiResponse({ status: HttpStatus.CREATED, type: ExerciseResponseDto })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async createExercise(
     @CurrentUser() userId: string,
     @Body() createExerciseDto: ExerciseRequestDto,
@@ -59,6 +64,12 @@ export default class ExercisesController {
   }
 
   @Get()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ExerciseResponseDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async getAllExercises(
     @CurrentUser() userId: string,
   ): Promise<ExerciseResponseDto[]> {
@@ -71,6 +82,12 @@ export default class ExercisesController {
   }
 
   @Get('/workout-details')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: ExerciseWithWorkoutDetailsDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async getExercisesWithWorkoutDetails(
     @CurrentUser() userId: string,
   ): Promise<ExerciseWithWorkoutDetailsDto[]> {
@@ -87,6 +104,9 @@ export default class ExercisesController {
   }
 
   @Get(':exerciseId/details')
+  @ApiResponse({ status: HttpStatus.OK, type: ExerciseDetailsDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async getExerciseDetails(
     @CurrentUser() userId: string,
     @Param('exerciseId') exerciseId: string,
@@ -111,6 +131,8 @@ export default class ExercisesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({ status: HttpStatus.NO_CONTENT })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async deleteExercise(
     @CurrentUser() userId: string,
     @Param('id') exerciseId: string,
@@ -128,6 +150,9 @@ export default class ExercisesController {
   }
 
   @Put(':id')
+  @ApiResponse({ status: HttpStatus.OK, type: ExerciseResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.CONFLICT })
   public async updateExercise(
     @CurrentUser() userId: string,
     @Param('id') exerciseId: string,
