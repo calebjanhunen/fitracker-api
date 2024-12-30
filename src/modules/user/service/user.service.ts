@@ -15,6 +15,14 @@ export class UserService {
     this.logger.setContext(UserService.name);
   }
 
+  public async getCurrentUser(userId: string): Promise<UserProfileModel> {
+    const user = await this.userRepo.getUserProfile(userId);
+    if (!user) {
+      throw new ResourceNotFoundException('User not found');
+    }
+    return user;
+  }
+
   public async getStatsByUserId(userId: string): Promise<UserStats> {
     return this.userRepo.getStatsByUserId(userId);
   }
@@ -41,7 +49,11 @@ export class UserService {
     userId: string,
   ): Promise<UserProfileModel> {
     await this.userRepo.updateWeeklyWorkoutGoal(weeklyWorkoutGoal, userId);
-    return await this.userRepo.getUserProfile(userId);
+    const user = await this.userRepo.getUserProfile(userId);
+    if (!user) {
+      throw new ResourceNotFoundException('User not found');
+    }
+    return user;
   }
 
   private getUpdatedUserStatsModel(

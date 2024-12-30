@@ -1,5 +1,5 @@
 import { AutoMap } from '@automapper/classes';
-import { WorkoutModel } from '.';
+import { WorkoutModel } from './workout.model';
 
 export class WorkoutStats {
   @AutoMap()
