@@ -4,13 +4,17 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
   Patch,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { UpdateWeeklyWorkoutGoalDto } from '../dtos/update-weekly-workout-goal.dto';
 import { UserProfileDto } from '../dtos/user-profile.dto';
 import { UserProfileModel } from '../models/user-profile.model';
@@ -28,6 +32,24 @@ export class UserController {
     @InjectMapper() private mapper: Mapper,
   ) {
     this.userService = userService;
+  }
+
+  @Get('me')
+  @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
+  public async getCurrentUser(
+    @CurrentUser() userId: string,
+  ): Promise<UserProfileDto> {
+    try {
+      const user = await this.userService.getCurrentUser(userId);
+      return this.mapper.map(user, UserProfileModel, UserProfileDto);
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e);
+      }
+      throw new InternalServerErrorException(e);
+    }
   }
 
   @Patch()
