@@ -14,7 +14,9 @@ export class UserRepository {
     this.logger.setContext(UserRepository.name);
   }
 
-  public async getUserProfile(userId: string): Promise<UserProfileModel> {
+  public async getUserProfile(
+    userId: string,
+  ): Promise<UserProfileModel | null> {
     const query = `
       SELECT
         up.first_name,
@@ -33,6 +35,11 @@ export class UserRepository {
         query,
         params,
       );
+
+      if (!queryResult.length) {
+        return null;
+      }
+
       return queryResult[0];
     } catch (e) {
       this.logger.error(e, 'Query getUserProfile failed: ');
