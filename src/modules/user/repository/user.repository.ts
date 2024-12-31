@@ -91,7 +91,7 @@ export class UserRepository {
     const query = `
       UPDATE user_stats SET
         total_xp = $2,
-        weekly_workout_goal_achieved_at = $3,
+        weekly_workout_goal_achieved_at = $3
       WHERE  user_id = $1
       RETURNING total_xp, weekly_workout_goal_achieved_at
     `;

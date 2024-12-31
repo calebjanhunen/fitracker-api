@@ -5,5 +5,5 @@ export class UserStats {
   @AutoMap()
   totalXp: number;
   @AutoMap()
-  weeklyWorkoutGoalAchievedAt: Date;
+  weeklyWorkoutGoalAchievedAt: Date | null;
 }
