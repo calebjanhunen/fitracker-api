@@ -45,6 +45,18 @@ export class WorkoutService {
     this.validateOrderForExercisesAndSets(workout);
 
     const userStats = await this.userService.getStatsByUserId(userId);
+    const userProfile = await this.userService.getCurrentUser(userId);
+
+    const hasWeeklyGoalBeenReachedForFirstTime =
+      await this.hasWeeklyWorkoutGoalBeenReachedForFirstTime(
+        userStats.weeklyWorkoutGoalAchievedAt,
+        workout.createdAt,
+        userProfile.weeklyWorkoutGoal,
+        userId,
+      );
+    if (hasWeeklyGoalBeenReachedForFirstTime) {
+      userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
+    }
 
     const { totalWorkoutXp, workoutEffortXp } = this.calculateWorkoutXp(
       workout,
@@ -185,5 +197,35 @@ export class WorkoutService {
     const totalWorkoutXp = workoutEffortXp;
 
     return { totalWorkoutXp, workoutEffortXp };
+  }
+
+  private async hasWeeklyWorkoutGoalBeenReachedForFirstTime(
+    weeklyWorkoutGoalAchievedAt: Date | null,
+    workoutCreatedAt: Date,
+    weeklyWorkoutGoal: number,
+    userId: string,
+  ): Promise<boolean> {
+    if (weeklyWorkoutGoalAchievedAt?.isInSameWeekAs(workoutCreatedAt)) {
+      return false;
+    }
+
+    const completedWorkoutsToday = await this.workoutRepo.getWorkoutsByDate(
+      workoutCreatedAt,
+      userId,
+    );
+    if (completedWorkoutsToday.length > 0) {
+      return false;
+    }
+
+    const numberOfDaysWithWorkoutsThisWeek =
+      await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+        userId,
+        workoutCreatedAt,
+      );
+    if (numberOfDaysWithWorkoutsThisWeek + 1 === weeklyWorkoutGoal) {
+      return true;
+    }
+
+    return false;
   }
 }
