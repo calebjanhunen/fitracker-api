@@ -3,7 +3,7 @@ import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel, InsertWorkoutSetModel } from '../models';
 
 @Injectable()
-export class WorkoutEffortXpHelper {
+export class WorkoutEffortXpCalculator {
   private readonly MS_TO_SECOND_CONVERSION = 1000;
   private readonly MAX_RPE = 10;
   private readonly MIN_RPE = 5;
@@ -15,7 +15,7 @@ export class WorkoutEffortXpHelper {
   private readonly DURATION_FACTOR_DECAY_RATE = 0.02;
   private readonly WORKOUT_EFFORT_XP_MULTIPLIER = 1;
   constructor(private readonly logger: LoggerService) {
-    this.logger.setContext(WorkoutEffortXpHelper.name);
+    this.logger.setContext(WorkoutEffortXpCalculator.name);
   }
 
   /**

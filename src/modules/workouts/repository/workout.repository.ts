@@ -136,30 +136,53 @@ export class WorkoutRepository {
   }
 
   /**
-   * Finds all workouts between sunday at 12am (UTC) of the current week
-   * and the currentDate passed in (currentDate excluded)
-   * Only gets workouts with distinct dates so multiple workouts on the same
-   * date will only return 1
+   * Gets the number of days where a workout is completed this week
    * @param {string} userId
    * @param {Date} currentDate
-   * @returns {WorkoutModel}
+   * @returns {number}
    *
    * @throws {DatabaseException}
    */
-  public async findWorkoutsThisWeekWithDistinctDates(
+  public async getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
     userId: string,
     currentDate: Date,
+  ): Promise<number> {
+    const query = `
+      SELECT
+        COUNT(DISTINCT(DATE(w.created_at)))
+      FROM workout w
+      WHERE w.user_id = $1
+      AND DATE(w.created_at) >= ($2::date - INTERVAL '1 day' * (EXTRACT(DOW FROM $2::date)::int))::date
+    `;
+    const params = [userId, currentDate];
+
+    try {
+      const { queryResult } = await this.dbService.queryV2<{ count: number }>(
+        query,
+        params,
+      );
+      return Number(queryResult[0].count);
+    } catch (e) {
+      this.logger.error(
+        e,
+        `Query getNumberOfDaysWhereAWorkoutWasCompletedThisWeek failed: `,
+      );
+      throw new DatabaseException(e.message);
+    }
+  }
+
+  public async getWorkoutsByDate(
+    date: Date,
+    userId: string,
   ): Promise<WorkoutModel[]> {
     const query = `
       SELECT
-        DISTINCT ON (DATE(w.created_at))
         ${this.COLUMNS_AND_JOINS}
       WHERE w.user_id = $1
-      AND w.created_at >= (DATE_TRUNC('week', $2 AT TIME ZONE 'UTC') - INTERVAL '1 day')
-      AND w.created_at < DATE($2) AT TIME ZONE 'UTC'
+      AND Date(w.created_at) = Date($2)
       GROUP BY w.id
     `;
-    const params = [userId, currentDate];
+    const params = [userId, date];
 
     try {
       const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
@@ -168,10 +191,7 @@ export class WorkoutRepository {
       );
       return queryResult;
     } catch (e) {
-      this.logger.error(
-        e,
-        `Query findWorkoutsThisWeekWithDistinctDates failed: `,
-      );
+      this.logger.error(e, `Query getWorkoutsByDate failed: `);
       throw new DatabaseException(e.message);
     }
   }

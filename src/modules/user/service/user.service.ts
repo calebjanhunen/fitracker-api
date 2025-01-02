@@ -62,12 +62,9 @@ export class UserService {
   ): UserStats {
     const newUserStats = new UserStats();
     newUserStats.totalXp = updatedUserStats.totalXp ?? currentUserStats.totalXp;
-    newUserStats.weeklyBonusAwardedAt =
-      updatedUserStats.weeklyBonusAwardedAt ??
-      currentUserStats.weeklyBonusAwardedAt;
-    newUserStats.weeklyWorkoutGoalStreak =
-      updatedUserStats.weeklyWorkoutGoalStreak ??
-      currentUserStats.weeklyWorkoutGoalStreak;
+    newUserStats.weeklyWorkoutGoalAchievedAt =
+      updatedUserStats.weeklyWorkoutGoalAchievedAt ??
+      currentUserStats.weeklyWorkoutGoalAchievedAt;
 
     return newUserStats;
   }
