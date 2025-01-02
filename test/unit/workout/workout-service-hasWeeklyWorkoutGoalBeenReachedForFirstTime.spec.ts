@@ -6,7 +6,7 @@ import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repos
 import { WorkoutEffortXpHelper } from 'src/modules/workouts/service/workout-effort-xp.helper';
 import { WorkoutService } from 'src/modules/workouts/service/workout.service';
 
-describe('Workout Service: hasWeeklyWorkoutGoalBeenReachedForFirstTime7', () => {
+describe('Workout Service: hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
   let workoutService: WorkoutService;
   let mockExerciseService: Partial<ExerciseService>;
   let mockWorkoutRepo: Partial<WorkoutRepository>;
