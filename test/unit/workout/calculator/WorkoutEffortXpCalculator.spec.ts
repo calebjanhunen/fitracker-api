@@ -1,26 +1,26 @@
 import { Test } from '@nestjs/testing';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { MockLoggerService } from 'test/mocks/mock-logger.service';
+import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/workout-effort-xp.calculator';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
   InsertWorkoutSetModel,
-} from '../../models';
-import { WorkoutEffortXpHelper } from '../workout-effort-xp.helper';
+} from 'src/modules/workouts/models';
+import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
-describe('WorkoutEffortXpHelper', () => {
-  let workoutEffortXpHelper: WorkoutEffortXpHelper;
+describe('WorkoutEffortXpCalculator', () => {
+  let workoutEffortXpCalculator: WorkoutEffortXpCalculator;
   const mockLoggerService = new MockLoggerService();
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        WorkoutEffortXpHelper,
+        WorkoutEffortXpCalculator,
         { provide: LoggerService, useValue: mockLoggerService },
       ],
     }).compile();
 
-    workoutEffortXpHelper = module.get(WorkoutEffortXpHelper);
+    workoutEffortXpCalculator = module.get(WorkoutEffortXpCalculator);
   });
 
   describe('test convertWeight', () => {
@@ -29,7 +29,7 @@ describe('WorkoutEffortXpHelper', () => {
       const originalUnit = 'kg';
       const resultUnit = 'lbs';
 
-      const result = workoutEffortXpHelper['convertWeight'](
+      const result = workoutEffortXpCalculator['convertWeight'](
         weight,
         originalUnit,
         resultUnit,
@@ -42,7 +42,7 @@ describe('WorkoutEffortXpHelper', () => {
       const originalUnit = 'lbs';
       const resultUnit = 'kg';
 
-      const result = workoutEffortXpHelper['convertWeight'](
+      const result = workoutEffortXpCalculator['convertWeight'](
         weight,
         originalUnit,
         resultUnit,
@@ -60,7 +60,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.rpe = 8;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['getOneRepMax'](set);
+      const result = workoutEffortXpCalculator['getOneRepMax'](set);
 
       expect(result).toBe(168);
     });
@@ -71,7 +71,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.rpe = 10;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['getOneRepMax'](set);
+      const result = workoutEffortXpCalculator['getOneRepMax'](set);
 
       expect(result).toBe(160);
     });
@@ -81,7 +81,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.reps = 10;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['getOneRepMax'](set);
+      const result = workoutEffortXpCalculator['getOneRepMax'](set);
 
       expect(result).toBe(160);
     });
@@ -95,7 +95,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.rpe = 10;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['calculateSetEffort'](set);
+      const result = workoutEffortXpCalculator['calculateSetEffort'](set);
 
       expect(result).toBe(7.5);
     });
@@ -106,7 +106,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.rpe = 8;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['calculateSetEffort'](set);
+      const result = workoutEffortXpCalculator['calculateSetEffort'](set);
 
       expect(Number(result.toFixed(3))).toBe(4.286);
     });
@@ -116,7 +116,7 @@ describe('WorkoutEffortXpHelper', () => {
       set.reps = 10;
       set.weight = 120;
 
-      const result = workoutEffortXpHelper['calculateSetEffort'](set);
+      const result = workoutEffortXpCalculator['calculateSetEffort'](set);
 
       expect(result).toBe(7.5);
     });
@@ -128,7 +128,7 @@ describe('WorkoutEffortXpHelper', () => {
       const numExercises = 6;
 
       const { minBaselineDurationSeconds, maxBaselineDurationSeconds } =
-        workoutEffortXpHelper['calculateBaselineWorkoutTimesInSeconds'](
+        workoutEffortXpCalculator['calculateBaselineWorkoutTimesInSeconds'](
           numSets,
           numExercises,
         );
@@ -202,7 +202,8 @@ describe('WorkoutEffortXpHelper', () => {
       exercise4.sets = [e4Set1, e4Set2, e4Set3];
       workout.exercises = [exercise1, exercise2, exercise3, exercise4];
 
-      const result = workoutEffortXpHelper['calculateWorkoutEffort'](workout);
+      const result =
+        workoutEffortXpCalculator['calculateWorkoutEffort'](workout);
 
       expect(Number(result.toFixed(2))).toBe(74.9);
     });
@@ -214,13 +215,13 @@ describe('WorkoutEffortXpHelper', () => {
 
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'getNumberOfExercisesAndSetsInWorkout',
         )
         .mockReturnValue({ numExercises: 3, numSets: 9 });
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'calculateBaselineWorkoutTimesInSeconds',
         )
         .mockReturnValue({
@@ -228,10 +229,10 @@ describe('WorkoutEffortXpHelper', () => {
           maxBaselineDurationSeconds: 50,
         });
       jest
-        .spyOn(workoutEffortXpHelper as any, 'calculateWorkoutEffort')
+        .spyOn(workoutEffortXpCalculator as any, 'calculateWorkoutEffort')
         .mockReturnValue(100);
 
-      const result = workoutEffortXpHelper[
+      const result = workoutEffortXpCalculator[
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 40, 'user-id');
 
@@ -242,13 +243,13 @@ describe('WorkoutEffortXpHelper', () => {
 
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'getNumberOfExercisesAndSetsInWorkout',
         )
         .mockReturnValue({ numExercises: 3, numSets: 9 });
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'calculateBaselineWorkoutTimesInSeconds',
         )
         .mockReturnValue({
@@ -256,10 +257,10 @@ describe('WorkoutEffortXpHelper', () => {
           maxBaselineDurationSeconds: 50,
         });
       jest
-        .spyOn(workoutEffortXpHelper as any, 'calculateWorkoutEffort')
+        .spyOn(workoutEffortXpCalculator as any, 'calculateWorkoutEffort')
         .mockReturnValue(100);
 
-      const result = workoutEffortXpHelper[
+      const result = workoutEffortXpCalculator[
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 15, 'user-id');
 
@@ -270,13 +271,13 @@ describe('WorkoutEffortXpHelper', () => {
 
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'getNumberOfExercisesAndSetsInWorkout',
         )
         .mockReturnValue({ numExercises: 3, numSets: 9 });
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'calculateBaselineWorkoutTimesInSeconds',
         )
         .mockReturnValue({
@@ -284,10 +285,10 @@ describe('WorkoutEffortXpHelper', () => {
           maxBaselineDurationSeconds: 50,
         });
       jest
-        .spyOn(workoutEffortXpHelper as any, 'calculateWorkoutEffort')
+        .spyOn(workoutEffortXpCalculator as any, 'calculateWorkoutEffort')
         .mockReturnValue(100);
 
-      const result = workoutEffortXpHelper[
+      const result = workoutEffortXpCalculator[
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 60, 'user-id');
 
@@ -298,13 +299,13 @@ describe('WorkoutEffortXpHelper', () => {
 
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'getNumberOfExercisesAndSetsInWorkout',
         )
         .mockReturnValue({ numExercises: 3, numSets: 9 });
       jest
         .spyOn(
-          workoutEffortXpHelper as any,
+          workoutEffortXpCalculator as any,
           'calculateBaselineWorkoutTimesInSeconds',
         )
         .mockReturnValue({
@@ -312,10 +313,10 @@ describe('WorkoutEffortXpHelper', () => {
           maxBaselineDurationSeconds: 50,
         });
       jest
-        .spyOn(workoutEffortXpHelper as any, 'calculateWorkoutEffort')
+        .spyOn(workoutEffortXpCalculator as any, 'calculateWorkoutEffort')
         .mockReturnValue(100);
 
-      const result = workoutEffortXpHelper[
+      const result = workoutEffortXpCalculator[
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 36050, 'user-id');
 

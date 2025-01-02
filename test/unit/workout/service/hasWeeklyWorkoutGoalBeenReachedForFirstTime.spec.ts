@@ -1,32 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
+import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/workout-effort-xp.calculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
 import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
-import { WorkoutEffortXpHelper } from 'src/modules/workouts/service/workout-effort-xp.helper';
 import { WorkoutService } from 'src/modules/workouts/service/workout.service';
 
-describe('Workout Service: hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
+describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
   let workoutService: WorkoutService;
   let mockExerciseService: Partial<ExerciseService>;
   let mockWorkoutRepo: Partial<WorkoutRepository>;
   let mockUserService: Partial<UserService>;
-  let mockWorkoutEffortXpHelper: Partial<WorkoutEffortXpHelper>;
+  let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
   const userId = 'user-id';
 
   beforeEach(async () => {
     mockExerciseService = {};
     mockWorkoutRepo = {};
     mockUserService = {};
-    mockWorkoutEffortXpHelper = {};
-    mockWorkoutEffortXpHelper = {};
+    mockWorkoutEffortXpCalculator = {};
+    mockWorkoutEffortXpCalculator = {};
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkoutService,
         { provide: ExerciseService, useValue: mockExerciseService },
         { provide: WorkoutRepository, useValue: mockWorkoutRepo },
         { provide: UserService, useValue: mockUserService },
-        { provide: WorkoutEffortXpHelper, useValue: mockWorkoutEffortXpHelper },
+        {
+          provide: WorkoutEffortXpCalculator,
+          useValue: mockWorkoutEffortXpCalculator,
+        },
       ],
     }).compile();
 
