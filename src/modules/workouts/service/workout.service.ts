@@ -65,17 +65,21 @@ export class WorkoutService {
         userId,
         daysWithWorkoutsThisWeek + 1,
       );
-    if (hasWorkoutGoalBeenReachedOrExceeded) {
+    if (
+      hasWorkoutGoalBeenReachedOrExceeded &&
+      daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal
+    ) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
     }
 
-    const { totalWorkoutXp, workoutEffortXp } = this.calculateWorkoutXp(
-      workout,
-      userId,
-      hasWorkoutGoalBeenReachedOrExceeded,
-      userProfile.weeklyWorkoutGoal,
-      daysWithWorkoutsThisWeek,
-    );
+    const { totalWorkoutXp, workoutEffortXp, workoutGoalXp } =
+      this.calculateWorkoutXp(
+        workout,
+        userId,
+        hasWorkoutGoalBeenReachedOrExceeded,
+        userProfile.weeklyWorkoutGoal,
+        daysWithWorkoutsThisWeek,
+      );
     workout.gainedXp = totalWorkoutXp;
 
     try {
@@ -89,6 +93,7 @@ export class WorkoutService {
         workoutStats: {
           totalWorkoutXp,
           workoutEffortXp,
+          workoutGoalXp,
         },
       };
     } catch (e) {
@@ -229,8 +234,10 @@ export class WorkoutService {
     userId: string,
     daysWithWorkoutsThisWeek: number,
   ): Promise<boolean> {
-    if (weeklyWorkoutGoalAchievedAt?.isInSameWeekAs(workoutCreatedAt)) {
-      // workout goal has already been reached this week
+    if (
+      weeklyWorkoutGoalAchievedAt?.isInSameWeekAs(workoutCreatedAt) &&
+      daysWithWorkoutsThisWeek <= weeklyWorkoutGoal
+    ) {
       return false;
     }
 
