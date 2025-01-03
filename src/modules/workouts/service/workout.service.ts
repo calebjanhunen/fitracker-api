@@ -3,7 +3,10 @@ import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-or
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
-import { WorkoutEffortXpCalculator } from '../calculator/workout-effort-xp.calculator';
+import {
+  WorkoutEffortXpCalculator,
+  WorkoutGoalXpCalculator,
+} from '../calculator';
 import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
 import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
@@ -15,6 +18,7 @@ import { WorkoutRepository } from '../repository/workout.repository';
 interface ICalculateWorkoutXp {
   totalWorkoutXp: number;
   workoutEffortXp: number;
+  workoutGoalXp: number;
 }
 
 @Injectable()
@@ -24,6 +28,7 @@ export class WorkoutService {
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
+    private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
   ) {}
 
   /**
@@ -52,7 +57,7 @@ export class WorkoutService {
         userId,
         workout.createdAt,
       );
-    const hasWeeklyGoalBeenReachedForFirstTime =
+    const hasWorkoutGoalBeenReachedOrExceeded =
       await this.hasWorkoutGoalBeenReachedOrExceeded(
         userStats.weeklyWorkoutGoalAchievedAt,
         workout.createdAt,
@@ -60,13 +65,16 @@ export class WorkoutService {
         userId,
         daysWithWorkoutsThisWeek + 1,
       );
-    if (hasWeeklyGoalBeenReachedForFirstTime) {
+    if (hasWorkoutGoalBeenReachedOrExceeded) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
     }
 
     const { totalWorkoutXp, workoutEffortXp } = this.calculateWorkoutXp(
       workout,
       userId,
+      hasWorkoutGoalBeenReachedOrExceeded,
+      userProfile.weeklyWorkoutGoal,
+      daysWithWorkoutsThisWeek,
     );
     workout.gainedXp = totalWorkoutXp;
 
@@ -195,12 +203,23 @@ export class WorkoutService {
   private calculateWorkoutXp(
     workout: InsertWorkoutModel,
     userId: string,
+    shouldCalculateGoalXp: boolean,
+    userWorkoutGoal: number,
+    daysWithWorkoutsThisWeek: number,
   ): ICalculateWorkoutXp {
     const workoutEffortXp =
       this.workoutEffortXpCalculator.calculateWorkoutEffortXp(workout, userId);
-    const totalWorkoutXp = workoutEffortXp;
 
-    return { totalWorkoutXp, workoutEffortXp };
+    let workoutGoalXp = 0;
+    if (shouldCalculateGoalXp) {
+      workoutGoalXp = this.workoutGoalXpCalculator.calculateWorkoutGoalXp(
+        userWorkoutGoal,
+        daysWithWorkoutsThisWeek,
+      );
+    }
+
+    const totalWorkoutXp = workoutEffortXp + workoutGoalXp;
+    return { totalWorkoutXp, workoutEffortXp, workoutGoalXp };
   }
 
   private async hasWorkoutGoalBeenReachedOrExceeded(
