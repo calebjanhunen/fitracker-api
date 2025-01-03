@@ -1,10 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/WorkoutEffortXpCalculator';
+import {
+  WorkoutEffortXpCalculator,
+  WorkoutGoalXpCalculator,
+} from 'src/modules/workouts/calculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
 import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
 import { WorkoutService } from 'src/modules/workouts/service/workout.service';
+import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
 describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let workoutService: WorkoutService;
@@ -12,6 +17,7 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let mockWorkoutRepo: Partial<WorkoutRepository>;
   let mockUserService: Partial<UserService>;
   let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
+  let mockWorkoutGoalXpCalculator: Partial<WorkoutGoalXpCalculator>;
   const userId = 'user-id';
 
   beforeEach(async () => {
@@ -19,7 +25,7 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     mockWorkoutRepo = {};
     mockUserService = {};
     mockWorkoutEffortXpCalculator = {};
-    mockWorkoutEffortXpCalculator = {};
+    mockWorkoutGoalXpCalculator = {};
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkoutService,
@@ -29,6 +35,14 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
         {
           provide: WorkoutEffortXpCalculator,
           useValue: mockWorkoutEffortXpCalculator,
+        },
+        {
+          provide: WorkoutGoalXpCalculator,
+          useValue: mockWorkoutGoalXpCalculator,
+        },
+        {
+          provide: LoggerService,
+          useValue: new MockLoggerService(),
         },
       ],
     }).compile();
