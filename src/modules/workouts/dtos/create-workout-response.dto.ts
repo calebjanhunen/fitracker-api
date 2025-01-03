@@ -9,6 +9,9 @@ export class WorkoutStatsDto {
   @ApiProperty()
   @AutoMap()
   workoutEffortXp: number;
+  @ApiProperty()
+  @AutoMap()
+  workoutGoalXp: number;
 }
 
 export class CreateWorkoutResponseDto {

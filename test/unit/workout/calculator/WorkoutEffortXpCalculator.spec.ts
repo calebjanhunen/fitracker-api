@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/workout-effort-xp.calculator';
+import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/WorkoutEffortXpCalculator';
 import {
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,

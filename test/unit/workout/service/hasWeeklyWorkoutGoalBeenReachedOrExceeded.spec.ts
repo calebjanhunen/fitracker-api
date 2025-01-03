@@ -1,17 +1,23 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/workout-effort-xp.calculator';
+import {
+  WorkoutEffortXpCalculator,
+  WorkoutGoalXpCalculator,
+} from 'src/modules/workouts/calculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
 import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
 import { WorkoutService } from 'src/modules/workouts/service/workout.service';
+import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
-describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
+describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let workoutService: WorkoutService;
   let mockExerciseService: Partial<ExerciseService>;
   let mockWorkoutRepo: Partial<WorkoutRepository>;
   let mockUserService: Partial<UserService>;
   let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
+  let mockWorkoutGoalXpCalculator: Partial<WorkoutGoalXpCalculator>;
   const userId = 'user-id';
 
   beforeEach(async () => {
@@ -19,7 +25,7 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
     mockWorkoutRepo = {};
     mockUserService = {};
     mockWorkoutEffortXpCalculator = {};
-    mockWorkoutEffortXpCalculator = {};
+    mockWorkoutGoalXpCalculator = {};
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkoutService,
@@ -29,6 +35,14 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
         {
           provide: WorkoutEffortXpCalculator,
           useValue: mockWorkoutEffortXpCalculator,
+        },
+        {
+          provide: WorkoutGoalXpCalculator,
+          useValue: mockWorkoutGoalXpCalculator,
+        },
+        {
+          provide: LoggerService,
+          useValue: new MockLoggerService(),
         },
       ],
     }).compile();
@@ -43,9 +57,13 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
     const workoutCreatedAt = new Date(2024, 11, 30, 12, 0, 0);
     const weeklyWorkoutGoal = 4;
 
-    const result = await workoutService[
-      'hasWeeklyWorkoutGoalBeenReachedForFirstTime'
-    ](weeklyWorkoutGoalAchievedAt, workoutCreatedAt, weeklyWorkoutGoal, userId);
+    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+      weeklyWorkoutGoalAchievedAt,
+      workoutCreatedAt,
+      weeklyWorkoutGoal,
+      userId,
+      3,
+    );
     expect(result).toBe(false);
   });
   it('GivenMoreThanZeroWorkoutsAlreadyCompletedOnSameDateAsCreatedWorkout_WhenCheckingIfWeeklyGoalBeenReachedForFirstTime_ReturnFalse', async () => {
@@ -59,9 +77,13 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
       .fn()
       .mockResolvedValue([new WorkoutModel()]);
 
-    const result = await workoutService[
-      'hasWeeklyWorkoutGoalBeenReachedForFirstTime'
-    ](weeklyWorkoutGoalAchievedAt, workoutCreatedAt, weeklyWorkoutGoal, userId);
+    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+      weeklyWorkoutGoalAchievedAt,
+      workoutCreatedAt,
+      weeklyWorkoutGoal,
+      userId,
+      3,
+    );
 
     expect(result).toBe(false);
   });
@@ -74,13 +96,14 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
     const daysWithWorkoutsThisWeek = 2;
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
-    mockWorkoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek = jest
-      .fn()
-      .mockResolvedValue(daysWithWorkoutsThisWeek);
 
-    const result = await workoutService[
-      'hasWeeklyWorkoutGoalBeenReachedForFirstTime'
-    ](weeklyWorkoutGoalAchievedAt, workoutCreatedAt, weeklyWorkoutGoal, userId);
+    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+      weeklyWorkoutGoalAchievedAt,
+      workoutCreatedAt,
+      weeklyWorkoutGoal,
+      userId,
+      daysWithWorkoutsThisWeek,
+    );
 
     expect(result).toBe(false);
   });
@@ -91,36 +114,38 @@ describe('WorkoutService - hasWeeklyWorkoutGoalBeenReachedForFirstTime', () => {
     //December 30th, 2024 12:00
     const workoutCreatedAt = new Date(2024, 11, 30, 12, 0, 0);
     const weeklyWorkoutGoal = 4;
-    const daysWithWorkoutsThisWeek = 3;
+    const daysWithWorkoutsThisWeek = 4;
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
-    mockWorkoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek = jest
-      .fn()
-      .mockResolvedValue(daysWithWorkoutsThisWeek);
 
-    const result = await workoutService[
-      'hasWeeklyWorkoutGoalBeenReachedForFirstTime'
-    ](weeklyWorkoutGoalAchievedAt, workoutCreatedAt, weeklyWorkoutGoal, userId);
+    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+      weeklyWorkoutGoalAchievedAt,
+      workoutCreatedAt,
+      weeklyWorkoutGoal,
+      userId,
+      daysWithWorkoutsThisWeek,
+    );
 
     expect(result).toBe(true);
   });
-  it('GivenNumberOfDaysWithWorkoutsThisWeekGreaterThanWeeklyWorkoutGoal_WhenCheckingIfWeeklyGoalBeenReachedForFirstTime_ReturnFalse', async () => {
+  it('GivenNumberOfDaysWithWorkoutsThisWeekGreaterThanWeeklyWorkoutGoal_WhenCheckingIfWeeklyGoalBeenReachedForFirstTime_ReturnTrue', async () => {
     //December 27th, 2024 14:00
     const weeklyWorkoutGoalAchievedAt = new Date(2024, 11, 27, 14, 0, 0);
     //December 30th, 2024 12:00
     const workoutCreatedAt = new Date(2024, 11, 30, 12, 0, 0);
     const weeklyWorkoutGoal = 4;
-    const daysWithWorkoutsThisWeek = 5;
+    const daysWithWorkoutsThisWeek = 6;
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
-    mockWorkoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek = jest
-      .fn()
-      .mockResolvedValue(daysWithWorkoutsThisWeek);
 
-    const result = await workoutService[
-      'hasWeeklyWorkoutGoalBeenReachedForFirstTime'
-    ](weeklyWorkoutGoalAchievedAt, workoutCreatedAt, weeklyWorkoutGoal, userId);
+    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+      weeklyWorkoutGoalAchievedAt,
+      workoutCreatedAt,
+      weeklyWorkoutGoal,
+      userId,
+      daysWithWorkoutsThisWeek,
+    );
 
-    expect(result).toBe(false);
+    expect(result).toBe(true);
   });
 });
