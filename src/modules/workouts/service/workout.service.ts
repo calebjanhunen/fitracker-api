@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserService } from 'src/modules/user/service/user.service';
@@ -29,7 +30,10 @@ export class WorkoutService {
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
     private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
-  ) {}
+    private readonly logger: LoggerService,
+  ) {
+    this.logger.setContext(WorkoutService.name);
+  }
 
   /**
    * Creates a workout.
@@ -220,6 +224,10 @@ export class WorkoutService {
       workoutGoalXp = this.workoutGoalXpCalculator.calculateWorkoutGoalXp(
         userWorkoutGoal,
         daysWithWorkoutsThisWeek,
+      );
+      this.logger.log(
+        `Workout goal XP calculated for user ${userId}. Goal XP = ${workoutGoalXp}`,
+        { userId, workoutGoalXp },
       );
     }
 
