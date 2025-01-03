@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { DbModule } from 'src/common/database/database.module';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
-import { WorkoutEffortXpHelper } from './calculator/workout-effort-xp.calculator';
+import {
+  WorkoutEffortXpCalculator,
+  WorkoutGoalXpCalculator,
+} from './calculator';
 import { WorkoutController } from './controller/workout.controller';
 import { WorkoutRepository } from './repository/workout.repository';
 import { WorkoutCalculator } from './service/workout.calculator';

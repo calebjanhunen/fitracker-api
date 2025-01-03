@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
-import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/workout-effort-xp.calculator';
+import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/WorkoutEffortXpCalculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
 import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
 import { WorkoutService } from 'src/modules/workouts/service/workout.service';

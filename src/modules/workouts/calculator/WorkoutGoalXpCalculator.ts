@@ -1,3 +1,6 @@
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
 export class WorkoutGoalXpCalculator {
   private readonly BASE_GOAL_XP = 25;
   private readonly GOAL_XP_MULTIPLIER = 5;
