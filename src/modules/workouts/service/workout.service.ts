@@ -47,12 +47,18 @@ export class WorkoutService {
     const userStats = await this.userService.getStatsByUserId(userId);
     const userProfile = await this.userService.getCurrentUser(userId);
 
+    const daysWithWorkoutsThisWeek =
+      await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+        userId,
+        workout.createdAt,
+      );
     const hasWeeklyGoalBeenReachedForFirstTime =
-      await this.hasWeeklyWorkoutGoalBeenReachedForFirstTime(
+      await this.hasWorkoutGoalBeenReachedOrExceeded(
         userStats.weeklyWorkoutGoalAchievedAt,
         workout.createdAt,
         userProfile.weeklyWorkoutGoal,
         userId,
+        daysWithWorkoutsThisWeek + 1,
       );
     if (hasWeeklyGoalBeenReachedForFirstTime) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
@@ -197,13 +203,15 @@ export class WorkoutService {
     return { totalWorkoutXp, workoutEffortXp };
   }
 
-  private async hasWeeklyWorkoutGoalBeenReachedForFirstTime(
+  private async hasWorkoutGoalBeenReachedOrExceeded(
     weeklyWorkoutGoalAchievedAt: Date | null,
     workoutCreatedAt: Date,
     weeklyWorkoutGoal: number,
     userId: string,
+    daysWithWorkoutsThisWeek: number,
   ): Promise<boolean> {
     if (weeklyWorkoutGoalAchievedAt?.isInSameWeekAs(workoutCreatedAt)) {
+      // workout goal has already been reached this week
       return false;
     }
 
@@ -212,15 +220,12 @@ export class WorkoutService {
       userId,
     );
     if (completedWorkoutsToday.length > 0) {
+      // a workout has already been completed today
       return false;
     }
 
-    const numberOfDaysWithWorkoutsThisWeek =
-      await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
-        userId,
-        workoutCreatedAt,
-      );
-    if (numberOfDaysWithWorkoutsThisWeek + 1 === weeklyWorkoutGoal) {
+    if (daysWithWorkoutsThisWeek >= weeklyWorkoutGoal) {
+      // number of days a workout has been completed including the currently completed workout is equal or greater than the goal
       return true;
     }
 
