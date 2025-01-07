@@ -60,4 +60,15 @@ describe('WorkoutGoalXpCalculator', () => {
       expect(actual).toBe(61);
     });
   });
+
+  describe('calculateWorkoutGoalStreakXp', () => {
+    const streak = 5;
+    const workoutGoal = 6;
+
+    const result = workoutGoalXpCalculator.calculateWorkoutGoalStreakXp(
+      streak,
+      workoutGoal,
+    );
+    expect(result).toBeGreaterThan(0);
+  });
 });
