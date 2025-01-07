@@ -74,6 +74,10 @@ export class WorkoutService {
       daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal
     ) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
+
+      if (daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal) {
+        userStats.weeklyWorkoutGoalStreak++;
+      }
     }
 
     const { totalWorkoutXp, workoutEffortXp, workoutGoalXp } =
