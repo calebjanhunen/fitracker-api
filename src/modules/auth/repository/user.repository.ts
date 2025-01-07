@@ -134,7 +134,7 @@ export class UserRepository {
   public async resetPassword(userId: string, password: string): Promise<void> {
     const queryName = 'updatePassword';
     const query = `
-      UPDATE autuh.user
+      UPDATE auth.user
       SET
         password = $1,
         updated_at = NOW()
