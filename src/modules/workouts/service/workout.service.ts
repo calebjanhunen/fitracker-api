@@ -57,26 +57,30 @@ export class WorkoutService {
     const userStats = await this.userService.getStatsByUserId(userId);
     const userProfile = await this.userService.getCurrentUser(userId);
 
-    const daysWithWorkoutsThisWeek =
-      await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+    const daysWithWorkoutsThisWeekIncludingCurrentWorkout =
+      (await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
         userId,
         workout.createdAt,
-      );
+      )) + 1;
     const hasWorkoutGoalBeenReachedOrExceeded =
       await this.hasWorkoutGoalBeenReachedOrExceeded(
         userStats.weeklyWorkoutGoalAchievedAt,
         workout.createdAt,
         userProfile.weeklyWorkoutGoal,
         userId,
-        daysWithWorkoutsThisWeek + 1,
+        daysWithWorkoutsThisWeekIncludingCurrentWorkout,
       );
     if (
       hasWorkoutGoalBeenReachedOrExceeded &&
-      daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal
+      daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
+        userProfile.weeklyWorkoutGoal
     ) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
 
-      if (daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal) {
+      if (
+        daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
+        userProfile.weeklyWorkoutGoal
+      ) {
         userStats.weeklyWorkoutGoalStreak++;
       }
     }
@@ -92,7 +96,7 @@ export class WorkoutService {
       hasWorkoutGoalBeenReachedOrExceeded,
       userProfile.weeklyWorkoutGoal,
       userStats.weeklyWorkoutGoalStreak,
-      daysWithWorkoutsThisWeek + 1,
+      daysWithWorkoutsThisWeekIncludingCurrentWorkout,
     );
     workout.gainedXp = totalWorkoutXp;
 
@@ -109,6 +113,8 @@ export class WorkoutService {
           workoutEffortXp,
           workoutGoalXp,
           workoutGoalStreakXp,
+          daysWithWorkoutsThisWeek:
+            daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },
       };
     } catch (e) {
