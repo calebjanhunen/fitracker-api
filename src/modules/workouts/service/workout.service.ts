@@ -86,6 +86,7 @@ export class WorkoutService {
         userId,
         hasWorkoutGoalBeenReachedOrExceeded,
         userProfile.weeklyWorkoutGoal,
+        userStats.weeklyWorkoutGoalStreak,
         daysWithWorkoutsThisWeek,
       );
     workout.gainedXp = totalWorkoutXp;
@@ -216,26 +217,38 @@ export class WorkoutService {
   private calculateWorkoutXp(
     workout: InsertWorkoutModel,
     userId: string,
-    shouldCalculateGoalXp: boolean,
+    hasWorkoutGoalBeenReachedOrExceeded: boolean,
     userWorkoutGoal: number,
+    workoutGoalStreak: number,
     daysWithWorkoutsThisWeek: number,
   ): ICalculateWorkoutXp {
     const workoutEffortXp =
       this.workoutEffortXpCalculator.calculateWorkoutEffortXp(workout, userId);
 
     let workoutGoalXp = 0;
-    if (shouldCalculateGoalXp) {
+    let workoutGoalStreakXp = 0;
+    if (hasWorkoutGoalBeenReachedOrExceeded) {
       workoutGoalXp = this.workoutGoalXpCalculator.calculateWorkoutGoalXp(
         userWorkoutGoal,
         daysWithWorkoutsThisWeek,
       );
-      this.logger.log(
-        `Workout goal XP calculated for user ${userId}. Goal XP = ${workoutGoalXp}`,
-        { userId, workoutGoalXp },
-      );
+
+      if (daysWithWorkoutsThisWeek === userWorkoutGoal) {
+        workoutGoalStreakXp =
+          this.workoutGoalXpCalculator.calculateWorkoutGoalStreakXp(
+            workoutGoalStreak,
+            userWorkoutGoal,
+          );
+      }
     }
 
-    const totalWorkoutXp = workoutEffortXp + workoutGoalXp;
+    this.logger.log(
+      `Workout XP calculated for user ${userId} and workout ${workout.name}. Workout effort XP = ${workoutEffortXp}, workout goal xp = ${workoutGoalXp}, workout goal streak xp = ${workoutGoalStreakXp}`,
+      { userId, workoutEffortXp, workoutGoalXp, workoutGoalStreakXp },
+    );
+
+    const totalWorkoutXp =
+      workoutEffortXp + workoutGoalXp + workoutGoalStreakXp;
     return { totalWorkoutXp, workoutEffortXp, workoutGoalXp };
   }
 
