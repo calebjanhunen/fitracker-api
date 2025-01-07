@@ -31,9 +31,7 @@ export class WorkoutGoalXpCalculator {
 
     const baseStreakXp =
       this.BASE_GOAL_STREAK_XP * this.GOAL_STREAK_FACTOR ** workoutGoalStreak;
-    console.log('base xp: ', baseStreakXp);
     const bonusXp = userWorkoutGoal * this.GOAL_XP_MULTIPLIER;
-    console.log('bonus xp: ', bonusXp);
 
     const xp = Math.round(baseStreakXp + bonusXp);
 
