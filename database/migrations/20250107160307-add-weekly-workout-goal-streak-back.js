@@ -15,19 +15,15 @@ exports.setup = function (options, seedLink) {
 };
 
 exports.up = async function (db) {
-  await db.renameColumn(
-    'user_stats',
-    'weekly_bonus_awarded_at',
-    'weekly_workout_goal_achieved_at',
-  );
+  await db.addColumn('user_stats', 'weekly_workout_goal_streak', {
+    type: 'int',
+    notNull: true,
+    defaultValue: 0,
+  });
 };
 
 exports.down = async function (db) {
-  await db.renameColumn(
-    'user_stats',
-    'weekly_workout_goal_achieved_at',
-    'weekly_bonus_awarded_at',
-  );
+  await db.removeColumn('user_stats', 'weekly_workout_goal_streak');
 };
 
 exports._meta = {
