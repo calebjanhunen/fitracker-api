@@ -20,6 +20,7 @@ interface ICalculateWorkoutXp {
   totalWorkoutXp: number;
   workoutEffortXp: number;
   workoutGoalXp: number;
+  workoutGoalStreakXp: number;
 }
 
 @Injectable()
@@ -80,15 +81,19 @@ export class WorkoutService {
       }
     }
 
-    const { totalWorkoutXp, workoutEffortXp, workoutGoalXp } =
-      this.calculateWorkoutXp(
-        workout,
-        userId,
-        hasWorkoutGoalBeenReachedOrExceeded,
-        userProfile.weeklyWorkoutGoal,
-        userStats.weeklyWorkoutGoalStreak,
-        daysWithWorkoutsThisWeek,
-      );
+    const {
+      totalWorkoutXp,
+      workoutEffortXp,
+      workoutGoalXp,
+      workoutGoalStreakXp,
+    } = this.calculateWorkoutXp(
+      workout,
+      userId,
+      hasWorkoutGoalBeenReachedOrExceeded,
+      userProfile.weeklyWorkoutGoal,
+      userStats.weeklyWorkoutGoalStreak,
+      daysWithWorkoutsThisWeek + 1,
+    );
     workout.gainedXp = totalWorkoutXp;
 
     try {
@@ -103,6 +108,7 @@ export class WorkoutService {
           totalWorkoutXp,
           workoutEffortXp,
           workoutGoalXp,
+          workoutGoalStreakXp,
         },
       };
     } catch (e) {
@@ -249,7 +255,12 @@ export class WorkoutService {
 
     const totalWorkoutXp =
       workoutEffortXp + workoutGoalXp + workoutGoalStreakXp;
-    return { totalWorkoutXp, workoutEffortXp, workoutGoalXp };
+    return {
+      totalWorkoutXp,
+      workoutEffortXp,
+      workoutGoalXp,
+      workoutGoalStreakXp,
+    };
   }
 
   private async hasWorkoutGoalBeenReachedOrExceeded(
