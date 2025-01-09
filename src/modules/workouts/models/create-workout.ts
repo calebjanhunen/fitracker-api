@@ -8,6 +8,10 @@ export class WorkoutStats {
   workoutEffortXp: number;
   @AutoMap()
   workoutGoalXp: number;
+  @AutoMap()
+  workoutGoalStreakXp: number;
+  @AutoMap()
+  daysWithWorkoutsThisWeek: number;
 }
 
 export class CreateWorkout {

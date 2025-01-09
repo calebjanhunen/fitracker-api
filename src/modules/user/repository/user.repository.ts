@@ -51,7 +51,8 @@ export class UserRepository {
     const query = `
       SELECT
         total_xp,
-        weekly_workout_goal_achieved_at
+        weekly_workout_goal_achieved_at,
+        weekly_workout_goal_streak
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
@@ -71,7 +72,8 @@ export class UserRepository {
       SELECT
         user_id,
         total_xp,
-        weekly_workout_goal_achieved_at
+        weekly_workout_goal_achieved_at,
+        weekly_workout_goal_streak
       FROM user_stats
     `;
 
@@ -91,7 +93,8 @@ export class UserRepository {
     const query = `
       UPDATE user_stats SET
         total_xp = $2,
-        weekly_workout_goal_achieved_at = $3
+        weekly_workout_goal_achieved_at = $3,
+        weekly_workout_goal_streak =  $4
       WHERE  user_id = $1
       RETURNING total_xp, weekly_workout_goal_achieved_at
     `;
@@ -99,6 +102,7 @@ export class UserRepository {
       userId,
       updatedUserStats.totalXp,
       updatedUserStats.weeklyWorkoutGoalAchievedAt,
+      updatedUserStats.weeklyWorkoutGoalStreak,
     ];
 
     try {

@@ -65,6 +65,9 @@ export class UserService {
     newUserStats.weeklyWorkoutGoalAchievedAt =
       updatedUserStats.weeklyWorkoutGoalAchievedAt ??
       currentUserStats.weeklyWorkoutGoalAchievedAt;
+    newUserStats.weeklyWorkoutGoalStreak =
+      updatedUserStats.weeklyWorkoutGoalStreak ??
+      currentUserStats.weeklyWorkoutGoalStreak;
 
     return newUserStats;
   }

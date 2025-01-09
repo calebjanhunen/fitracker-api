@@ -1,4 +1,4 @@
-describe('Date Extension Tests', () => {
+describe('Date Extensions - isInSameWeekAs', () => {
   it('GivenTwoDatesInTheSameWeek_WhenCheckingIfDateIsInSameWeek_ReturnTrue', () => {
     // December 31st, 2024 14:00
     const date1 = new Date(2024, 11, 31, 14, 0);
