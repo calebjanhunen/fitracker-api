@@ -38,7 +38,7 @@ export class UserStatsAfterWorkoutDto {
 
   @ApiProperty({ type: Number, required: true })
   @AutoMap()
-  xpNeededForNextLevel: number;
+  xpNeededForCurrentLevel: number;
 
   @ApiProperty({ type: Number, required: true })
   @AutoMap()

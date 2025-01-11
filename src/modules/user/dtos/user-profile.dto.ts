@@ -28,5 +28,5 @@ export class UserProfileDto {
 
   @AutoMap()
   @ApiProperty({ type: Number, required: true })
-  xpNeededForNextLevel: number;
+  xpNeededForCurrentLevel: number;
 }

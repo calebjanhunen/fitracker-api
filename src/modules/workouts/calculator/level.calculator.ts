@@ -11,23 +11,75 @@ export class LevelCalculator {
     currentXp: number,
     gainedXp: number,
   ): { newLevel: number; newCurrentXp: number } {
-    let newCurrentXp = currentXp + gainedXp;
-    let xpNeededForNextLevel = this.getXpNeededForNextLevel(currentLevel);
+    if (gainedXp < 0) {
+      return this.calculateLevelAndXpForNegativeXpGain(
+        currentLevel,
+        currentXp,
+        Math.abs(gainedXp),
+      );
+    } else {
+      return this.calculateLevelAndXpForPositiveXpGain(
+        currentLevel,
+        currentXp,
+        gainedXp,
+      );
+    }
+  }
 
+  private calculateLevelAndXpForPositiveXpGain(
+    currentLevel: number,
+    currentXp: number,
+    gainedXp: number,
+  ): { newLevel: number; newCurrentXp: number } {
+    let newCurrentXp = currentXp + gainedXp;
     let newLevel = currentLevel;
+    let xpNeededForNextLevel = this.getXpNeededForCurrentLevel(currentLevel);
+
     while (newCurrentXp >= xpNeededForNextLevel) {
       newCurrentXp -= xpNeededForNextLevel;
       newLevel++;
-      xpNeededForNextLevel = this.getXpNeededForNextLevel(newLevel);
+      xpNeededForNextLevel = this.getXpNeededForCurrentLevel(newLevel);
     }
 
     return { newLevel, newCurrentXp };
   }
 
-  public getXpNeededForNextLevel(currentLevel: number): number {
+  private calculateLevelAndXpForNegativeXpGain(
+    currentLevel: number,
+    currentXp: number,
+    lostXp: number,
+  ): { newLevel: number; newCurrentXp: number } {
+    let xpToSubtract = lostXp;
+
+    // Still in same level
+    if (currentXp >= xpToSubtract) {
+      const newCurrentXp = currentXp - xpToSubtract;
+      return { newLevel: currentLevel, newCurrentXp };
+    }
+
+    xpToSubtract -= currentXp;
+    let newLevel = currentLevel;
+    let xpNeededForPreviousLevel = this.getXpForPreviousLevel(newLevel);
+
+    while (xpToSubtract > xpNeededForPreviousLevel) {
+      newLevel--;
+      xpToSubtract -= xpNeededForPreviousLevel;
+      xpNeededForPreviousLevel = this.getXpForPreviousLevel(newLevel);
+    }
+
+    newLevel--;
+    const newCurrentXp = xpNeededForPreviousLevel - xpToSubtract;
+
+    return { newLevel, newCurrentXp };
+  }
+
+  public getXpNeededForCurrentLevel(currentLevel: number): number {
     return (
-      (currentLevel + 1) ** this.LEVEL_EXPONENT_GROWTH_RATE +
-      this.BASE_XP_OFFSET
+      currentLevel ** this.LEVEL_EXPONENT_GROWTH_RATE + this.BASE_XP_OFFSET
     );
+  }
+
+  private getXpForPreviousLevel(currentLevel: number): number {
+    return (currentLevel - 1) ** 2 + 200;
   }
 }

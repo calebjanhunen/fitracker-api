@@ -28,7 +28,7 @@ export class UserStatsAfterWorkout {
   currentXp: number;
 
   @AutoMap()
-  xpNeededForNextLevel: number;
+  xpNeededForCurrentLevel: number;
 
   @AutoMap()
   daysWithWorkoutsThisWeek: number;
