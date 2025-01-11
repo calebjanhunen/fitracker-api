@@ -205,13 +205,23 @@ export class WorkoutService {
       throw new XpCannotBeBelowZeroException();
     }
 
+    const { newLevel, newCurrentXp } =
+      this.levelCalculator.calculateNewLevelAndCurrentXp(
+        userStats.level,
+        userStats.currentXp,
+        -workoutToBeDeleted.gainedXp,
+      );
+
     try {
       await this.workoutRepo.delete(workoutId, userId);
 
-      userStats.totalXp -= workoutToBeDeleted.gainedXp;
+      const newUserStats = new UserStats();
+      newUserStats.totalXp = userStats.totalXp - workoutToBeDeleted.gainedXp;
+      newUserStats.level = newLevel;
+      newUserStats.currentXp = newCurrentXp;
       const updatedUserStats = await this.userService.updateUserStats(
         userId,
-        userStats,
+        newUserStats,
       );
       return {
         totalUserXp: updatedUserStats.totalXp,
