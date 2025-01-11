@@ -3,6 +3,8 @@ import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import {
   CreateWorkoutResponseDto,
+  UserStatsAfterWorkoutDto,
+  UserStatsBeforeWorkoutDto,
   WorkoutStatsDto,
 } from './dtos/create-workout-response.dto';
 import { DeleteWorkoutDto } from './dtos/delete-workout-response.dto';
@@ -25,7 +27,12 @@ import {
   WorkoutModel,
   WorkoutSetModel,
 } from './models';
-import { CreateWorkout, WorkoutStats } from './models/create-workout';
+import {
+  CreateWorkout,
+  UserStatsAfterWorkout,
+  UserStatsBeforeWorkout,
+  WorkoutStats,
+} from './models/create-workout';
 
 @Injectable()
 export class WorkoutProfile extends AutomapperProfile {
@@ -39,6 +46,8 @@ export class WorkoutProfile extends AutomapperProfile {
       createMap(mapper, WorkoutExerciseRequestDto, InsertWorkoutExerciseModel);
       createMap(mapper, WorkoutSetRequestDto, InsertWorkoutSetModel);
       createMap(mapper, CreateWorkout, CreateWorkoutResponseDto);
+      createMap(mapper, UserStatsBeforeWorkout, UserStatsBeforeWorkoutDto);
+      createMap(mapper, UserStatsAfterWorkout, UserStatsAfterWorkoutDto);
       createMap(mapper, WorkoutModel, WorkoutResponseDto);
       createMap(mapper, WorkoutExerciseModel, WorkoutExerciseResponseDto);
       createMap(mapper, WorkoutSetModel, WorkoutSetResponseDto);

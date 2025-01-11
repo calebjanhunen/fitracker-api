@@ -3,6 +3,7 @@ import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
+  LevelCalculator,
   WorkoutEffortXpCalculator,
   WorkoutGoalXpCalculator,
 } from 'src/modules/workouts/calculator';
@@ -18,6 +19,7 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let mockUserService: Partial<UserService>;
   let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
   let mockWorkoutGoalXpCalculator: Partial<WorkoutGoalXpCalculator>;
+  let mockLevelCalculator: Partial<LevelCalculator>;
   const userId = 'user-id';
 
   beforeEach(async () => {
@@ -26,6 +28,7 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     mockUserService = {};
     mockWorkoutEffortXpCalculator = {};
     mockWorkoutGoalXpCalculator = {};
+    mockLevelCalculator = {};
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkoutService,
@@ -39,6 +42,10 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
         {
           provide: WorkoutGoalXpCalculator,
           useValue: mockWorkoutGoalXpCalculator,
+        },
+        {
+          provide: LevelCalculator,
+          useValue: mockLevelCalculator,
         },
         {
           provide: LoggerService,

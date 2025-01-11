@@ -3,6 +3,7 @@ import { DbModule } from 'src/common/database/database.module';
 import { ExerciseModule } from '../exercises/exercises.module';
 import { UserModule } from '../user/user.module';
 import {
+  LevelCalculator,
   WorkoutEffortXpCalculator,
   WorkoutGoalXpCalculator,
 } from './calculator';
@@ -21,6 +22,7 @@ import { WorkoutProfile } from './workout.profile';
     WorkoutEffortXpCalculator,
     WorkoutGoalXpCalculator,
     WorkoutProfile,
+    LevelCalculator,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],

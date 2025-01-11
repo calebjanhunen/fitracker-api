@@ -68,6 +68,9 @@ export class UserService {
     newUserStats.weeklyWorkoutGoalStreak =
       updatedUserStats.weeklyWorkoutGoalStreak ??
       currentUserStats.weeklyWorkoutGoalStreak;
+    newUserStats.level = updatedUserStats.level ?? currentUserStats.level;
+    newUserStats.currentXp =
+      updatedUserStats.currentXp ?? currentUserStats.currentXp;
 
     return newUserStats;
   }
