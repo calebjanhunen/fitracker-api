@@ -17,8 +17,20 @@ export class LevelCalculator {
         currentXp,
         Math.abs(gainedXp),
       );
+    } else {
+      return this.calculateLevelAndXpForPositiveXpGain(
+        currentLevel,
+        currentXp,
+        gainedXp,
+      );
     }
+  }
 
+  private calculateLevelAndXpForPositiveXpGain(
+    currentLevel: number,
+    currentXp: number,
+    gainedXp: number,
+  ): { newLevel: number; newCurrentXp: number } {
     let newCurrentXp = currentXp + gainedXp;
     let newLevel = currentLevel;
     let xpNeededForNextLevel = this.getXpNeededForNextLevel(currentLevel);
