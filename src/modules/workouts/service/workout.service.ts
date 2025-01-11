@@ -3,8 +3,10 @@ import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-or
 import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
+import { UserStats } from 'src/modules/user/models/user-stats.model';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
+  LevelCalculator,
   WorkoutEffortXpCalculator,
   WorkoutGoalXpCalculator,
 } from '../calculator';
@@ -31,6 +33,7 @@ export class WorkoutService {
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
     private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
+    private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutService.name);
@@ -100,11 +103,32 @@ export class WorkoutService {
     );
     workout.gainedXp = totalWorkoutXp;
 
+    const { newLevel, newCurrentXp } =
+      this.levelCalculator.calculateNewLevelAndCurrentXp(
+        userStats.level,
+        userStats.currentXp,
+        totalWorkoutXp,
+      );
+    this.logger.log(
+      `Old level: ${userStats.level}, new level: ${newLevel}. Old current xp: ${userStats.currentXp}, new current xp: ${newCurrentXp} for user ${userId}`,
+      {
+        oldLevel: userStats.level,
+        newLevel,
+        oldCurrentXp: userStats.currentXp,
+        newCurrentXp,
+        userId,
+      },
+    );
+
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
 
-      userStats.totalXp += totalWorkoutXp;
-      await this.userService.updateUserStats(userId, userStats);
+      const newUserStats = new UserStats();
+      newUserStats.totalXp = newCurrentXp;
+      newUserStats.level = newLevel;
+      newUserStats.currentXp = newCurrentXp;
+      newUserStats.totalXp = userStats.totalXp + totalWorkoutXp;
+      await this.userService.updateUserStats(userId, newUserStats);
 
       return {
         workout: createdWorkout,
@@ -261,6 +285,10 @@ export class WorkoutService {
 
     const totalWorkoutXp =
       workoutEffortXp + workoutGoalXp + workoutGoalStreakXp;
+    this.logger.log(`Total workout xp for user ${userId} = ${totalWorkoutXp}`, {
+      userId,
+      totalWorkoutXp,
+    });
     return {
       totalWorkoutXp,
       workoutEffortXp,
