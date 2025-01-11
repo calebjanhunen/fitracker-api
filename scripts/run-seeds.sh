@@ -8,9 +8,7 @@ NC='\033[0m' # No Color
 echo "${MAGENTA}Starting to seed database${NC}"
 
 echo "${YELLOW}Seeding ${GREEN}user${YELLOW} database${NC}"
-psql -f "/database/seeds/user_data.sql"
-echo "Seeding user database"
-psql -f "/database/seeds/user_data.sql"
+psql -f "../database/seeds/user_data.sql"
 
 echo "${YELLOW}Seeding ${GREEN}exercise${YELLOW} database${NC}"
 psql -f "/database/seeds/exercise_data.sql"

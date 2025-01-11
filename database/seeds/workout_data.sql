@@ -8,7 +8,7 @@ DECLARE
     exercise2Id UUID;
 BEGIN
     -- Get user for workout
-    SELECT id INTO userId FROM "user" WHERE username = 'caleb_test';
+    SELECT id INTO userId FROM auth."user" WHERE username = 'caleb_test';
 
     -- Delete already existing workout
     DELETE FROM workout WHERE user_id = userId;
@@ -22,9 +22,9 @@ BEGIN
 
     -- Insert into workout table
     INSERT INTO workout
-        (name, user_id, duration)
+        (name, user_id, duration, gained_xp)
     VALUES
-        ('Test Workout: caleb_test', userId, 4428);
+        ('Test Workout: caleb_test', userId, 4428, 184);
     RAISE NOTICE 'Inserted 1 workout into workout table';
 
     -- Insert 3 exercises into workout_exercise table
