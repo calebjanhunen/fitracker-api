@@ -22,7 +22,9 @@ export class UserRepository {
         up.first_name,
         up.last_name,
         up.weekly_workout_goal,
-        us.total_xp
+        us.total_xp,
+        us.level,
+        us.current_xp
       FROM user_profile up
       LEFT JOIN user_stats us
         ON us.user_id = up.id
