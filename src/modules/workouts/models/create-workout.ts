@@ -14,9 +14,29 @@ export class WorkoutStats {
   daysWithWorkoutsThisWeek: number;
 }
 
+export class UserStatsBeforeWorkout {
+  @AutoMap()
+  level: number;
+  @AutoMap()
+  currentXp: number;
+}
+
+export class UserStatsAfterWorkout {
+  @AutoMap()
+  level: number;
+  @AutoMap()
+  currentXp: number;
+  @AutoMap()
+  xpNeededForNextLevel: number;
+}
+
 export class CreateWorkout {
   @AutoMap(() => WorkoutModel)
   workout: WorkoutModel;
   @AutoMap(() => WorkoutStats)
   workoutStats: WorkoutStats;
+  @AutoMap(() => UserStatsBeforeWorkout)
+  userStatsBeforeWorkout: UserStatsBeforeWorkout;
+  @AutoMap(() => UserStatsAfterWorkout)
+  userStatsAfterWorkout: UserStatsAfterWorkout;
 }

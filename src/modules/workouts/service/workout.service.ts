@@ -140,6 +140,16 @@ export class WorkoutService {
           daysWithWorkoutsThisWeek:
             daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },
+        userStatsBeforeWorkout: {
+          level: userStats.level,
+          currentXp: userStats.currentXp,
+        },
+        userStatsAfterWorkout: {
+          level: newLevel,
+          currentXp: newCurrentXp,
+          xpNeededForNextLevel:
+            this.levelCalculator.getXpNeededForNextLevel(newLevel),
+        },
       };
     } catch (e) {
       throw new CouldNotSaveWorkoutException(workout.name);
