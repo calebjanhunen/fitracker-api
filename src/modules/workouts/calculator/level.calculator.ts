@@ -1,3 +1,6 @@
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
 export class LevelCalculator {
   private readonly BASE_XP_OFFSET = 200;
   private readonly LEVEL_EXPONENT_GROWTH_RATE = 2;
