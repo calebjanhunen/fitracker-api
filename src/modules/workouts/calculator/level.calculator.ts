@@ -24,7 +24,7 @@ export class LevelCalculator {
     return { newLevel, newCurrentXp };
   }
 
-  private getXpNeededForNextLevel(currentLevel: number): number {
+  public getXpNeededForNextLevel(currentLevel: number): number {
     return (
       (currentLevel + 1) ** this.LEVEL_EXPONENT_GROWTH_RATE +
       this.BASE_XP_OFFSET
