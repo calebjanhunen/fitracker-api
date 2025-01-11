@@ -9,4 +9,10 @@ export class UserProfileModel {
   weeklyWorkoutGoal: number;
   @AutoMap()
   totalXp: number;
+  @AutoMap()
+  level: number;
+  @AutoMap()
+  currentXp: number;
+  @AutoMap()
+  xpNeededForNextLevel: number;
 }
