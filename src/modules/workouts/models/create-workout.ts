@@ -10,13 +10,12 @@ export class WorkoutStats {
   workoutGoalXp: number;
   @AutoMap()
   workoutGoalStreakXp: number;
-  @AutoMap()
-  daysWithWorkoutsThisWeek: number;
 }
 
 export class UserStatsBeforeWorkout {
   @AutoMap()
   level: number;
+
   @AutoMap()
   currentXp: number;
 }
@@ -24,10 +23,15 @@ export class UserStatsBeforeWorkout {
 export class UserStatsAfterWorkout {
   @AutoMap()
   level: number;
+
   @AutoMap()
   currentXp: number;
+
   @AutoMap()
   xpNeededForNextLevel: number;
+
+  @AutoMap()
+  daysWithWorkoutsThisWeek: number;
 }
 
 export class CreateWorkout {

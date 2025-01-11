@@ -137,8 +137,6 @@ export class WorkoutService {
           workoutEffortXp,
           workoutGoalXp,
           workoutGoalStreakXp,
-          daysWithWorkoutsThisWeek:
-            daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },
         userStatsBeforeWorkout: {
           level: userStats.level,
@@ -149,6 +147,8 @@ export class WorkoutService {
           currentXp: newCurrentXp,
           xpNeededForNextLevel:
             this.levelCalculator.getXpNeededForNextLevel(newLevel),
+          daysWithWorkoutsThisWeek:
+            daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },
       };
     } catch (e) {

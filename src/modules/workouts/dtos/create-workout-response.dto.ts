@@ -15,9 +15,6 @@ export class WorkoutStatsDto {
   @ApiProperty()
   @AutoMap()
   workoutGoalStreakXp: number;
-  @ApiProperty()
-  @AutoMap()
-  daysWithWorkoutsThisWeek: number;
 }
 
 export class UserStatsBeforeWorkoutDto {
@@ -42,6 +39,10 @@ export class UserStatsAfterWorkoutDto {
   @ApiProperty({ type: Number, required: true })
   @AutoMap()
   xpNeededForNextLevel: number;
+
+  @ApiProperty({ type: Number, required: true })
+  @AutoMap()
+  daysWithWorkoutsThisWeek: number;
 }
 
 export class CreateWorkoutResponseDto {
