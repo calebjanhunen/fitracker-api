@@ -145,8 +145,8 @@ export class WorkoutService {
         userStatsAfterWorkout: {
           level: newLevel,
           currentXp: newCurrentXp,
-          xpNeededForNextLevel:
-            this.levelCalculator.getXpNeededForNextLevel(newLevel),
+          xpNeededForCurrentLevel:
+            this.levelCalculator.getXpNeededForCurrentLevel(newLevel),
           daysWithWorkoutsThisWeek:
             daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },

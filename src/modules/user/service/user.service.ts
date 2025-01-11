@@ -23,10 +23,9 @@ export class UserService {
       throw new ResourceNotFoundException('User not found');
     }
 
-    const xpNeededForNextLevel = this.levelCalculator.getXpNeededForNextLevel(
-      user.level,
-    );
-    user.xpNeededForNextLevel = xpNeededForNextLevel;
+    const getXpNeededForCurrentLevel =
+      this.levelCalculator.getXpNeededForCurrentLevel(user.level);
+    user.xpNeededForCurrentLevel = getXpNeededForCurrentLevel;
     return user;
   }
 

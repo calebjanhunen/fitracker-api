@@ -33,12 +33,12 @@ export class LevelCalculator {
   ): { newLevel: number; newCurrentXp: number } {
     let newCurrentXp = currentXp + gainedXp;
     let newLevel = currentLevel;
-    let xpNeededForNextLevel = this.getXpNeededForNextLevel(currentLevel);
+    let xpNeededForNextLevel = this.getXpNeededForCurrentLevel(currentLevel);
 
     while (newCurrentXp >= xpNeededForNextLevel) {
       newCurrentXp -= xpNeededForNextLevel;
       newLevel++;
-      xpNeededForNextLevel = this.getXpNeededForNextLevel(newLevel);
+      xpNeededForNextLevel = this.getXpNeededForCurrentLevel(newLevel);
     }
 
     return { newLevel, newCurrentXp };
@@ -73,7 +73,7 @@ export class LevelCalculator {
     return { newLevel, newCurrentXp };
   }
 
-  public getXpNeededForNextLevel(currentLevel: number): number {
+  public getXpNeededForCurrentLevel(currentLevel: number): number {
     return (
       currentLevel ** this.LEVEL_EXPONENT_GROWTH_RATE + this.BASE_XP_OFFSET
     );

@@ -14,5 +14,5 @@ export class UserProfileModel {
   @AutoMap()
   currentXp: number;
   @AutoMap()
-  xpNeededForNextLevel: number;
+  xpNeededForCurrentLevel: number;
 }
