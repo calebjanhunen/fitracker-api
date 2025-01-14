@@ -20,7 +20,7 @@ export class LeaderboardController {
   @Get('totalXp')
   @ApiResponse({
     status: HttpStatus.OK,
-    type: TotalXpLeaderboardUser,
+    type: TotalXpLeaderboardUserDto,
     isArray: true,
   })
   @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
