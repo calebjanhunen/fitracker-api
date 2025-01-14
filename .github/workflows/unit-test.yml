@@ -8,7 +8,8 @@ on:
     branches: ['main']
 
 jobs:
-  build:
+  run-unit-tests:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
 
     steps:

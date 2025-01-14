@@ -36,13 +36,14 @@ export class UserRepository {
 
       queryName = 'InsertUserProfile';
       const userProfileQuery = `
-        INSERT INTO public.user_profile (id, first_name, last_name, weekly_workout_goal)
-        VALUES ($1, $2, $3, 0)
+        INSERT INTO public.user_profile (id, first_name, last_name, weekly_workout_goal, username)
+        VALUES ($1, $2, $3, 0, $4)
       `;
       const userProfileParams = [
         queryResult[0].id,
         user.firstName,
         user.lastName,
+        user.username,
       ];
       await this.db.queryV2(userProfileQuery, userProfileParams);
 
