@@ -11,6 +11,7 @@ import { LoggingInterceptor } from './common/interceptors/request-logger.interce
 import { LoggerModule } from './common/logger/logger.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ExerciseModule } from './modules/exercises/exercises.module';
+import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { UserModule } from './modules/user/user.module';
 import { WorkoutTemplateModule } from './modules/workout-template/workout-template.module';
 import { WorkoutModule } from './modules/workouts/workout.module';
@@ -28,6 +29,7 @@ import { WorkoutModule } from './modules/workouts/workout.module';
     WorkoutModule,
     WorkoutTemplateModule,
     LoggerModule,
+    LeaderboardModule,
   ],
   controllers: [],
   providers: [
