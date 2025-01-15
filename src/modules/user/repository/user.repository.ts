@@ -24,11 +24,16 @@ export class UserRepository {
         up.weekly_workout_goal,
         us.total_xp,
         us.level,
-        us.current_xp
-      FROM user_profile up
-      LEFT JOIN user_stats us
+        us.current_xp,
+        r.name
+      FROM public.user_profile up
+      LEFT JOIN public.user_stats us
         ON us.user_id = up.id
-      WHERE id = $1
+      LEFT JOIN auth.user u
+        ON u.id = up.id
+      LEFT JOIN auth.role r
+        ON r.id = u.role
+      WHERE up.id = $1
     `;
     const params = [userId];
 
