@@ -25,7 +25,7 @@ export class UserRepository {
         us.total_xp,
         us.level,
         us.current_xp,
-        r.name
+        r.name as role
       FROM public.user_profile up
       LEFT JOIN public.user_stats us
         ON us.user_id = up.id
