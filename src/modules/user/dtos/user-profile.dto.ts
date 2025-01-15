@@ -4,6 +4,10 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UserProfileDto {
   @AutoMap()
   @ApiProperty({ type: String, required: true })
+  username: string;
+
+  @AutoMap()
+  @ApiProperty({ type: String, required: true })
   firstName: string;
 
   @AutoMap()

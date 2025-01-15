@@ -19,6 +19,7 @@ export class UserRepository {
   ): Promise<UserProfileModel | null> {
     const query = `
       SELECT
+        up.username,
         up.first_name,
         up.last_name,
         up.weekly_workout_goal,

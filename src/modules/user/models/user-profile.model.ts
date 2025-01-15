@@ -2,6 +2,9 @@ import { AutoMap } from '@automapper/classes';
 
 export class UserProfileModel {
   @AutoMap()
+  username: string;
+
+  @AutoMap()
   firstName: string;
 
   @AutoMap()
