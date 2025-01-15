@@ -6,4 +6,7 @@ export class UserStats {
   totalXp: number;
   @AutoMap()
   weeklyWorkoutGoalAchievedAt: Date | null;
+  weeklyWorkoutGoalStreak: number;
+  level: number;
+  currentXp: number;
 }

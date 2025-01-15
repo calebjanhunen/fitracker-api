@@ -3,8 +3,10 @@ import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-or
 import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
+import { UserStats } from 'src/modules/user/models/user-stats.model';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
+  LevelCalculator,
   WorkoutEffortXpCalculator,
   WorkoutGoalXpCalculator,
 } from '../calculator';
@@ -20,6 +22,7 @@ interface ICalculateWorkoutXp {
   totalWorkoutXp: number;
   workoutEffortXp: number;
   workoutGoalXp: number;
+  workoutGoalStreakXp: number;
 }
 
 @Injectable()
@@ -30,6 +33,7 @@ export class WorkoutService {
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
     private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
+    private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutService.name);
@@ -56,41 +60,75 @@ export class WorkoutService {
     const userStats = await this.userService.getStatsByUserId(userId);
     const userProfile = await this.userService.getCurrentUser(userId);
 
-    const daysWithWorkoutsThisWeek =
-      await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+    const daysWithWorkoutsThisWeekIncludingCurrentWorkout =
+      (await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
         userId,
         workout.createdAt,
-      );
+      )) + 1;
     const hasWorkoutGoalBeenReachedOrExceeded =
       await this.hasWorkoutGoalBeenReachedOrExceeded(
         userStats.weeklyWorkoutGoalAchievedAt,
         workout.createdAt,
         userProfile.weeklyWorkoutGoal,
         userId,
-        daysWithWorkoutsThisWeek + 1,
+        daysWithWorkoutsThisWeekIncludingCurrentWorkout,
       );
     if (
       hasWorkoutGoalBeenReachedOrExceeded &&
-      daysWithWorkoutsThisWeek + 1 === userProfile.weeklyWorkoutGoal
+      daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
+        userProfile.weeklyWorkoutGoal
     ) {
       userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
+
+      if (
+        daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
+        userProfile.weeklyWorkoutGoal
+      ) {
+        userStats.weeklyWorkoutGoalStreak++;
+      }
     }
 
-    const { totalWorkoutXp, workoutEffortXp, workoutGoalXp } =
-      this.calculateWorkoutXp(
-        workout,
-        userId,
-        hasWorkoutGoalBeenReachedOrExceeded,
-        userProfile.weeklyWorkoutGoal,
-        daysWithWorkoutsThisWeek,
-      );
+    const {
+      totalWorkoutXp,
+      workoutEffortXp,
+      workoutGoalXp,
+      workoutGoalStreakXp,
+    } = this.calculateWorkoutXp(
+      workout,
+      userId,
+      hasWorkoutGoalBeenReachedOrExceeded,
+      userProfile.weeklyWorkoutGoal,
+      userStats.weeklyWorkoutGoalStreak,
+      daysWithWorkoutsThisWeekIncludingCurrentWorkout,
+    );
     workout.gainedXp = totalWorkoutXp;
+
+    const { newLevel, newCurrentXp } =
+      this.levelCalculator.calculateNewLevelAndCurrentXp(
+        userStats.level,
+        userStats.currentXp,
+        totalWorkoutXp,
+      );
+    this.logger.log(
+      `Old level: ${userStats.level}, new level: ${newLevel}. Old current xp: ${userStats.currentXp}, new current xp: ${newCurrentXp} for user ${userId}`,
+      {
+        oldLevel: userStats.level,
+        newLevel,
+        oldCurrentXp: userStats.currentXp,
+        newCurrentXp,
+        userId,
+      },
+    );
 
     try {
       const createdWorkout = await this.workoutRepo.create(workout, userId);
 
-      userStats.totalXp += totalWorkoutXp;
-      await this.userService.updateUserStats(userId, userStats);
+      const newUserStats = new UserStats();
+      newUserStats.totalXp = newCurrentXp;
+      newUserStats.level = newLevel;
+      newUserStats.currentXp = newCurrentXp;
+      newUserStats.totalXp = userStats.totalXp + totalWorkoutXp;
+      await this.userService.updateUserStats(userId, newUserStats);
 
       return {
         workout: createdWorkout,
@@ -98,6 +136,19 @@ export class WorkoutService {
           totalWorkoutXp,
           workoutEffortXp,
           workoutGoalXp,
+          workoutGoalStreakXp,
+        },
+        userStatsBeforeWorkout: {
+          level: userStats.level,
+          currentXp: userStats.currentXp,
+        },
+        userStatsAfterWorkout: {
+          level: newLevel,
+          currentXp: newCurrentXp,
+          xpNeededForCurrentLevel:
+            this.levelCalculator.getXpNeededForCurrentLevel(newLevel),
+          daysWithWorkoutsThisWeek:
+            daysWithWorkoutsThisWeekIncludingCurrentWorkout,
         },
       };
     } catch (e) {
@@ -154,13 +205,23 @@ export class WorkoutService {
       throw new XpCannotBeBelowZeroException();
     }
 
+    const { newLevel, newCurrentXp } =
+      this.levelCalculator.calculateNewLevelAndCurrentXp(
+        userStats.level,
+        userStats.currentXp,
+        -workoutToBeDeleted.gainedXp,
+      );
+
     try {
       await this.workoutRepo.delete(workoutId, userId);
 
-      userStats.totalXp -= workoutToBeDeleted.gainedXp;
+      const newUserStats = new UserStats();
+      newUserStats.totalXp = userStats.totalXp - workoutToBeDeleted.gainedXp;
+      newUserStats.level = newLevel;
+      newUserStats.currentXp = newCurrentXp;
       const updatedUserStats = await this.userService.updateUserStats(
         userId,
-        userStats,
+        newUserStats,
       );
       return {
         totalUserXp: updatedUserStats.totalXp,
@@ -212,27 +273,48 @@ export class WorkoutService {
   private calculateWorkoutXp(
     workout: InsertWorkoutModel,
     userId: string,
-    shouldCalculateGoalXp: boolean,
+    hasWorkoutGoalBeenReachedOrExceeded: boolean,
     userWorkoutGoal: number,
+    workoutGoalStreak: number,
     daysWithWorkoutsThisWeek: number,
   ): ICalculateWorkoutXp {
     const workoutEffortXp =
       this.workoutEffortXpCalculator.calculateWorkoutEffortXp(workout, userId);
 
     let workoutGoalXp = 0;
-    if (shouldCalculateGoalXp) {
+    let workoutGoalStreakXp = 0;
+    if (hasWorkoutGoalBeenReachedOrExceeded) {
       workoutGoalXp = this.workoutGoalXpCalculator.calculateWorkoutGoalXp(
         userWorkoutGoal,
         daysWithWorkoutsThisWeek,
       );
-      this.logger.log(
-        `Workout goal XP calculated for user ${userId}. Goal XP = ${workoutGoalXp}`,
-        { userId, workoutGoalXp },
-      );
+
+      if (daysWithWorkoutsThisWeek === userWorkoutGoal) {
+        workoutGoalStreakXp =
+          this.workoutGoalXpCalculator.calculateWorkoutGoalStreakXp(
+            workoutGoalStreak,
+            userWorkoutGoal,
+          );
+      }
     }
 
-    const totalWorkoutXp = workoutEffortXp + workoutGoalXp;
-    return { totalWorkoutXp, workoutEffortXp, workoutGoalXp };
+    this.logger.log(
+      `Workout XP calculated for user ${userId} and workout ${workout.name}. Workout effort XP = ${workoutEffortXp}, workout goal xp = ${workoutGoalXp}, workout goal streak xp = ${workoutGoalStreakXp}`,
+      { userId, workoutEffortXp, workoutGoalXp, workoutGoalStreakXp },
+    );
+
+    const totalWorkoutXp =
+      workoutEffortXp + workoutGoalXp + workoutGoalStreakXp;
+    this.logger.log(`Total workout xp for user ${userId} = ${totalWorkoutXp}`, {
+      userId,
+      totalWorkoutXp,
+    });
+    return {
+      totalWorkoutXp,
+      workoutEffortXp,
+      workoutGoalXp,
+      workoutGoalStreakXp,
+    };
   }
 
   private async hasWorkoutGoalBeenReachedOrExceeded(

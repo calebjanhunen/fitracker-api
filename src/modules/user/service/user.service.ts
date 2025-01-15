@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { LevelCalculator } from 'src/modules/workouts/calculator';
 import { UserProfileModel } from '../models/user-profile.model';
 import { UserStats } from '../models/user-stats.model';
 import { UserRepository } from '../repository/user.repository';
@@ -11,6 +12,7 @@ export class UserService {
   constructor(
     private readonly userRepo: UserRepository,
     private readonly logger: LoggerService,
+    private readonly levelCalculator: LevelCalculator,
   ) {
     this.logger.setContext(UserService.name);
   }
@@ -20,6 +22,10 @@ export class UserService {
     if (!user) {
       throw new ResourceNotFoundException('User not found');
     }
+
+    const getXpNeededForCurrentLevel =
+      this.levelCalculator.getXpNeededForCurrentLevel(user.level);
+    user.xpNeededForCurrentLevel = getXpNeededForCurrentLevel;
     return user;
   }
 
@@ -65,6 +71,12 @@ export class UserService {
     newUserStats.weeklyWorkoutGoalAchievedAt =
       updatedUserStats.weeklyWorkoutGoalAchievedAt ??
       currentUserStats.weeklyWorkoutGoalAchievedAt;
+    newUserStats.weeklyWorkoutGoalStreak =
+      updatedUserStats.weeklyWorkoutGoalStreak ??
+      currentUserStats.weeklyWorkoutGoalStreak;
+    newUserStats.level = updatedUserStats.level ?? currentUserStats.level;
+    newUserStats.currentXp =
+      updatedUserStats.currentXp ?? currentUserStats.currentXp;
 
     return newUserStats;
   }

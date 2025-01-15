@@ -19,14 +19,22 @@ export class UserRepository {
   ): Promise<UserProfileModel | null> {
     const query = `
       SELECT
+        up.username,
         up.first_name,
         up.last_name,
         up.weekly_workout_goal,
-        us.total_xp
-      FROM user_profile up
-      LEFT JOIN user_stats us
+        us.total_xp,
+        us.level,
+        us.current_xp,
+        r.name as role
+      FROM public.user_profile up
+      LEFT JOIN public.user_stats us
         ON us.user_id = up.id
-      WHERE id = $1
+      LEFT JOIN auth.user u
+        ON u.id = up.id
+      LEFT JOIN auth.role r
+        ON r.id = u.role
+      WHERE up.id = $1
     `;
     const params = [userId];
 
@@ -51,7 +59,10 @@ export class UserRepository {
     const query = `
       SELECT
         total_xp,
-        weekly_workout_goal_achieved_at
+        weekly_workout_goal_achieved_at,
+        weekly_workout_goal_streak,
+        level,
+        current_xp
       FROM user_stats as us
       WHERE us.user_id = $1
     `;
@@ -71,7 +82,8 @@ export class UserRepository {
       SELECT
         user_id,
         total_xp,
-        weekly_workout_goal_achieved_at
+        weekly_workout_goal_achieved_at,
+        weekly_workout_goal_streak
       FROM user_stats
     `;
 
@@ -91,7 +103,10 @@ export class UserRepository {
     const query = `
       UPDATE user_stats SET
         total_xp = $2,
-        weekly_workout_goal_achieved_at = $3
+        weekly_workout_goal_achieved_at = $3,
+        weekly_workout_goal_streak =  $4,
+        level = $5,
+        current_xp = $6
       WHERE  user_id = $1
       RETURNING total_xp, weekly_workout_goal_achieved_at
     `;
@@ -99,6 +114,9 @@ export class UserRepository {
       userId,
       updatedUserStats.totalXp,
       updatedUserStats.weeklyWorkoutGoalAchievedAt,
+      updatedUserStats.weeklyWorkoutGoalStreak,
+      updatedUserStats.level,
+      updatedUserStats.currentXp,
     ];
 
     try {

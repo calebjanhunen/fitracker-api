@@ -2,15 +2,16 @@ export {};
 
 declare global {
   interface Date {
-    isBetween(startDate: Date, endDate: Date): boolean;
+    isWithinSevenDaysFrom(date: Date): boolean;
     isInSameWeekAs(dateToCompare: Date): boolean;
   }
 }
 
-Date.prototype.isBetween = function (startDate: Date, endDate: Date): boolean {
-  return (
-    this.getTime() >= startDate.getTime() && this.getTime() < endDate.getTime()
-  );
+Date.prototype.isWithinSevenDaysFrom = function (date: Date): boolean {
+  const oneWeekAgo = new Date(date);
+  oneWeekAgo.setDate(date.getDate() - 7);
+
+  return this.getTime() >= oneWeekAgo && this.getTime() < date.getTime();
 };
 
 Date.prototype.isInSameWeekAs = function (dateToCompare: Date): boolean {
