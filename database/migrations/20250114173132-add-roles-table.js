@@ -23,10 +23,10 @@ exports.up = async function (db) {
   `);
 
   await db.runSql(`
-    INSERT INTO auth.role (name)
+    INSERT INTO auth.role (id, name)
     VALUES
-      ('admin'),
-      ('user')  
+      (1, 'user'),  
+      (2, 'admin')
   `);
 
   await db.runSql(`
