@@ -32,5 +32,5 @@ export class InsertWorkoutSetModel {
   @AutoMap()
   reps: number;
   @AutoMap()
-  rpe: number | null;
+  rpe?: number;
 }

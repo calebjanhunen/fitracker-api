@@ -89,7 +89,7 @@ export class WorkoutSetRequestDto {
   @Max(10)
   @ApiProperty({ type: Number, nullable: true })
   @AutoMap()
-  public rpe: number | null;
+  public rpe?: number;
 
   @IsInt()
   @Min(1)
