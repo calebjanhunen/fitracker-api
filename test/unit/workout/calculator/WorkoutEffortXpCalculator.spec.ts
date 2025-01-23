@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { WorkoutEffortXpCalculator } from 'src/modules/workouts/calculator/WorkoutEffortXpCalculator';
@@ -17,6 +18,7 @@ describe('WorkoutEffortXpCalculator', () => {
       providers: [
         WorkoutEffortXpCalculator,
         { provide: LoggerService, useValue: mockLoggerService },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
       ],
     }).compile();
 
@@ -264,7 +266,7 @@ describe('WorkoutEffortXpCalculator', () => {
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 15, 'user-id');
 
-      expect(Number(result.toFixed(2))).toBe(90.48);
+      expect(Number(result.toFixed(2))).toBe(99.75);
     });
     it('test when workout duration is higher than max baseline duration', () => {
       const workout = new InsertWorkoutModel();
@@ -292,7 +294,7 @@ describe('WorkoutEffortXpCalculator', () => {
         'calculateWorkoutEffortWithWorkoutDuration'
       ](workout, 60, 'user-id');
 
-      expect(Number(result.toFixed(2))).toBe(81.87);
+      expect(Number(result.toFixed(2))).toBe(99.5);
     });
     it('test workout duration being 10 hours longer than the max baseline duration', () => {
       const workout = new InsertWorkoutModel();
