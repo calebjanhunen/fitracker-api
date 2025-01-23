@@ -13,6 +13,10 @@ export class WorkoutGoalXpCalculator {
     userWorkoutGoal: number,
     daysWithWorkoutsThisWeek: number,
   ): number {
+    if (userWorkoutGoal === 0) {
+      return 0;
+    }
+
     const workoutGoalBaseXp = this.calculateWorkoutGoalBaseXp(userWorkoutGoal);
     const bonusXp = this.calculateBonusXp(
       userWorkoutGoal,
