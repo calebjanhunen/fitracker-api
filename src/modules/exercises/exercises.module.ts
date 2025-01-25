@@ -6,9 +6,11 @@ import { EquipmentController } from './controller/equipment.controller';
 import ExercisesController from './controller/exercises.controller';
 import { ExerciseProfile } from './exercise.profile';
 import { BodyPartRepository } from './repository/body-part.repository';
+import { CableAttachmentRepository } from './repository/cable-attachment.repository';
 import { EquipmentRepository } from './repository/equipment.repository';
 import { ExerciseRepository } from './repository/exercise.repository';
 import { BodyPartService } from './services/body-part.service';
+import { CableAttachmentService } from './services/cable-attachment.service';
 import { EquipmentService } from './services/equipment.service';
 import { ExerciseService } from './services/exercise.service';
 
@@ -23,6 +25,8 @@ import { ExerciseService } from './services/exercise.service';
     BodyPartRepository,
     EquipmentService,
     EquipmentRepository,
+    CableAttachmentRepository,
+    CableAttachmentService,
   ],
   exports: [ExerciseService],
 })

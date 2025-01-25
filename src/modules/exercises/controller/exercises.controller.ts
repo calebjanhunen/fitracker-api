@@ -24,10 +24,13 @@ import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
 import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
 import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
 import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
+import { LookupItemDto } from '../dtos/lookup-item.dto';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
+import { LookupItem } from '../models';
 import { ExerciseDetailsModel } from '../models/exercise-details.model';
 import { InsertExerciseModel } from '../models/insert-exercise.model';
+import { CableAttachmentService } from '../services/cable-attachment.service';
 import { ExerciseService } from '../services/exercise.service';
 
 @Controller('api/exercises')
@@ -38,6 +41,7 @@ export default class ExercisesController {
   constructor(
     private exerciseService: ExerciseService,
     @InjectMapper() private mapper: Mapper,
+    private readonly cableAttachmentService: CableAttachmentService,
   ) {}
 
   @Post()
@@ -177,5 +181,13 @@ export default class ExercisesController {
 
       throw new ConflictException(e.message);
     }
+  }
+
+  @Get('cableAttachments')
+  @ApiResponse({ status: HttpStatus.OK, type: LookupItemDto, isArray: true })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
+  public async getAllCableAttachments(): Promise<LookupItemDto[]> {
+    const attachments = await this.cableAttachmentService.getAllAttachments();
+    return this.mapper.mapArray(attachments, LookupItem, LookupItemDto);
   }
 }
