@@ -9,7 +9,6 @@ import {
 } from './calculator';
 import { WorkoutController } from './controller/workout.controller';
 import { WorkoutRepository } from './repository/workout.repository';
-import { WorkoutCalculator } from './service/workout.calculator';
 import { WorkoutService } from './service/workout.service';
 import { WorkoutProfile } from './workout.profile';
 
@@ -18,7 +17,6 @@ import { WorkoutProfile } from './workout.profile';
   providers: [
     WorkoutService,
     WorkoutRepository,
-    WorkoutCalculator,
     WorkoutEffortXpCalculator,
     WorkoutGoalXpCalculator,
     WorkoutProfile,
