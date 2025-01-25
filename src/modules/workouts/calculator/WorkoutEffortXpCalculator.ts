@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel, InsertWorkoutSetModel } from '../models';
 
@@ -12,9 +13,12 @@ export class WorkoutEffortXpCalculator {
   private readonly SUGGESTED_MIN_TIME_REST_TIME_SECONDS = 60; // 1 minute
   private readonly SUGGESTED_MAX_TIME_REST_TIME_SECONDS = 60 * 3; // 3 minutes
   private readonly TRANSITION_TIME_BETWEEN_EXERCISES_SECONDS = 60 * 5; // 5 minutes
-  private readonly DURATION_FACTOR_DECAY_RATE = 0.02;
+  private readonly DURATION_FACTOR_DECAY_RATE = 0.0005;
   private readonly WORKOUT_EFFORT_XP_MULTIPLIER = 1;
-  constructor(private readonly logger: LoggerService) {
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly configService: ConfigService,
+  ) {
     this.logger.setContext(WorkoutEffortXpCalculator.name);
   }
 
@@ -62,20 +66,16 @@ export class WorkoutEffortXpCalculator {
       this.calculateBaselineWorkoutTimesInSeconds(numSets, numExercises);
 
     let durationFactor: number;
-    if (
-      workoutDurationSeconds > minBaselineDurationSeconds &&
-      workoutDurationSeconds <= maxBaselineDurationSeconds
-    ) {
-      durationFactor = 1;
-    } else if (workoutDurationSeconds <= minBaselineDurationSeconds) {
-      durationFactor = Math.exp(
-        -this.DURATION_FACTOR_DECAY_RATE *
-          (minBaselineDurationSeconds - workoutDurationSeconds),
+    if (this.configService.get('IGNORE_MIN_BASELINE_DURATION')) {
+      durationFactor = this.calculateWorkoutDurationIgnoringMinBaselineDuration(
+        workoutDurationSeconds,
+        maxBaselineDurationSeconds,
       );
     } else {
-      durationFactor = Math.exp(
-        -this.DURATION_FACTOR_DECAY_RATE *
-          (workoutDurationSeconds - maxBaselineDurationSeconds),
+      durationFactor = this.calculateWorkoutDurationWithMinBaselineDuration(
+        workoutDurationSeconds,
+        minBaselineDurationSeconds,
+        maxBaselineDurationSeconds,
       );
     }
 
@@ -91,6 +91,43 @@ export class WorkoutEffortXpCalculator {
       },
     );
     return workoutEffort * durationFactor;
+  }
+
+  private calculateWorkoutDurationIgnoringMinBaselineDuration(
+    workoutDurationSeconds: number,
+    maxBaselineDurationSeconds: number,
+  ): number {
+    if (workoutDurationSeconds <= maxBaselineDurationSeconds) {
+      return 1;
+    } else {
+      return Math.exp(
+        -this.DURATION_FACTOR_DECAY_RATE *
+          (workoutDurationSeconds - maxBaselineDurationSeconds),
+      );
+    }
+  }
+
+  private calculateWorkoutDurationWithMinBaselineDuration(
+    workoutDurationSeconds: number,
+    minBaselineDurationSeconds: number,
+    maxBaselineDurationSeconds: number,
+  ): number {
+    if (
+      workoutDurationSeconds > minBaselineDurationSeconds &&
+      workoutDurationSeconds <= maxBaselineDurationSeconds
+    ) {
+      return 1;
+    } else if (workoutDurationSeconds <= minBaselineDurationSeconds) {
+      return Math.exp(
+        -this.DURATION_FACTOR_DECAY_RATE *
+          (minBaselineDurationSeconds - workoutDurationSeconds),
+      );
+    } else {
+      return Math.exp(
+        -this.DURATION_FACTOR_DECAY_RATE *
+          (workoutDurationSeconds - maxBaselineDurationSeconds),
+      );
+    }
   }
 
   /**
