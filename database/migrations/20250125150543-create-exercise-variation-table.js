@@ -24,11 +24,14 @@ exports.up = async function (db) {
       name VARCHAR(40) NOT NULL,
       notes VARCHAR(255) NULL,
       user_id UUID NOT NULL,
+      cable_attachment_id INT NULL,
       CONSTRAINT fk_exercise FOREIGN KEY (exercise_id)
       REFERENCES public.exercise (id) ON DELETE RESTRICT,
       CONSTRAINT fk_user_profile FOREIGN KEY (user_id)
-      REFERENCES public.user_profile (id) ON DELETE CASCADE
-    )  
+      REFERENCES public.user_profile (id) ON DELETE CASCADE,
+      CONSTRAINT fk_cable_attachment FOREIGN KEY (cable_attachment_id)
+      REFERENCES public.cable_attachment (id) ON DELETE RESTRICT
+      )  
   `);
 
   await db.runSql(`
