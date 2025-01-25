@@ -23,8 +23,11 @@ exports.up = async function (db) {
       exercise_id UUID NOT NULL,
       name VARCHAR(40) NOT NULL,
       notes VARCHAR(255) NULL,
+      user_id UUID NOT NULL,
       CONSTRAINT fk_exercise FOREIGN KEY (exercise_id)
-      REFERENCES public.exercise (id) ON DELETE RESTRICT
+      REFERENCES public.exercise (id) ON DELETE RESTRICT,
+      CONSTRAINT fk_user_profile FOREIGN KEY (user_id)
+      REFERENCES public.user_profile (id) ON DELETE CASCADE
     )  
   `);
 
@@ -38,12 +41,12 @@ exports.up = async function (db) {
 
 exports.down = async function (db) {
   await db.runSql(`
-    DROP TABLE IF EXISTS public.exercise_variation  
+    ALTER TABLE public.workout_exercise
+    DROP COLUMN exercise_variation_id  
   `);
 
   await db.runSql(`
-    ALTER TABLE public.workout_exercise
-    REMOVE COLUMN exercise_variation_id  
+    DROP TABLE IF EXISTS public.exercise_variation  
   `);
 };
 
