@@ -7,6 +7,8 @@ import { BodyPartDto } from './dtos/body-part.dto';
 import { EquipmentDto } from './dtos/equipment.dto';
 import { ExerciseDetailsDto } from './dtos/exercise-details.dto';
 import { ExerciseWorkoutHistoryDto } from './dtos/exercise-workout-history.dto';
+import { LookupItemDto } from './dtos/lookup-item.dto';
+import { LookupItem } from './models';
 import { BodyPartModel } from './models/body-part.model';
 import { EquipmentModel } from './models/equipment.model';
 import { ExerciseDetailsModel } from './models/exercise-details.model';
@@ -33,6 +35,7 @@ export class ExerciseProfile extends AutomapperProfile {
       createMap(mapper, ExerciseDetailsModel, ExerciseDetailsDto);
       createMap(mapper, EquipmentModel, EquipmentDto);
       createMap(mapper, BodyPartModel, BodyPartDto);
+      createMap(mapper, LookupItem, LookupItemDto);
     };
   }
 }
