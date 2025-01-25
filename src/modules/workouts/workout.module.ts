@@ -11,6 +11,7 @@ import { WorkoutController } from './controller/workout.controller';
 import { WorkoutRepository } from './repository/workout.repository';
 import { WorkoutService } from './service/workout.service';
 import { WorkoutProfile } from './workout.profile';
+import { CreateWorkoutService } from './service/create-workout.service';
 
 @Module({
   imports: [ExerciseModule, DbModule, UserModule],
@@ -21,6 +22,7 @@ import { WorkoutProfile } from './workout.profile';
     WorkoutGoalXpCalculator,
     WorkoutProfile,
     LevelCalculator,
+    CreateWorkoutService,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],

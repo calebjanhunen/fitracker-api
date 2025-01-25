@@ -25,6 +25,7 @@ import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { CreateWorkout } from '../models/create-workout';
 import { WorkoutService } from '../service/workout.service';
+import { CreateWorkoutService } from '../service/create-workout.service';
 
 @Controller('api/workouts')
 @UseGuards(JwtAuthGuard)
@@ -33,6 +34,7 @@ import { WorkoutService } from '../service/workout.service';
 export class WorkoutController {
   constructor(
     private readonly workoutService: WorkoutService,
+    private readonly createWorkoutService: CreateWorkoutService,
     @InjectMapper() private mapper: Mapper,
   ) {}
 
@@ -50,7 +52,10 @@ export class WorkoutController {
         WorkoutRequestDto,
         InsertWorkoutModel,
       );
-      const response = await this.workoutService.create(workout, userId);
+      const response = await this.createWorkoutService.createWorkout(
+        workout,
+        userId,
+      );
       return this.mapper.map(response, CreateWorkout, CreateWorkoutResponseDto);
     } catch (e) {
       if (e instanceof ResourceNotFoundException) {
