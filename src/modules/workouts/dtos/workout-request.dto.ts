@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsBoolean,
   IsDate,
   IsInt,
   IsNotEmpty,
@@ -61,6 +62,12 @@ export class WorkoutExerciseRequestDto {
   @ApiProperty()
   @AutoMap()
   public order: number;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({ type: Boolean, required: false })
+  @AutoMap()
+  public isVariation?: boolean;
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
