@@ -1,41 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserStats } from 'src/modules/user/models/user-stats.model';
 import { UserService } from 'src/modules/user/service/user.service';
-import {
-  LevelCalculator,
-  WorkoutEffortXpCalculator,
-  WorkoutGoalXpCalculator,
-} from '../calculator';
+import { LevelCalculator } from '../calculator';
 import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
-import { CouldNotSaveWorkoutException } from '../internal-errors/could-not-save-workout.exception';
 import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
-import { CreateWorkout } from '../models/create-workout';
 import { WorkoutRepository } from '../repository/workout.repository';
-
-interface ICalculateWorkoutXp {
-  totalWorkoutXp: number;
-  workoutEffortXp: number;
-  workoutGoalXp: number;
-  workoutGoalStreakXp: number;
-}
+import { BaseWorkoutService } from './base-workout.service';
 
 @Injectable()
-export class WorkoutService {
+export class WorkoutService extends BaseWorkoutService {
   constructor(
-    private exerciseService: ExerciseService,
+    exerciseService: ExerciseService,
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
-    private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
-    private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
     private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
   ) {
+    super(exerciseService);
     this.logger.setContext(WorkoutService.name);
   }
 
@@ -120,114 +106,9 @@ export class WorkoutService {
     workout: InsertWorkoutModel,
   ): Promise<WorkoutModel> {
     await this.findById(workoutId, userId);
-
-    const exerciseIds = workout.exercises.map((e) => e.exerciseId);
-    await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+    await this.validateExercisesExist(workout.exercises, userId);
     this.validateOrderForExercisesAndSets(workout);
 
     return await this.workoutRepo.update(workoutId, workout, userId);
-  }
-
-  /**
-   * Loops through exercises and sets and validates that the order for each increase sequentially.
-   * @param {InsertWorkoutModel} workout
-   *
-   * @throws {InvalidOrderException}
-   */
-  private validateOrderForExercisesAndSets(workout: InsertWorkoutModel): void {
-    for (let i = 0; i < workout.exercises.length; i++) {
-      if (workout.exercises[i].order !== i + 1) {
-        throw new InvalidOrderException('exercise');
-      }
-      for (let j = 0; j < workout.exercises[i].sets.length; j++) {
-        const set = workout.exercises[i].sets[j];
-        if (set.order !== j + 1) {
-          throw new InvalidOrderException('set');
-        }
-      }
-    }
-  }
-
-  /**
-   * Returns the total xp gained from a created workout.
-   * @param {InsertWorkoutModel} workout
-   * @returns {ICalculateWorkoutXp}
-   */
-  private calculateWorkoutXp(
-    workout: InsertWorkoutModel,
-    userId: string,
-    hasWorkoutGoalBeenReachedOrExceeded: boolean,
-    userWorkoutGoal: number,
-    workoutGoalStreak: number,
-    daysWithWorkoutsThisWeek: number,
-  ): ICalculateWorkoutXp {
-    const workoutEffortXp =
-      this.workoutEffortXpCalculator.calculateWorkoutEffortXp(workout, userId);
-
-    let workoutGoalXp = 0;
-    let workoutGoalStreakXp = 0;
-    if (hasWorkoutGoalBeenReachedOrExceeded) {
-      workoutGoalXp = this.workoutGoalXpCalculator.calculateWorkoutGoalXp(
-        userWorkoutGoal,
-        daysWithWorkoutsThisWeek,
-      );
-
-      if (daysWithWorkoutsThisWeek === userWorkoutGoal) {
-        workoutGoalStreakXp =
-          this.workoutGoalXpCalculator.calculateWorkoutGoalStreakXp(
-            workoutGoalStreak,
-            userWorkoutGoal,
-          );
-      }
-    }
-
-    this.logger.log(
-      `Workout XP calculated for user ${userId} and workout ${workout.name}. Workout effort XP = ${workoutEffortXp}, workout goal xp = ${workoutGoalXp}, workout goal streak xp = ${workoutGoalStreakXp}`,
-      { userId, workoutEffortXp, workoutGoalXp, workoutGoalStreakXp },
-    );
-
-    const totalWorkoutXp =
-      workoutEffortXp + workoutGoalXp + workoutGoalStreakXp;
-    this.logger.log(`Total workout xp for user ${userId} = ${totalWorkoutXp}`, {
-      userId,
-      totalWorkoutXp,
-    });
-    return {
-      totalWorkoutXp,
-      workoutEffortXp,
-      workoutGoalXp,
-      workoutGoalStreakXp,
-    };
-  }
-
-  private async hasWorkoutGoalBeenReachedOrExceeded(
-    weeklyWorkoutGoalAchievedAt: Date | null,
-    workoutCreatedAt: Date,
-    weeklyWorkoutGoal: number,
-    userId: string,
-    daysWithWorkoutsThisWeek: number,
-  ): Promise<boolean> {
-    if (
-      weeklyWorkoutGoalAchievedAt?.isInSameWeekAs(workoutCreatedAt) &&
-      daysWithWorkoutsThisWeek <= weeklyWorkoutGoal
-    ) {
-      return false;
-    }
-
-    const completedWorkoutsToday = await this.workoutRepo.getWorkoutsByDate(
-      workoutCreatedAt,
-      userId,
-    );
-    if (completedWorkoutsToday.length > 0) {
-      // a workout has already been completed today
-      return false;
-    }
-
-    if (daysWithWorkoutsThisWeek >= weeklyWorkoutGoal) {
-      // number of days a workout has been completed including the currently completed workout is equal or greater than the goal
-      return true;
-    }
-
-    return false;
   }
 }
