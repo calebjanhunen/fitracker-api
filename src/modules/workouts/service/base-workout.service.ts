@@ -1,9 +1,18 @@
-import { InvalidOrderException } from 'src/common/internal-exceptions';
-import { ExerciseService } from 'src/modules/exercises/services';
+import {
+  InvalidOrderException,
+  ResourceNotFoundException,
+} from 'src/common/internal-exceptions';
+import {
+  ExerciseService,
+  ExerciseVariationService,
+} from 'src/modules/exercises/services';
 import { InsertWorkoutExerciseModel, InsertWorkoutModel } from '../models';
 
 export abstract class BaseWorkoutService {
-  constructor(private readonly exerciseService: ExerciseService) {}
+  constructor(
+    private readonly exerciseService: ExerciseService,
+    private readonly exerciseVariationService: ExerciseVariationService,
+  ) {}
 
   protected async validateExercisesExist(
     exercises: InsertWorkoutExerciseModel[],
@@ -19,6 +28,17 @@ export abstract class BaseWorkoutService {
       }
     }
     await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+
+    const exerciseVariations =
+      await this.exerciseVariationService.getExerciseVariationsByIds(
+        exerciseVariationIds,
+        userId,
+      );
+    if (exerciseVariations.length !== exerciseIds.length) {
+      throw new ResourceNotFoundException(
+        'One or more exercise variations do not exist',
+      );
+    }
   }
 
   /**

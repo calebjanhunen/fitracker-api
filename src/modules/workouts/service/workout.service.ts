@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { ExerciseVariationService } from 'src/modules/exercises/services';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { XpCannotBeBelowZeroException } from 'src/modules/user/internal-exceptions/xp-cannot-be-below-zero.exceptions';
 import { UserStats } from 'src/modules/user/models/user-stats.model';
@@ -16,12 +17,13 @@ import { BaseWorkoutService } from './base-workout.service';
 export class WorkoutService extends BaseWorkoutService {
   constructor(
     exerciseService: ExerciseService,
+    exerciseVariationService: ExerciseVariationService,
     private workoutRepo: WorkoutRepository,
     private readonly userService: UserService,
     private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
   ) {
-    super(exerciseService);
+    super(exerciseService, exerciseVariationService);
     this.logger.setContext(WorkoutService.name);
   }
 

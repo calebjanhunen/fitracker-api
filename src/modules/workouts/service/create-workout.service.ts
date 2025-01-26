@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { ExerciseService } from 'src/modules/exercises/services';
+import {
+  ExerciseService,
+  ExerciseVariationService,
+} from 'src/modules/exercises/services';
 import { UserStats } from 'src/modules/user/models';
 import { UserService } from 'src/modules/user/service';
 import {
@@ -24,8 +27,9 @@ export class CreateWorkoutService extends BaseWorkoutService {
     private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
     exerciseService: ExerciseService,
+    exerciseVariationService: ExerciseVariationService,
   ) {
-    super(exerciseService);
+    super(exerciseService, exerciseVariationService);
     this.logger.setContext(CreateWorkoutService.name);
   }
 
