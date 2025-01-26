@@ -1,29 +1,47 @@
 import { Injectable } from '@nestjs/common';
+import { LoggerService } from 'src/common/logger/logger.service';
 
 @Injectable()
 export class LevelCalculator {
   private readonly BASE_XP_OFFSET = 200;
   private readonly LEVEL_EXPONENT_GROWTH_RATE = 2;
-  constructor() {}
+  constructor(private readonly logger: LoggerService) {
+    this.logger.setContext(LevelCalculator.name);
+  }
 
   public calculateNewLevelAndCurrentXp(
     currentLevel: number,
     currentXp: number,
     gainedXp: number,
   ): { newLevel: number; newCurrentXp: number } {
+    let result;
     if (gainedXp < 0) {
-      return this.calculateLevelAndXpForNegativeXpGain(
+      result = this.calculateLevelAndXpForNegativeXpGain(
         currentLevel,
         currentXp,
         Math.abs(gainedXp),
       );
     } else {
-      return this.calculateLevelAndXpForPositiveXpGain(
+      result = this.calculateLevelAndXpForPositiveXpGain(
         currentLevel,
         currentXp,
         gainedXp,
       );
     }
+
+    const newLevel = result.newLevel;
+    const newCurrentXp = result.newCurrentXp;
+    this.logger.log(
+      `Old level: ${currentLevel}, new level: ${newLevel}. Old current xp: ${currentXp}, new current xp: ${newCurrentXp}`,
+      {
+        oldLevel: currentLevel,
+        newLevel,
+        oldCurrentXp: currentXp,
+        newCurrentXp,
+      },
+    );
+
+    return { newLevel, newCurrentXp };
   }
 
   private calculateLevelAndXpForPositiveXpGain(

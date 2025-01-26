@@ -18,8 +18,13 @@ export class InsertWorkoutModel {
 export class InsertWorkoutExerciseModel {
   @AutoMap()
   exerciseId: string;
+
+  @AutoMap()
+  isVariation?: boolean;
+
   @AutoMap()
   order: number;
+
   @AutoMap(() => InsertWorkoutSetModel)
   sets: InsertWorkoutSetModel[];
 }

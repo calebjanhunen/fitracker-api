@@ -4,3 +4,4 @@ export * from './insert-exercise.model';
 export * from './lookup-item.model';
 export * from './num-times-used-for-exercise.model';
 export * from './recent-sets-for-exercise.model';
+export * from './exercise-variation.model';

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { ExerciseVariationService } from 'src/modules/exercises/services';
 import { ExerciseService } from 'src/modules/exercises/services/exercise.service';
 import { UserService } from 'src/modules/user/service/user.service';
 import {
@@ -8,14 +9,17 @@ import {
   WorkoutGoalXpCalculator,
 } from 'src/modules/workouts/calculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
+import { CreateWorkoutRepository } from 'src/modules/workouts/repository';
 import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
-import { WorkoutService } from 'src/modules/workouts/service/workout.service';
+import { CreateWorkoutService } from 'src/modules/workouts/service';
 import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
-describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
-  let workoutService: WorkoutService;
+describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
+  let createWorkoutService: CreateWorkoutService;
   let mockExerciseService: Partial<ExerciseService>;
+  let mockExerciseVariationService: Partial<ExerciseVariationService>;
   let mockWorkoutRepo: Partial<WorkoutRepository>;
+  let mockCreateWorkoutRepo: Partial<CreateWorkoutRepository>;
   let mockUserService: Partial<UserService>;
   let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
   let mockWorkoutGoalXpCalculator: Partial<WorkoutGoalXpCalculator>;
@@ -24,16 +28,23 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
   beforeEach(async () => {
     mockExerciseService = {};
+    mockExerciseVariationService = {};
     mockWorkoutRepo = {};
+    mockCreateWorkoutRepo = {};
     mockUserService = {};
     mockWorkoutEffortXpCalculator = {};
     mockWorkoutGoalXpCalculator = {};
     mockLevelCalculator = {};
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        WorkoutService,
+        CreateWorkoutService,
         { provide: ExerciseService, useValue: mockExerciseService },
+        {
+          provide: ExerciseVariationService,
+          useValue: mockExerciseVariationService,
+        },
         { provide: WorkoutRepository, useValue: mockWorkoutRepo },
+        { provide: CreateWorkoutRepository, useValue: mockCreateWorkoutRepo },
         { provide: UserService, useValue: mockUserService },
         {
           provide: WorkoutEffortXpCalculator,
@@ -54,7 +65,8 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
       ],
     }).compile();
 
-    workoutService = module.get<WorkoutService>(WorkoutService);
+    createWorkoutService =
+      module.get<CreateWorkoutService>(CreateWorkoutService);
   });
 
   it('GivenWorkoutGoalAchievedAtThatIsThisWeek_WhenCheckingIfWeeklyGoalBeenReachedForFirstTime_ReturnFalse', async () => {
@@ -64,7 +76,9 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     const workoutCreatedAt = new Date(2024, 11, 30, 12, 0, 0);
     const weeklyWorkoutGoal = 4;
 
-    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+    const result = await createWorkoutService[
+      'hasWorkoutGoalBeenReachedOrExceeded'
+    ](
       weeklyWorkoutGoalAchievedAt,
       workoutCreatedAt,
       weeklyWorkoutGoal,
@@ -84,7 +98,9 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
       .fn()
       .mockResolvedValue([new WorkoutModel()]);
 
-    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+    const result = await createWorkoutService[
+      'hasWorkoutGoalBeenReachedOrExceeded'
+    ](
       weeklyWorkoutGoalAchievedAt,
       workoutCreatedAt,
       weeklyWorkoutGoal,
@@ -104,7 +120,9 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
-    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+    const result = await createWorkoutService[
+      'hasWorkoutGoalBeenReachedOrExceeded'
+    ](
       weeklyWorkoutGoalAchievedAt,
       workoutCreatedAt,
       weeklyWorkoutGoal,
@@ -125,7 +143,9 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
-    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+    const result = await createWorkoutService[
+      'hasWorkoutGoalBeenReachedOrExceeded'
+    ](
       weeklyWorkoutGoalAchievedAt,
       workoutCreatedAt,
       weeklyWorkoutGoal,
@@ -145,7 +165,9 @@ describe('WorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
     mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
-    const result = await workoutService['hasWorkoutGoalBeenReachedOrExceeded'](
+    const result = await createWorkoutService[
+      'hasWorkoutGoalBeenReachedOrExceeded'
+    ](
       weeklyWorkoutGoalAchievedAt,
       workoutCreatedAt,
       weeklyWorkoutGoal,

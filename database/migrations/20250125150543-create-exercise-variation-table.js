@@ -23,27 +23,39 @@ exports.up = async function (db) {
       exercise_id UUID NOT NULL,
       name VARCHAR(40) NOT NULL,
       notes VARCHAR(255) NULL,
+      user_id UUID NOT NULL,
+      cable_attachment_id INT NULL,
       CONSTRAINT fk_exercise FOREIGN KEY (exercise_id)
-      REFERENCES public.exercise (id) ON DELETE RESTRICT
-    )  
+      REFERENCES public.exercise (id) ON DELETE RESTRICT,
+      CONSTRAINT fk_user_profile FOREIGN KEY (user_id)
+      REFERENCES public.user_profile (id) ON DELETE CASCADE,
+      CONSTRAINT fk_cable_attachment FOREIGN KEY (cable_attachment_id)
+      REFERENCES public.cable_attachment (id) ON DELETE RESTRICT
+      )  
   `);
 
   await db.runSql(`
-    ALTER TABLE PUBLIC.workout_exercise
+    ALTER TABLE public.workout_exercise
+    ALTER COLUMN exercise_id DROP NOT NULL,
     ADD COLUMN exercise_variation_id UUID NULL,
-    ADD CONSTRAINT fk_exercise_variation FOREIGN KEY (exercise_variation_id)
-    REFERENCES public.exercise_variation (id) ON DELETE CASCADE
+    DROP CONSTRAINT fk_exercise_workout_exercise,
+    ADD CONSTRAINT fk_exercise FOREIGN KEY (exercise_id) REFERENCES public.exercise (id) ON DELETE CASCADE,
+    ADD CONSTRAINT fk_exercise_variation FOREIGN KEY (exercise_variation_id) REFERENCES public.exercise_variation (id) ON DELETE CASCADE,
+    ADD CONSTRAINT check_exercise_or_variation CHECK (
+      (exercise_id IS NOT NULL AND exercise_variation_id IS NULL) OR
+      (exercise_id IS NULL AND exercise_variation_id IS NOT NULL)
+    )
   `);
 };
 
 exports.down = async function (db) {
   await db.runSql(`
-    DROP TABLE IF EXISTS public.exercise_variation  
+    ALTER TABLE public.workout_exercise
+    DROP COLUMN exercise_variation_id  
   `);
 
   await db.runSql(`
-    ALTER TABLE public.workout_exercise
-    REMOVE COLUMN exercise_variation_id  
+    DROP TABLE IF EXISTS public.exercise_variation  
   `);
 };
 
