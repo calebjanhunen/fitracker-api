@@ -35,10 +35,14 @@ exports.up = async function (db) {
   `);
 
   await db.runSql(`
-    ALTER TABLE PUBLIC.workout_exercise
+    ALTER TABLE public.workout_exercise
+    ALTER COLUMN exercise_id DROP NOT NULL,
     ADD COLUMN exercise_variation_id UUID NULL,
-    ADD CONSTRAINT fk_exercise_variation FOREIGN KEY (exercise_variation_id)
-    REFERENCES public.exercise_variation (id) ON DELETE CASCADE
+    ADD CONSTRAINT fk_exercise_variation FOREIGN KEY (exercise_variation_id) REFERENCES exercise_variation (id),
+    ADD CONSTRAINT check_exercise_or_variation CHECK (
+      (exercise_id IS NOT NULL AND exercise_variation_id IS NULL) OR
+      (exercise_id IS NULL AND exercise_variation_id IS NOT NULL)
+    )
   `);
 };
 
