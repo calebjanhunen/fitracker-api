@@ -8,7 +8,9 @@ import { ExerciseProfile } from './exercise.profile';
 import { BodyPartRepository } from './repository/body-part.repository';
 import { CableAttachmentRepository } from './repository/cable-attachment.repository';
 import { EquipmentRepository } from './repository/equipment.repository';
+import { ExerciseVariationRepository } from './repository/exercise-variation.repository';
 import { ExerciseRepository } from './repository/exercise.repository';
+import { ExerciseVariationService } from './services';
 import { BodyPartService } from './services/body-part.service';
 import { CableAttachmentService } from './services/cable-attachment.service';
 import { EquipmentService } from './services/equipment.service';
@@ -27,7 +29,9 @@ import { ExerciseService } from './services/exercise.service';
     EquipmentRepository,
     CableAttachmentRepository,
     CableAttachmentService,
+    ExerciseVariationRepository,
+    ExerciseVariationService,
   ],
-  exports: [ExerciseService],
+  exports: [ExerciseService, ExerciseVariationService],
 })
 export class ExerciseModule {}

@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
+import { DatabaseException } from 'src/common/internal-exceptions';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { ExerciseVariationModel } from '../models';
-import { DatabaseException } from 'src/common/internal-exceptions';
 
+@Injectable()
 export class ExerciseVariationRepository {
   constructor(
     private readonly db: DbService,
@@ -11,11 +13,11 @@ export class ExerciseVariationRepository {
     this.logger.setContext(ExerciseVariationRepository.name);
   }
 
-  public async getExercisesByIds(
+  public async getExerciseVariationsByIds(
     exerciseVariationIds: string[],
     userId: string,
   ): Promise<ExerciseVariationModel[]> {
-    const queryName = 'getExercisesByIds';
+    const queryName = 'getExerciseVariationsByIds';
     const query = `
         SELECT
             ev.id,
