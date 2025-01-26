@@ -27,7 +27,7 @@ export class ExerciseVariationRepository {
             ev.notes,
             ca.name
         FROM public.exercise_variation ev
-        LEFT JOIN public.cable_attachment ca.id = ev.cable_attachment_id
+        LEFT JOIN public.cable_attachment ca ON ca.id = ev.cable_attachment_id
         WHERE ev.id = ANY($1) AND
             ev.user_id = $2;
     `;

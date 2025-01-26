@@ -34,7 +34,7 @@ export abstract class BaseWorkoutService {
         exerciseVariationIds,
         userId,
       );
-    if (exerciseVariations.length !== exerciseIds.length) {
+    if (exerciseVariations.length !== exerciseVariationIds.length) {
       throw new ResourceNotFoundException(
         'One or more exercise variations do not exist',
       );
