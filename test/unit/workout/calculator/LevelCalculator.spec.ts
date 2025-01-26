@@ -1,7 +1,22 @@
+import { Test } from '@nestjs/testing';
+import { LoggerService } from 'src/common/logger/logger.service';
 import { LevelCalculator } from 'src/modules/workouts/calculator';
+import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
 describe('LevelCalculator', () => {
-  const levelCalculator = new LevelCalculator();
+  let levelCalculator: LevelCalculator;
+  const mockLoggerService = new MockLoggerService();
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        LevelCalculator,
+        { provide: LoggerService, useValue: mockLoggerService },
+      ],
+    }).compile();
+
+    levelCalculator = module.get(LevelCalculator);
+  });
   describe('Positive xp gain', () => {
     it('Given not enough gained xp to level up, when calculating next level and new current xp, return the same level and new current xp', () => {
       const currentLevel = 63;
