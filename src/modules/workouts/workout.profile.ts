@@ -1,6 +1,7 @@
-import { createMap, Mapper } from '@automapper/core';
+import { createMap, forMember, mapFrom, Mapper } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
+import { WorkoutSummaryDto } from './dtos';
 import {
   CreateWorkoutResponseDto,
   UserStatsAfterWorkoutDto,
@@ -26,6 +27,8 @@ import {
   WorkoutExerciseModel,
   WorkoutModel,
   WorkoutSetModel,
+  WorkoutSummaryExerciseModel,
+  WorkoutSummaryModel,
 } from './models';
 import {
   CreateWorkout,
@@ -53,6 +56,16 @@ export class WorkoutProfile extends AutomapperProfile {
       createMap(mapper, WorkoutSetModel, WorkoutSetResponseDto);
       createMap(mapper, WorkoutStats, WorkoutStatsDto);
       createMap(mapper, DeleteWorkout, DeleteWorkoutDto);
+      createMap(mapper, WorkoutSummaryExerciseModel, WorkoutSummaryDto);
+      createMap(
+        mapper,
+        WorkoutSummaryModel,
+        WorkoutSummaryDto,
+        forMember(
+          (dest) => dest.exercises,
+          mapFrom((src) => src.exercises),
+        ),
+      );
     };
   }
 }

@@ -13,19 +13,34 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { CreateWorkoutResponseDto } from '../dtos/create-workout-response.dto';
-import { DeleteWorkoutDto } from '../dtos/delete-workout-response.dto';
-import { WorkoutRequestDto } from '../dtos/workout-request.dto';
-import { WorkoutResponseDto } from '../dtos/workout-response.dto';
-import { DeleteWorkout } from '../interfaces/delete-workout.interface';
-import { InsertWorkoutModel, WorkoutModel } from '../models';
-import { CreateWorkout } from '../models/create-workout';
-import { WorkoutService } from '../service/workout.service';
-import { CreateWorkoutService } from '../service/create-workout.service';
+import {
+  CreateWorkoutResponseDto,
+  DeleteWorkoutDto,
+  WorkoutRequestDto,
+  WorkoutResponseDto,
+  WorkoutSummaryDto,
+} from '../dtos';
+import { DeleteWorkout } from '../interfaces';
+import {
+  CreateWorkout,
+  InsertWorkoutModel,
+  WorkoutModel,
+  WorkoutSummaryModel,
+} from '../models';
+import {
+  CreateWorkoutService,
+  GetWorkoutService,
+  WorkoutService,
+} from '../service';
 
 @Controller('api/workouts')
 @UseGuards(JwtAuthGuard)
@@ -35,6 +50,7 @@ export class WorkoutController {
   constructor(
     private readonly workoutService: WorkoutService,
     private readonly createWorkoutService: CreateWorkoutService,
+    private readonly getWorkoutService: GetWorkoutService,
     @InjectMapper() private mapper: Mapper,
   ) {}
 
@@ -65,6 +81,25 @@ export class WorkoutController {
     }
   }
 
+  @Get('/workoutSummaries')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: WorkoutSummaryDto,
+    isArray: true,
+  })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
+  public async getWorkoutSummaries(
+    @CurrentUser() userId: string,
+  ): Promise<WorkoutSummaryDto[]> {
+    const workoutSummaries =
+      await this.getWorkoutService.getWorkoutSummaries(userId);
+    return this.mapper.mapArray(
+      workoutSummaries,
+      WorkoutSummaryModel,
+      WorkoutSummaryDto,
+    );
+  }
+
   @Get(':id')
   @ApiResponse({ status: HttpStatus.OK, type: WorkoutResponseDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND })
@@ -81,6 +116,10 @@ export class WorkoutController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Use /workouts/workoutSummaries instead',
+    deprecated: true,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     type: WorkoutResponseDto,

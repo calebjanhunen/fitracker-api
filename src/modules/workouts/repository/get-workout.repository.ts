@@ -25,7 +25,7 @@ export class GetWorkoutRepository {
 
     const setCount = await this.getNumberOfSetsForExercises(workoutIds, userId);
 
-    const workoutSummaryiesWithSetCount = workoutSummariesWithoutSetCount.map(
+    const workoutSummariesWithSetCount = workoutSummariesWithoutSetCount.map(
       (workoutSummary) => ({
         ...workoutSummary,
         exercises: workoutSummary.exercises.map((exercise) => ({
@@ -45,7 +45,7 @@ export class GetWorkoutRepository {
       elapsedTime,
     });
 
-    return workoutSummaryiesWithSetCount;
+    return workoutSummariesWithSetCount;
   }
 
   private async getWorkoutSummariesWithoutSetCount(
@@ -66,10 +66,9 @@ export class GetWorkoutRepository {
         	) AS exercises
         FROM
         	workout w
-        	LEFT JOIN workout_exercise we ON we.workout_id = w.id
+        	INNER JOIN workout_exercise we ON we.workout_id = w.id
         	LEFT JOIN exercise e ON e.id = we.exercise_id
         	LEFT JOIN exercise_variation ev ON ev.id = we.exercise_variation_id
-        	LEFT JOIN workout_set ws ON ws.workout_exercise_id = we.id
         WHERE
         	w.user_id = $1
         GROUP BY
@@ -97,8 +96,8 @@ export class GetWorkoutRepository {
     const queryName = 'getNumberOfSetsForExercises';
     const query = `
         SELECT
-        	we.id,
-        	COUNT(ws.*) AS number_of_sets
+        	we.id as workout_exercise_id,
+        	COUNT(ws.*)::INT AS number_of_sets
         FROM
         	workout_exercise we
         	INNER JOIN workout_set ws ON ws.workout_exercise_id = we.id

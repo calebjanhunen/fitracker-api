@@ -13,7 +13,11 @@ import {
   GetWorkoutRepository,
   WorkoutRepository,
 } from './repository';
-import { CreateWorkoutService, WorkoutService } from './service';
+import {
+  CreateWorkoutService,
+  GetWorkoutService,
+  WorkoutService,
+} from './service';
 import { WorkoutProfile } from './workout.profile';
 
 @Module({
@@ -28,6 +32,7 @@ import { WorkoutProfile } from './workout.profile';
     CreateWorkoutService,
     CreateWorkoutRepository,
     GetWorkoutRepository,
+    GetWorkoutService,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],
