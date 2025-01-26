@@ -4,7 +4,7 @@ import {
   ExerciseService,
   ExerciseVariationService,
 } from 'src/modules/exercises/services';
-import { UserStats } from 'src/modules/user/models';
+import { UserProfileModel, UserStats } from 'src/modules/user/models';
 import { UserService } from 'src/modules/user/service';
 import {
   LevelCalculator,
@@ -13,7 +13,7 @@ import {
 } from '../calculator';
 import { ICalculateWorkoutXp } from '../interfaces';
 import { CouldNotSaveWorkoutException } from '../internal-errors';
-import { CreateWorkout, InsertWorkoutModel } from '../models';
+import { CreateWorkout, InsertWorkoutModel, WorkoutModel } from '../models';
 import { CreateWorkoutRepository, WorkoutRepository } from '../repository';
 import { BaseWorkoutService } from './base-workout.service';
 
@@ -44,108 +44,122 @@ export class CreateWorkoutService extends BaseWorkoutService {
     const userStats = await this.userService.getStatsByUserId(userId);
     const userProfile = await this.userService.getCurrentUser(userId);
 
-    const daysWithWorkoutsThisWeekIncludingCurrentWorkout =
-      (await this.workoutRepo.getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+    // Get days with workouts this week including the currently created workout
+    const daysWithWorkoutsThisWeek =
+      (await this.workoutRepo.getDaysWithWorkoutsThisWeek(
         userId,
         workout.createdAt,
       )) + 1;
+
     const hasWorkoutGoalBeenReachedOrExceeded =
       await this.hasWorkoutGoalBeenReachedOrExceeded(
         userStats.weeklyWorkoutGoalAchievedAt,
         workout.createdAt,
         userProfile.weeklyWorkoutGoal,
         userId,
-        daysWithWorkoutsThisWeekIncludingCurrentWorkout,
+        daysWithWorkoutsThisWeek,
       );
-    if (
-      hasWorkoutGoalBeenReachedOrExceeded &&
-      daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
-        userProfile.weeklyWorkoutGoal
-    ) {
-      userStats.weeklyWorkoutGoalAchievedAt = workout.createdAt;
 
-      if (
-        daysWithWorkoutsThisWeekIncludingCurrentWorkout ===
-        userProfile.weeklyWorkoutGoal
-      ) {
-        userStats.weeklyWorkoutGoalStreak++;
-      }
-    }
+    const { newWeeklyGoalAchievedAt, newWeeklyStreak } =
+      this.getUpdatedWeeklyStreakAndWeeklyGoalAchievedAt(
+        userStats,
+        userProfile,
+        hasWorkoutGoalBeenReachedOrExceeded,
+        daysWithWorkoutsThisWeek,
+      );
 
-    const {
-      totalWorkoutXp,
-      workoutEffortXp,
-      workoutGoalXp,
-      workoutGoalStreakXp,
-    } = this.calculateWorkoutXp(
+    const workoutXp = this.calculateWorkoutXp(
       workout,
       userId,
       hasWorkoutGoalBeenReachedOrExceeded,
       userProfile.weeklyWorkoutGoal,
-      userStats.weeklyWorkoutGoalStreak,
-      daysWithWorkoutsThisWeekIncludingCurrentWorkout,
+      newWeeklyStreak,
+      daysWithWorkoutsThisWeek,
     );
-    workout.gainedXp = totalWorkoutXp;
+    workout.gainedXp = workoutXp.totalWorkoutXp;
 
-    const { newLevel, newCurrentXp } =
-      this.levelCalculator.calculateNewLevelAndCurrentXp(
-        userStats.level,
-        userStats.currentXp,
-        totalWorkoutXp,
-      );
-    this.logger.log(
-      `Old level: ${userStats.level}, new level: ${newLevel}. Old current xp: ${userStats.currentXp}, new current xp: ${newCurrentXp} for user ${userId}`,
-      {
-        oldLevel: userStats.level,
-        newLevel,
-        oldCurrentXp: userStats.currentXp,
-        newCurrentXp,
-        userId,
-      },
+    const createdWorkout = await this.saveWorkout(workout, userId);
+
+    const updatedUserStats = await this.updateUserStatsAfterWorkout(
+      userStats,
+      workoutXp.totalWorkoutXp,
+      newWeeklyGoalAchievedAt,
+      newWeeklyStreak,
     );
 
+    return this.getCreatedWorkoutModel(
+      createdWorkout!,
+      workoutXp,
+      userStats,
+      updatedUserStats,
+      daysWithWorkoutsThisWeek,
+    );
+  }
+
+  private async saveWorkout(
+    workout: InsertWorkoutModel,
+    userId: string,
+  ): Promise<WorkoutModel> {
     try {
       const createdWorkoutId = await this.createWorkoutRepo.createWorkout(
         workout,
         userId,
       );
-
-      const newUserStats = new UserStats();
-      newUserStats.totalXp = newCurrentXp;
-      newUserStats.level = newLevel;
-      newUserStats.currentXp = newCurrentXp;
-      newUserStats.totalXp = userStats.totalXp + totalWorkoutXp;
-      await this.userService.updateUserStats(userId, newUserStats);
-
-      const createdWorkout = await this.workoutRepo.findById(
-        createdWorkoutId,
-        userId,
-      );
-
-      return {
-        workout: createdWorkout!,
-        workoutStats: {
-          totalWorkoutXp,
-          workoutEffortXp,
-          workoutGoalXp,
-          workoutGoalStreakXp,
-        },
-        userStatsBeforeWorkout: {
-          level: userStats.level,
-          currentXp: userStats.currentXp,
-        },
-        userStatsAfterWorkout: {
-          level: newLevel,
-          currentXp: newCurrentXp,
-          xpNeededForCurrentLevel:
-            this.levelCalculator.getXpNeededForCurrentLevel(newLevel),
-          daysWithWorkoutsThisWeek:
-            daysWithWorkoutsThisWeekIncludingCurrentWorkout,
-        },
-      };
+      return (await this.workoutRepo.findById(createdWorkoutId, userId))!;
     } catch (e) {
-      throw new CouldNotSaveWorkoutException(workout.name);
+      throw new CouldNotSaveWorkoutException(e);
     }
+  }
+
+  private async updateUserStatsAfterWorkout(
+    currentUserStats: UserStats,
+    totalWorkoutXp: number,
+    newWeeklyGoalAchievedAt: Date | null,
+    newWeeklyStreak: number,
+  ): Promise<UserStats> {
+    const { newLevel, newCurrentXp } =
+      this.levelCalculator.calculateNewLevelAndCurrentXp(
+        currentUserStats.level,
+        currentUserStats.currentXp,
+        totalWorkoutXp,
+      );
+    const newUserStats = new UserStats();
+    newUserStats.totalXp = newCurrentXp;
+    newUserStats.level = newLevel;
+    newUserStats.currentXp = newCurrentXp;
+    newUserStats.totalXp = currentUserStats.totalXp + totalWorkoutXp;
+    newUserStats.weeklyWorkoutGoalAchievedAt = newWeeklyGoalAchievedAt;
+    newUserStats.weeklyWorkoutGoalStreak = newWeeklyStreak;
+
+    await this.userService.updateUserStats(
+      currentUserStats.userId,
+      newUserStats,
+    );
+    return await this.userService.getStatsByUserId(currentUserStats.userId);
+  }
+
+  private getCreatedWorkoutModel(
+    createdWorkout: WorkoutModel,
+    workoutXp: ICalculateWorkoutXp,
+    oldUserStats: UserStats,
+    newUserStats: UserStats,
+    daysWithWorkoutsThisWeek: number,
+  ): CreateWorkout {
+    return {
+      workout: createdWorkout,
+      workoutStats: workoutXp,
+      userStatsBeforeWorkout: {
+        level: oldUserStats.level,
+        currentXp: oldUserStats.currentXp,
+      },
+      userStatsAfterWorkout: {
+        level: newUserStats.level,
+        currentXp: newUserStats.currentXp,
+        xpNeededForCurrentLevel:
+          this.levelCalculator.getXpNeededForCurrentLevel(newUserStats.level),
+        daysWithWorkoutsThisWeek: daysWithWorkoutsThisWeek,
+      },
+    };
   }
 
   /**
@@ -229,5 +243,26 @@ export class CreateWorkoutService extends BaseWorkoutService {
     }
 
     return false;
+  }
+
+  private getUpdatedWeeklyStreakAndWeeklyGoalAchievedAt(
+    userStats: UserStats,
+    userProfile: UserProfileModel,
+    hasWorkoutGoalBeenReachedOrExceeded: boolean,
+    daysWithWorkoutsThisWeek: number,
+  ): { newWeeklyStreak: number; newWeeklyGoalAchievedAt: Date | null } {
+    let newWeeklyGoalAchievedAt = userStats.weeklyWorkoutGoalAchievedAt;
+    let newWeeklyStreak = userStats.weeklyWorkoutGoalStreak;
+
+    if (
+      hasWorkoutGoalBeenReachedOrExceeded &&
+      daysWithWorkoutsThisWeek === userProfile.weeklyWorkoutGoal
+    ) {
+      const nowInUtcAsString = new Date().toISOString();
+      newWeeklyGoalAchievedAt = new Date(nowInUtcAsString);
+      newWeeklyStreak++;
+    }
+
+    return { newWeeklyStreak, newWeeklyGoalAchievedAt };
   }
 }
