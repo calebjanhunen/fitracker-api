@@ -14,13 +14,14 @@ import {
 import { ICalculateWorkoutXp } from '../interfaces';
 import { CouldNotSaveWorkoutException } from '../internal-errors';
 import { CreateWorkout, InsertWorkoutModel } from '../models';
-import { WorkoutRepository } from '../repository';
+import { CreateWorkoutRepository, WorkoutRepository } from '../repository';
 import { BaseWorkoutService } from './base-workout.service';
 
 @Injectable()
 export class CreateWorkoutService extends BaseWorkoutService {
   constructor(
     private readonly workoutRepo: WorkoutRepository,
+    private readonly createWorkoutRepo: CreateWorkoutRepository,
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
     private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
@@ -104,7 +105,14 @@ export class CreateWorkoutService extends BaseWorkoutService {
     );
 
     try {
-      const createdWorkout = await this.workoutRepo.create(workout, userId);
+      const createdWorkoutId = await this.createWorkoutRepo.createWorkout(
+        workout,
+        userId,
+      );
+      const createdWorkout = await this.workoutRepo.findById(
+        createdWorkoutId,
+        userId,
+      );
 
       const newUserStats = new UserStats();
       newUserStats.totalXp = newCurrentXp;
@@ -114,7 +122,7 @@ export class CreateWorkoutService extends BaseWorkoutService {
       await this.userService.updateUserStats(userId, newUserStats);
 
       return {
-        workout: createdWorkout,
+        workout: createdWorkout!,
         workoutStats: {
           totalWorkoutXp,
           workoutEffortXp,
