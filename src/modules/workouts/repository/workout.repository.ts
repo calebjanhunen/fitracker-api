@@ -89,7 +89,7 @@ export class WorkoutRepository extends BaseWorkoutRepository {
    *
    * @throws {DatabaseException}
    */
-  public async getNumberOfDaysWhereAWorkoutWasCompletedThisWeek(
+  public async getDaysWithWorkoutsThisWeek(
     userId: string,
     currentDate: Date,
   ): Promise<number> {
