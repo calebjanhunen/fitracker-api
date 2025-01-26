@@ -58,6 +58,7 @@ export class UserRepository {
   public async getStatsByUserId(userId: string): Promise<UserStats> {
     const query = `
       SELECT
+        user_id,
         total_xp,
         weekly_workout_goal_achieved_at,
         weekly_workout_goal_streak,
