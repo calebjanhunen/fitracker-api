@@ -109,10 +109,6 @@ export class CreateWorkoutService extends BaseWorkoutService {
         workout,
         userId,
       );
-      const createdWorkout = await this.workoutRepo.findById(
-        createdWorkoutId,
-        userId,
-      );
 
       const newUserStats = new UserStats();
       newUserStats.totalXp = newCurrentXp;
@@ -120,6 +116,11 @@ export class CreateWorkoutService extends BaseWorkoutService {
       newUserStats.currentXp = newCurrentXp;
       newUserStats.totalXp = userStats.totalXp + totalWorkoutXp;
       await this.userService.updateUserStats(userId, newUserStats);
+
+      const createdWorkout = await this.workoutRepo.findById(
+        createdWorkoutId,
+        userId,
+      );
 
       return {
         workout: createdWorkout!,

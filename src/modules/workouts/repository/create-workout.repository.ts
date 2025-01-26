@@ -45,9 +45,9 @@ export class CreateWorkoutRepository extends BaseWorkoutRepository {
         },
       );
 
-      return queryResult[0];
+      return queryResult;
     } catch (e) {
-      this.logger.error(e, `Query ${queryName} failed: `);
+      this.logger.error(e, `Query ${queryName} failed`, { queryName });
       throw e;
     }
   }

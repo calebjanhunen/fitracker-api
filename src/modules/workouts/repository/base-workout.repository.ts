@@ -17,18 +17,27 @@ export abstract class BaseWorkoutRepository {
     workoutId: string,
     exercise: InsertWorkoutExerciseModel,
   ): Promise<string> {
-    const workoutExerciseInsertQuery = `
-              INSERT INTO workout_exercise (workout_id, exercise_id, "order")
-              VALUES ($1, $2, $3)
-              RETURNING id;
-            `;
+    let query;
+    if (exercise.isVariation) {
+      query = `
+        INSERT INTO workout_exercise (workout_id, exercise_variation_id, "order")
+        VALUES ($1, $2, $3)
+        RETURNING id;
+      `;
+    } else {
+      query = `
+        INSERT INTO workout_exercise (workout_id, exercise_id, "order")
+        VALUES ($1, $2, $3)
+        RETURNING id;
+      `;
+    }
     const workoutExerciseInsertParams = [
       workoutId,
       exercise.exerciseId,
       exercise.order,
     ];
     const insertWorkoutExerciseResult = await client.query<{ id: string }>(
-      workoutExerciseInsertQuery,
+      query,
       workoutExerciseInsertParams,
     );
     return insertWorkoutExerciseResult.rows[0].id;
