@@ -17,6 +17,41 @@ export class GetWorkoutRepository {
     userId: string,
   ): Promise<WorkoutSummaryModel[]> {
     const queryName = 'getWorkoutSummaries';
+    const startTime = Date.now();
+
+    const workoutSummariesWithoutSetCount =
+      await this.getWorkoutSummariesWithoutSetCount(userId);
+    const workoutIds = workoutSummariesWithoutSetCount.map((w) => w.id);
+
+    const setCount = await this.getNumberOfSetsForExercises(workoutIds, userId);
+
+    const workoutSummaryiesWithSetCount = workoutSummariesWithoutSetCount.map(
+      (workoutSummary) => ({
+        ...workoutSummary,
+        exercises: workoutSummary.exercises.map((exercise) => ({
+          ...exercise,
+          numberOfSets:
+            setCount.find(
+              (s) => s.workoutExerciseId === exercise.workoutExerciseId,
+            )?.numberOfSets ?? 0,
+        })),
+      }),
+    );
+
+    const endTime = Date.now();
+    const elapsedTime = endTime - startTime;
+    this.logger.log(`Query ${queryName} took ${elapsedTime} ms`, {
+      queryName,
+      elapsedTime,
+    });
+
+    return workoutSummaryiesWithSetCount;
+  }
+
+  private async getWorkoutSummariesWithoutSetCount(
+    userId: string,
+  ): Promise<WorkoutSummaryModel[]> {
+    const queryName = 'getWorkoutSummaries';
     const query = `
         SELECT
         	w.id,
@@ -43,12 +78,10 @@ export class GetWorkoutRepository {
     const params = [userId];
 
     try {
-      const { queryResult, elapsedTime } =
-        await this.db.queryV2<WorkoutSummaryModel>(query, params);
-      this.logger.log(`Query ${queryName} took ${elapsedTime} ms`, {
-        queryName,
-        elapsedTime,
-      });
+      const { queryResult } = await this.db.queryV2<WorkoutSummaryModel>(
+        query,
+        params,
+      );
 
       return queryResult;
     } catch (e) {
@@ -57,8 +90,8 @@ export class GetWorkoutRepository {
     }
   }
 
-  public async getNumberOfSetsForExercises(
-    workoutExerciseIds: string[],
+  private async getNumberOfSetsForExercises(
+    workoutIds: string[],
     userId: string,
   ): Promise<{ workoutExerciseId: string; numberOfSets: number }[]> {
     const queryName = 'getNumberOfSetsForExercises';
@@ -71,12 +104,12 @@ export class GetWorkoutRepository {
         	INNER JOIN workout_set ws ON ws.workout_exercise_id = we.id
         	INNER JOIN workout w ON w.id = we.workout_id
         WHERE
-        	we.id = ANY($1)
+        	we.workout_id = ANY($1)
         	AND w.user_id = $2
         GROUP BY
         	we.id
     `;
-    const params = [workoutExerciseIds, userId];
+    const params = [workoutIds, userId];
 
     try {
       const { queryResult } = await this.db.queryV2<{
