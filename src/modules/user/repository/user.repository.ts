@@ -84,7 +84,9 @@ export class UserRepository {
         user_id,
         total_xp,
         weekly_workout_goal_achieved_at,
-        weekly_workout_goal_streak
+        weekly_workout_goal_streak,
+        level,
+        current_xp
       FROM user_stats
     `;
 
