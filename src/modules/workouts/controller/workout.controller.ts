@@ -7,6 +7,7 @@ import {
   Delete,
   Get,
   HttpStatus,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -103,15 +104,22 @@ export class WorkoutController {
   @Get(':id')
   @ApiResponse({ status: HttpStatus.OK, type: WorkoutResponseDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND })
-  async getWorkoutById(
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
+  async getWorkoutDetails(
     @CurrentUser() userId: string,
     @Param('id') workoutId: string,
   ): Promise<WorkoutResponseDto> {
     try {
-      const workout = await this.workoutService.findById(workoutId, userId);
+      const workout = await this.getWorkoutService.getWorkoutDetails(
+        workoutId,
+        userId,
+      );
       return this.mapper.map(workout, WorkoutModel, WorkoutResponseDto);
     } catch (e) {
-      throw new NotFoundException(e.message);
+      if (e instanceof ResourceNotFoundException) {
+        throw new NotFoundException(e.message);
+      }
+      throw new InternalServerErrorException(e);
     }
   }
 
