@@ -46,42 +46,6 @@ export class WorkoutRepository extends BaseWorkoutRepository {
   }
 
   /**
-   * Finds a workout by id and returns as WorkoutModel
-   * @param {string} workoutId
-   * @param {string} userId
-   * @returns {WorkoutModel | null}
-   */
-  public async findById(
-    workoutId: string,
-    userId: string,
-  ): Promise<WorkoutModel | null> {
-    const queryName = 'GetWorkoutById';
-    const query = `
-      SELECT
-        ${this.COLUMNS_AND_JOINS}
-      WHERE w.user_id = $1 AND w.id = $2
-      GROUP BY w.id
-    `;
-    const params = [userId, workoutId];
-
-    try {
-      const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
-        query,
-        params,
-      );
-
-      if (queryResult.length === 0) {
-        return null;
-      }
-
-      return queryResult[0];
-    } catch (e) {
-      this.logger.error(e, `Query ${queryName} failed: `);
-      throw e;
-    }
-  }
-
-  /**
    * Gets the number of days where a workout is completed this week
    * @param {string} userId
    * @param {Date} currentDate
@@ -187,7 +151,7 @@ export class WorkoutRepository extends BaseWorkoutRepository {
     workoutId: string,
     workout: InsertWorkoutModel,
     userId: string,
-  ): Promise<WorkoutModel> {
+  ): Promise<void> {
     const queryName = 'UpdateWorkout';
     try {
       await this.dbService.transaction(async (client) => {
@@ -232,11 +196,5 @@ export class WorkoutRepository extends BaseWorkoutRepository {
       this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
-
-    const updatedWorkout = await this.findById(workoutId, userId);
-    if (!updatedWorkout) {
-      throw new Error('Could not find updated workout');
-    }
-    return updatedWorkout;
   }
 }

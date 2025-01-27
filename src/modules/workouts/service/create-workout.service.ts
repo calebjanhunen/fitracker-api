@@ -16,12 +16,14 @@ import { CouldNotSaveWorkoutException } from '../internal-errors';
 import { CreateWorkout, InsertWorkoutModel, WorkoutModel } from '../models';
 import { CreateWorkoutRepository, WorkoutRepository } from '../repository';
 import { BaseWorkoutService } from './base-workout.service';
+import { GetWorkoutService } from './get-workout.service';
 
 @Injectable()
 export class CreateWorkoutService extends BaseWorkoutService {
   constructor(
     private readonly workoutRepo: WorkoutRepository,
     private readonly createWorkoutRepo: CreateWorkoutRepository,
+    private readonly getWorkoutService: GetWorkoutService,
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
     private readonly workoutGoalXpCalculator: WorkoutGoalXpCalculator,
@@ -105,7 +107,10 @@ export class CreateWorkoutService extends BaseWorkoutService {
         workout,
         userId,
       );
-      return (await this.workoutRepo.findById(createdWorkoutId, userId))!;
+      return await this.getWorkoutService.getWorkoutDetails(
+        createdWorkoutId,
+        userId,
+      );
     } catch (e) {
       throw new CouldNotSaveWorkoutException(e);
     }

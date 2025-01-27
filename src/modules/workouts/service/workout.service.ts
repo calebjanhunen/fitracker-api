@@ -8,10 +8,10 @@ import { UserService } from 'src/modules/user/service/user.service';
 import { LevelCalculator } from '../calculator';
 import { DeleteWorkout } from '../interfaces/delete-workout.interface';
 import { CouldNotDeleteWorkoutException } from '../internal-errors/could-not-delete-workout.exception';
-import { WorkoutNotFoundException } from '../internal-errors/workout-not-found.exception';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { WorkoutRepository } from '../repository/workout.repository';
 import { BaseWorkoutService } from './base-workout.service';
+import { GetWorkoutService } from './get-workout.service';
 
 @Injectable()
 export class WorkoutService extends BaseWorkoutService {
@@ -19,31 +19,13 @@ export class WorkoutService extends BaseWorkoutService {
     exerciseService: ExerciseService,
     exerciseVariationService: ExerciseVariationService,
     private workoutRepo: WorkoutRepository,
+    private getWorkoutService: GetWorkoutService,
     private readonly userService: UserService,
     private readonly levelCalculator: LevelCalculator,
     private readonly logger: LoggerService,
   ) {
     super(exerciseService, exerciseVariationService);
     this.logger.setContext(WorkoutService.name);
-  }
-
-  /**
-   * Finds a workout by its id.
-   * @param {string} workoutId The id of the workout.
-   * @param {string} userId    The id of the user.
-   * @return {Workout}
-   *
-   * @throws {WorkoutNotFoundException}
-   */
-  public async findById(
-    workoutId: string,
-    userId: string,
-  ): Promise<WorkoutModel> {
-    const workout = await this.workoutRepo.findById(workoutId, userId);
-
-    if (!workout) throw new WorkoutNotFoundException();
-
-    return workout;
   }
 
   /**
@@ -69,7 +51,10 @@ export class WorkoutService extends BaseWorkoutService {
     workoutId: string,
     userId: string,
   ): Promise<DeleteWorkout> {
-    const workoutToBeDeleted = await this.findById(workoutId, userId);
+    const workoutToBeDeleted = await this.getWorkoutService.getWorkoutDetails(
+      workoutId,
+      userId,
+    );
     const userStats = await this.userService.getStatsByUserId(userId);
 
     if (userStats.totalXp - workoutToBeDeleted.gainedXp < 0) {
@@ -107,10 +92,11 @@ export class WorkoutService extends BaseWorkoutService {
     userId: string,
     workout: InsertWorkoutModel,
   ): Promise<WorkoutModel> {
-    await this.findById(workoutId, userId);
+    await this.getWorkoutService.getWorkoutDetails(workoutId, userId);
     await this.validateExercisesExist(workout.exercises, userId);
     this.validateOrderForExercisesAndSets(workout);
 
-    return await this.workoutRepo.update(workoutId, workout, userId);
+    await this.workoutRepo.update(workoutId, workout, userId);
+    return await this.getWorkoutService.getWorkoutDetails(workoutId, userId);
   }
 }
