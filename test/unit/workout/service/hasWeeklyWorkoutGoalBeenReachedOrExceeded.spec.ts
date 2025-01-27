@@ -13,11 +13,15 @@ import {
   CreateWorkoutRepository,
   GetWorkoutRepository,
 } from 'src/modules/workouts/repository';
-import { CreateWorkoutService } from 'src/modules/workouts/service';
+import {
+  CreateWorkoutService,
+  GetWorkoutService,
+} from 'src/modules/workouts/service';
 import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
 describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let createWorkoutService: CreateWorkoutService;
+  let mockGetWorkoutService: Partial<GetWorkoutService>;
   let mockExerciseService: Partial<ExerciseService>;
   let mockExerciseVariationService: Partial<ExerciseVariationService>;
   let mockCreateWorkoutRepo: Partial<CreateWorkoutRepository>;
@@ -30,6 +34,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
   beforeEach(async () => {
     mockExerciseService = {};
+    mockGetWorkoutService = {};
     mockExerciseVariationService = {};
     mockCreateWorkoutRepo = {};
     mockGetWorkoutRepo = {};
@@ -46,6 +51,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
           useValue: mockExerciseVariationService,
         },
         { provide: CreateWorkoutRepository, useValue: mockCreateWorkoutRepo },
+        { provide: GetWorkoutService, useValue: mockGetWorkoutService },
         { provide: GetWorkoutRepository, useValue: mockGetWorkoutRepo },
         { provide: UserService, useValue: mockUserService },
         {
