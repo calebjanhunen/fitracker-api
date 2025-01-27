@@ -17,41 +17,6 @@ export class GetWorkoutRepository {
     this.logger.setContext(GetWorkoutRepository.name);
   }
 
-  public async getWorkoutSummaries(
-    userId: string,
-  ): Promise<WorkoutSummaryModel[]> {
-    const queryName = 'getWorkoutSummaries';
-    const startTime = Date.now();
-
-    const workoutSummariesWithoutSetCount =
-      await this.getWorkoutSummariesWithoutSetCount(userId);
-    const workoutIds = workoutSummariesWithoutSetCount.map((w) => w.id);
-
-    const setCount = await this.getNumberOfSetsForExercises(workoutIds, userId);
-
-    const workoutSummariesWithSetCount = workoutSummariesWithoutSetCount.map(
-      (workoutSummary) => ({
-        ...workoutSummary,
-        exercises: workoutSummary.exercises.map((exercise) => ({
-          ...exercise,
-          numberOfSets:
-            setCount.find(
-              (s) => s.workoutExerciseId === exercise.workoutExerciseId,
-            )?.numberOfSets ?? 0,
-        })),
-      }),
-    );
-
-    const endTime = Date.now();
-    const elapsedTime = endTime - startTime;
-    this.logger.log(`Query ${queryName} took ${elapsedTime} ms`, {
-      queryName,
-      elapsedTime,
-    });
-
-    return workoutSummariesWithSetCount;
-  }
-
   public async getWorkoutById(
     workoutId: string,
     userId: string,
@@ -200,7 +165,7 @@ export class GetWorkoutRepository {
     }
   }
 
-  private async getWorkoutSummariesWithoutSetCount(
+  public async getWorkoutSummariesWithoutSetCount(
     userId: string,
   ): Promise<WorkoutSummaryModel[]> {
     const queryName = 'getWorkoutSummaries';
@@ -241,7 +206,7 @@ export class GetWorkoutRepository {
     }
   }
 
-  private async getNumberOfSetsForExercises(
+  public async getNumberOfSetsForExercises(
     workoutIds: string[],
     userId: string,
   ): Promise<{ workoutExerciseId: string; numberOfSets: number }[]> {
