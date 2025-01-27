@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
 import { DatabaseException } from 'src/common/internal-exceptions';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { WorkoutSummaryModel } from '../models';
+import {
+  WorkoutExerciseModel,
+  WorkoutModel,
+  WorkoutSummaryModel,
+} from '../models';
 
 @Injectable()
 export class GetWorkoutRepository {
@@ -46,6 +50,88 @@ export class GetWorkoutRepository {
     });
 
     return workoutSummariesWithSetCount;
+  }
+
+  public async getWorkoutById(
+    workoutId: string,
+    userId: string,
+  ): Promise<WorkoutModel | null> {
+    const queryName = 'getWorkoutById';
+    const query = `
+      SELECT
+      	w.id,
+      	w.name,
+      	w.created_at AS workout_date,
+      	w.duration,
+      	w.gained_xp
+      FROM
+      	workout w
+      WHERE
+      	w.id = $1
+      	AND w.user_id = $2
+    `;
+    const params = [workoutId, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<WorkoutModel>(
+        query,
+        params,
+      );
+
+      if (!queryResult.length) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error(e, `Query ${queryName} failed`, { queryName });
+      throw new DatabaseException(e);
+    }
+  }
+
+  public async getExercisesForWorkout(
+    workoutId: string,
+  ): Promise<WorkoutExerciseModel[]> {
+    const queryName = 'getExercisesForWorkout';
+    const query = `
+      SELECT
+      	COALESCE(we.exercise_id, we.exercise_variation_id) AS exercise_id,
+      	COALESCE(e.name, ev.name) AS name,
+      	we.order,
+      	json_agg(
+      		json_build_object('id', ws.id, 'order', ws.order, 'reps', ws.reps, 'weight', ws.weight, 'rpe', ws.rpe)
+      		ORDER BY
+      			ws.order
+      	) AS sets
+      FROM
+      	workout_exercise we
+      	LEFT JOIN exercise e ON e.id = we.exercise_id
+      	LEFT JOIN exercise_variation ev ON ev.id = we.exercise_variation_id
+      	INNER JOIN workout_set ws ON ws.workout_exercise_id = we.id
+      WHERE
+      	we.workout_id = $1
+      GROUP BY
+      	we.exercise_id,
+      	we.exercise_variation_id,
+      	e.name,
+      	ev.name,
+      	we.order
+      ORDER BY
+      	we.order
+    `;
+    const params = [workoutId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<WorkoutExerciseModel>(
+        query,
+        params,
+      );
+
+      return queryResult;
+    } catch (e) {
+      this.logger.error(e, `Query ${queryName} failed`, { queryName });
+      throw new DatabaseException(e);
+    }
   }
 
   private async getWorkoutSummariesWithoutSetCount(
