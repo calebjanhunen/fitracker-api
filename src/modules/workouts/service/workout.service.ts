@@ -30,6 +30,7 @@ export class WorkoutService extends BaseWorkoutService {
 
   /**
    * Finds all workouts for a user.
+   * @deprecated TODO: Delete once endpoint is no longer in use
    * @param {string} userId
    * @returns {WorkoutModel[]}
    */

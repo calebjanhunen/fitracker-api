@@ -14,15 +14,15 @@ import {
 import { ICalculateWorkoutXp } from '../interfaces';
 import { CouldNotSaveWorkoutException } from '../internal-errors';
 import { CreateWorkout, InsertWorkoutModel, WorkoutModel } from '../models';
-import { CreateWorkoutRepository, WorkoutRepository } from '../repository';
+import { CreateWorkoutRepository, GetWorkoutRepository } from '../repository';
 import { BaseWorkoutService } from './base-workout.service';
 import { GetWorkoutService } from './get-workout.service';
 
 @Injectable()
 export class CreateWorkoutService extends BaseWorkoutService {
   constructor(
-    private readonly workoutRepo: WorkoutRepository,
     private readonly createWorkoutRepo: CreateWorkoutRepository,
+    private readonly getWorkoutRepo: GetWorkoutRepository,
     private readonly getWorkoutService: GetWorkoutService,
     private readonly userService: UserService,
     private readonly workoutEffortXpCalculator: WorkoutEffortXpCalculator,
@@ -48,7 +48,7 @@ export class CreateWorkoutService extends BaseWorkoutService {
 
     // Get days with workouts this week including the currently created workout
     const daysWithWorkoutsThisWeek =
-      (await this.workoutRepo.getDaysWithWorkoutsThisWeek(
+      (await this.getWorkoutRepo.getDaysWithWorkoutsThisWeek(
         userId,
         workout.createdAt,
       )) + 1;
@@ -233,7 +233,7 @@ export class CreateWorkoutService extends BaseWorkoutService {
       return false;
     }
 
-    const completedWorkoutsToday = await this.workoutRepo.getWorkoutsByDate(
+    const completedWorkoutsToday = await this.getWorkoutRepo.getWorkoutsByDate(
       workoutCreatedAt,
       userId,
     );

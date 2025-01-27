@@ -134,6 +134,72 @@ export class GetWorkoutRepository {
     }
   }
 
+  /**
+   * Gets the number of days where a workout is completed this week
+   * @param {string} userId
+   * @param {Date} currentDate
+   * @returns {number}
+   *
+   * @throws {DatabaseException}
+   */
+  public async getDaysWithWorkoutsThisWeek(
+    userId: string,
+    currentDate: Date,
+  ): Promise<number> {
+    const query = `
+        SELECT
+          COUNT(DISTINCT(DATE(w.created_at)))
+        FROM workout w
+        WHERE w.user_id = $1
+        AND DATE(w.created_at) >= ($2::date - INTERVAL '1 day' * (EXTRACT(DOW FROM $2::date)::int))::date
+      `;
+    const params = [userId, currentDate];
+
+    try {
+      const { queryResult } = await this.db.queryV2<{ count: number }>(
+        query,
+        params,
+      );
+      return Number(queryResult[0].count);
+    } catch (e) {
+      this.logger.error(
+        e,
+        `Query getNumberOfDaysWhereAWorkoutWasCompletedThisWeek failed: `,
+      );
+      throw new DatabaseException(e.message);
+    }
+  }
+
+  public async getWorkoutsByDate(
+    date: Date,
+    userId: string,
+  ): Promise<WorkoutModel[]> {
+    const query = `
+      SELECT
+      	w.id,
+      	w.name,
+      	w.created_at AS workout_date,
+      	w.duration,
+      	w.gained_xp
+      FROM
+      	workout w
+        WHERE w.user_id = $1
+        AND Date(w.created_at) = Date($2)
+      `;
+    const params = [userId, date];
+
+    try {
+      const { queryResult } = await this.db.queryV2<WorkoutModel>(
+        query,
+        params,
+      );
+      return queryResult;
+    } catch (e) {
+      this.logger.error(e, `Query getWorkoutsByDate failed: `);
+      throw new DatabaseException(e.message);
+    }
+  }
+
   private async getWorkoutSummariesWithoutSetCount(
     userId: string,
   ): Promise<WorkoutSummaryModel[]> {
