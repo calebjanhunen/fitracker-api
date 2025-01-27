@@ -9,17 +9,23 @@ import {
   WorkoutGoalXpCalculator,
 } from 'src/modules/workouts/calculator';
 import { WorkoutModel } from 'src/modules/workouts/models';
-import { CreateWorkoutRepository } from 'src/modules/workouts/repository';
-import { WorkoutRepository } from 'src/modules/workouts/repository/workout.repository';
-import { CreateWorkoutService } from 'src/modules/workouts/service';
+import {
+  CreateWorkoutRepository,
+  GetWorkoutRepository,
+} from 'src/modules/workouts/repository';
+import {
+  CreateWorkoutService,
+  GetWorkoutService,
+} from 'src/modules/workouts/service';
 import { MockLoggerService } from 'test/mocks/mock-logger.service';
 
 describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
   let createWorkoutService: CreateWorkoutService;
+  let mockGetWorkoutService: Partial<GetWorkoutService>;
   let mockExerciseService: Partial<ExerciseService>;
   let mockExerciseVariationService: Partial<ExerciseVariationService>;
-  let mockWorkoutRepo: Partial<WorkoutRepository>;
   let mockCreateWorkoutRepo: Partial<CreateWorkoutRepository>;
+  let mockGetWorkoutRepo: Partial<GetWorkoutRepository>;
   let mockUserService: Partial<UserService>;
   let mockWorkoutEffortXpCalculator: Partial<WorkoutEffortXpCalculator>;
   let mockWorkoutGoalXpCalculator: Partial<WorkoutGoalXpCalculator>;
@@ -28,9 +34,10 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
 
   beforeEach(async () => {
     mockExerciseService = {};
+    mockGetWorkoutService = {};
     mockExerciseVariationService = {};
-    mockWorkoutRepo = {};
     mockCreateWorkoutRepo = {};
+    mockGetWorkoutRepo = {};
     mockUserService = {};
     mockWorkoutEffortXpCalculator = {};
     mockWorkoutGoalXpCalculator = {};
@@ -43,8 +50,9 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
           provide: ExerciseVariationService,
           useValue: mockExerciseVariationService,
         },
-        { provide: WorkoutRepository, useValue: mockWorkoutRepo },
         { provide: CreateWorkoutRepository, useValue: mockCreateWorkoutRepo },
+        { provide: GetWorkoutService, useValue: mockGetWorkoutService },
+        { provide: GetWorkoutRepository, useValue: mockGetWorkoutRepo },
         { provide: UserService, useValue: mockUserService },
         {
           provide: WorkoutEffortXpCalculator,
@@ -94,7 +102,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     const workoutCreatedAt = new Date(2024, 11, 30, 12, 0, 0);
     const weeklyWorkoutGoal = 4;
 
-    mockWorkoutRepo.getWorkoutsByDate = jest
+    mockGetWorkoutRepo.getWorkoutsByDate = jest
       .fn()
       .mockResolvedValue([new WorkoutModel()]);
 
@@ -118,7 +126,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     const weeklyWorkoutGoal = 4;
     const daysWithWorkoutsThisWeek = 2;
 
-    mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
+    mockGetWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
     const result = await createWorkoutService[
       'hasWorkoutGoalBeenReachedOrExceeded'
@@ -141,7 +149,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     const weeklyWorkoutGoal = 4;
     const daysWithWorkoutsThisWeek = 4;
 
-    mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
+    mockGetWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
     const result = await createWorkoutService[
       'hasWorkoutGoalBeenReachedOrExceeded'
@@ -163,7 +171,7 @@ describe('CreateWorkoutService - hasWorkoutGoalBeenReachedOrExceeded', () => {
     const weeklyWorkoutGoal = 4;
     const daysWithWorkoutsThisWeek = 6;
 
-    mockWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
+    mockGetWorkoutRepo.getWorkoutsByDate = jest.fn().mockResolvedValue([]);
 
     const result = await createWorkoutService[
       'hasWorkoutGoalBeenReachedOrExceeded'

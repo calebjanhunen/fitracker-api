@@ -3,36 +3,34 @@ import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
 import {
   CreateWorkoutResponseDto,
+  DeleteWorkoutDto,
   UserStatsAfterWorkoutDto,
   UserStatsBeforeWorkoutDto,
-  WorkoutStatsDto,
-} from './dtos/create-workout-response.dto';
-import { DeleteWorkoutDto } from './dtos/delete-workout-response.dto';
-import {
   WorkoutExerciseRequestDto,
-  WorkoutRequestDto,
-  WorkoutSetRequestDto,
-} from './dtos/workout-request.dto';
-import {
   WorkoutExerciseResponseDto,
+  WorkoutRequestDto,
   WorkoutResponseDto,
+  WorkoutSetRequestDto,
   WorkoutSetResponseDto,
-} from './dtos/workout-response.dto';
-import { DeleteWorkout } from './interfaces/delete-workout.interface';
+  WorkoutStatsDto,
+  WorkoutSummaryDto,
+  WorkoutSummaryExerciseDto,
+} from './dtos';
+import { DeleteWorkout } from './interfaces';
 import {
+  CreateWorkout,
   InsertWorkoutExerciseModel,
   InsertWorkoutModel,
   InsertWorkoutSetModel,
+  UserStatsAfterWorkout,
+  UserStatsBeforeWorkout,
   WorkoutExerciseModel,
   WorkoutModel,
   WorkoutSetModel,
-} from './models';
-import {
-  CreateWorkout,
-  UserStatsAfterWorkout,
-  UserStatsBeforeWorkout,
   WorkoutStats,
-} from './models/create-workout';
+  WorkoutSummaryExerciseModel,
+  WorkoutSummaryModel,
+} from './models';
 
 @Injectable()
 export class WorkoutProfile extends AutomapperProfile {
@@ -53,6 +51,8 @@ export class WorkoutProfile extends AutomapperProfile {
       createMap(mapper, WorkoutSetModel, WorkoutSetResponseDto);
       createMap(mapper, WorkoutStats, WorkoutStatsDto);
       createMap(mapper, DeleteWorkout, DeleteWorkoutDto);
+      createMap(mapper, WorkoutSummaryExerciseModel, WorkoutSummaryExerciseDto);
+      createMap(mapper, WorkoutSummaryModel, WorkoutSummaryDto);
     };
   }
 }

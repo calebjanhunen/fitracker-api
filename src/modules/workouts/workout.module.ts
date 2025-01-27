@@ -8,8 +8,16 @@ import {
   WorkoutGoalXpCalculator,
 } from './calculator';
 import { WorkoutController } from './controller/workout.controller';
-import { CreateWorkoutRepository, WorkoutRepository } from './repository';
-import { CreateWorkoutService, WorkoutService } from './service';
+import {
+  CreateWorkoutRepository,
+  GetWorkoutRepository,
+  WorkoutRepository,
+} from './repository';
+import {
+  CreateWorkoutService,
+  GetWorkoutService,
+  WorkoutService,
+} from './service';
 import { WorkoutProfile } from './workout.profile';
 
 @Module({
@@ -23,6 +31,8 @@ import { WorkoutProfile } from './workout.profile';
     LevelCalculator,
     CreateWorkoutService,
     CreateWorkoutRepository,
+    GetWorkoutRepository,
+    GetWorkoutService,
   ],
   controllers: [WorkoutController],
   exports: [WorkoutService],

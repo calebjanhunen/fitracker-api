@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
-import { DatabaseException } from 'src/common/internal-exceptions/database.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { InsertWorkoutModel, WorkoutModel } from '../models';
 import { BaseWorkoutRepository } from './base-workout.repository';
@@ -46,102 +45,8 @@ export class WorkoutRepository extends BaseWorkoutRepository {
   }
 
   /**
-   * Finds a workout by id and returns as WorkoutModel
-   * @param {string} workoutId
-   * @param {string} userId
-   * @returns {WorkoutModel | null}
+   * @deprecated TODO: Delete once endpoint is no longer in use
    */
-  public async findById(
-    workoutId: string,
-    userId: string,
-  ): Promise<WorkoutModel | null> {
-    const queryName = 'GetWorkoutById';
-    const query = `
-      SELECT
-        ${this.COLUMNS_AND_JOINS}
-      WHERE w.user_id = $1 AND w.id = $2
-      GROUP BY w.id
-    `;
-    const params = [userId, workoutId];
-
-    try {
-      const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
-        query,
-        params,
-      );
-
-      if (queryResult.length === 0) {
-        return null;
-      }
-
-      return queryResult[0];
-    } catch (e) {
-      this.logger.error(e, `Query ${queryName} failed: `);
-      throw e;
-    }
-  }
-
-  /**
-   * Gets the number of days where a workout is completed this week
-   * @param {string} userId
-   * @param {Date} currentDate
-   * @returns {number}
-   *
-   * @throws {DatabaseException}
-   */
-  public async getDaysWithWorkoutsThisWeek(
-    userId: string,
-    currentDate: Date,
-  ): Promise<number> {
-    const query = `
-      SELECT
-        COUNT(DISTINCT(DATE(w.created_at)))
-      FROM workout w
-      WHERE w.user_id = $1
-      AND DATE(w.created_at) >= ($2::date - INTERVAL '1 day' * (EXTRACT(DOW FROM $2::date)::int))::date
-    `;
-    const params = [userId, currentDate];
-
-    try {
-      const { queryResult } = await this.dbService.queryV2<{ count: number }>(
-        query,
-        params,
-      );
-      return Number(queryResult[0].count);
-    } catch (e) {
-      this.logger.error(
-        e,
-        `Query getNumberOfDaysWhereAWorkoutWasCompletedThisWeek failed: `,
-      );
-      throw new DatabaseException(e.message);
-    }
-  }
-
-  public async getWorkoutsByDate(
-    date: Date,
-    userId: string,
-  ): Promise<WorkoutModel[]> {
-    const query = `
-      SELECT
-        ${this.COLUMNS_AND_JOINS}
-      WHERE w.user_id = $1
-      AND Date(w.created_at) = Date($2)
-      GROUP BY w.id
-    `;
-    const params = [userId, date];
-
-    try {
-      const { queryResult } = await this.dbService.queryV2<WorkoutModel>(
-        query,
-        params,
-      );
-      return queryResult;
-    } catch (e) {
-      this.logger.error(e, `Query getWorkoutsByDate failed: `);
-      throw new DatabaseException(e.message);
-    }
-  }
-
   public async findAll(userId: string): Promise<WorkoutModel[]> {
     const queryName = 'GetAllWorkouts';
     const query = `
@@ -187,7 +92,7 @@ export class WorkoutRepository extends BaseWorkoutRepository {
     workoutId: string,
     workout: InsertWorkoutModel,
     userId: string,
-  ): Promise<WorkoutModel> {
+  ): Promise<void> {
     const queryName = 'UpdateWorkout';
     try {
       await this.dbService.transaction(async (client) => {
@@ -232,11 +137,5 @@ export class WorkoutRepository extends BaseWorkoutRepository {
       this.logger.error(e, `Query ${queryName} failed: `);
       throw e;
     }
-
-    const updatedWorkout = await this.findById(workoutId, userId);
-    if (!updatedWorkout) {
-      throw new Error('Could not find updated workout');
-    }
-    return updatedWorkout;
   }
 }
