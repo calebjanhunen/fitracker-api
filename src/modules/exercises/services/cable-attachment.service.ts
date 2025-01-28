@@ -11,8 +11,4 @@ export class CableAttachmentService {
   public async getAllAttachments(): Promise<LookupItem[]> {
     return this.cableAttachmentRepo.getAllAttachments();
   }
-
-  public async getAttachmentById(id: number): Promise<LookupItem | null> {
-    return this.cableAttachmentRepo.getAttachmentById(id);
-  }
 }
