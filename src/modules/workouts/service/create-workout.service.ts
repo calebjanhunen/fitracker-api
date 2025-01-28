@@ -46,12 +46,19 @@ export class CreateWorkoutService extends BaseWorkoutService {
     const userStats = await this.userService.getStatsByUserId(userId);
     const userProfile = await this.userService.getCurrentUser(userId);
 
-    // Get days with workouts this week including the currently created workout
-    const daysWithWorkoutsThisWeek =
-      (await this.getWorkoutRepo.getDaysWithWorkoutsThisWeek(
+    const numberOfWorkoutsAlreadyCompletedToday =
+      await this.getWorkoutRepo.getWorkoutsByDate(workout.createdAt, userId);
+
+    let daysWithWorkoutsThisWeek =
+      await this.getWorkoutRepo.getDaysWithWorkoutsThisWeek(
         userId,
         workout.createdAt,
-      )) + 1;
+      );
+
+    // include today if workout hasn't been completed today already
+    if (numberOfWorkoutsAlreadyCompletedToday.length === 0) {
+      daysWithWorkoutsThisWeek++;
+    }
 
     const hasWorkoutGoalBeenReachedOrExceeded =
       await this.hasWorkoutGoalBeenReachedOrExceeded(
@@ -163,6 +170,8 @@ export class CreateWorkoutService extends BaseWorkoutService {
         xpNeededForCurrentLevel:
           this.levelCalculator.getXpNeededForCurrentLevel(newUserStats.level),
         daysWithWorkoutsThisWeek: daysWithWorkoutsThisWeek,
+        hasWeeklyGoalAlreadyBeenAchieved:
+          this.getHasWeeklyGoalAlreadyBeenAchieved(oldUserStats),
       },
     };
   }
@@ -269,5 +278,15 @@ export class CreateWorkoutService extends BaseWorkoutService {
     }
 
     return { newWeeklyStreak, newWeeklyGoalAchievedAt };
+  }
+
+  private getHasWeeklyGoalAlreadyBeenAchieved(
+    oldUserStats: UserStats,
+  ): boolean {
+    if (oldUserStats.weeklyWorkoutGoalAchievedAt) {
+      return true;
+    }
+
+    return false;
   }
 }
