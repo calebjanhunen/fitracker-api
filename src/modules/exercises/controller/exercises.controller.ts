@@ -19,19 +19,24 @@ import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
-import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
-import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
-import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
-import { LookupItemDto } from '../dtos/lookup-item.dto';
-import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
-import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
-import { LookupItem } from '../models';
-import { ExerciseDetailsModel } from '../models/exercise-details.model';
-import { InsertExerciseModel } from '../models/insert-exercise.model';
-import { CableAttachmentService } from '../services/cable-attachment.service';
-import { ExerciseService } from '../services/exercise.service';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions';
+import {
+  ExerciseDetailsDto,
+  ExerciseRequestDto,
+  ExerciseResponseDto,
+  ExerciseWithWorkoutDetailsDto,
+  LookupItemDto,
+} from '../dtos';
+import {
+  ExerciseIsNotCustomException,
+  ExerciseNotFoundException,
+} from '../internal-errors';
+import {
+  ExerciseDetailsModel,
+  InsertExerciseModel,
+  LookupItem,
+} from '../models';
+import { CableAttachmentService, ExerciseService } from '../services';
 
 @Controller('api/exercises')
 @UseGuards(JwtAuthGuard)
