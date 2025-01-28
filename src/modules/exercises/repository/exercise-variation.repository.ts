@@ -1,16 +1,89 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/common/database';
-import { DatabaseException } from 'src/common/internal-exceptions';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { ExerciseVariationModel } from '../models';
+import { BaseRepository } from 'src/common/repository';
+import {
+  CreateExerciseVariationModel,
+  ExerciseVariationModel,
+} from '../models';
 
 @Injectable()
-export class ExerciseVariationRepository {
+export class ExerciseVariationRepository extends BaseRepository {
+  private readonly COLUMNS_AND_JOINS = `
+    ev.id,
+      ev.name,
+      ev.notes,
+      ca.name
+    FROM public.exercise_variation ev
+    LEFT JOIN public.cable_attachment ca ON ca.id = ev.cable_attachment_id
+  `;
   constructor(
     private readonly db: DbService,
-    private readonly logger: LoggerService,
+    logger: LoggerService,
   ) {
-    this.logger.setContext(ExerciseVariationRepository.name);
+    super(logger, ExerciseVariationRepository.name);
+  }
+
+  public async createExerciseVariation(
+    exerciseId: string,
+    userId: string,
+    model: CreateExerciseVariationModel,
+  ): Promise<string> {
+    const queryName = 'createExerciseVariation';
+    const query = `
+      INSERT INTO public.exercise_variation
+        (exercise_id, user_id, name, notes, cable_attachment_id)
+      VALUES
+        ($1, $2, $3, $4, $5)
+      RETURNING id;
+    `;
+    const params = [
+      exerciseId,
+      userId,
+      model.name,
+      model.notes,
+      model.cableAttachmentId,
+    ];
+
+    try {
+      const { queryResult } = await this.db.queryV2<{ id: string }>(
+        query,
+        params,
+      );
+
+      return queryResult[0].id;
+    } catch (e) {
+      throw this.handleError(e, queryName);
+    }
+  }
+
+  public async getExerciseVariationById(
+    id: string,
+    userId: string,
+  ): Promise<ExerciseVariationModel | null> {
+    const queryName = 'getExerciseVariationById';
+    const query = `
+        SELECT
+            ${this.COLUMNS_AND_JOINS}
+        WHERE ev.id = $1
+            ev.user_id = $2;
+    `;
+    const params = [id, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<ExerciseVariationModel>(
+        query,
+        params,
+      );
+
+      if (!queryResult.length) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      throw this.handleError(e, queryName);
+    }
   }
 
   public async getExerciseVariationsByIds(
@@ -21,8 +94,6 @@ export class ExerciseVariationRepository {
     const query = `
         SELECT
             ev.id,
-            ev.exercise_id,
-            ev.user_id,
             ev.name,
             ev.notes,
             ca.name
@@ -40,8 +111,7 @@ export class ExerciseVariationRepository {
       );
       return queryResult;
     } catch (e) {
-      this.logger.error(e, `Query ${queryName} failed`, { queryName });
-      throw new DatabaseException(e);
+      throw this.handleError(e, queryName);
     }
   }
 }
