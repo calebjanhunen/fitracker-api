@@ -32,6 +32,8 @@ export class UserStatsAfterWorkout {
 
   @AutoMap()
   daysWithWorkoutsThisWeek: number;
+  @AutoMap()
+  hasWeeklyGoalAlreadyBeenAchieved: boolean;
 }
 
 export class CreateWorkout {

@@ -173,7 +173,7 @@ export class GetWorkoutRepository {
         SELECT
         	w.id,
         	w.name,
-        	w.created_at,
+        	w.created_at as workout_date,
         	w.duration,
         	w.gained_xp,
         	json_agg(
@@ -186,10 +186,9 @@ export class GetWorkoutRepository {
         	INNER JOIN workout_exercise we ON we.workout_id = w.id
         	LEFT JOIN exercise e ON e.id = we.exercise_id
         	LEFT JOIN exercise_variation ev ON ev.id = we.exercise_variation_id
-        WHERE
-        	w.user_id = $1
-        GROUP BY
-        	w.id
+        WHERE w.user_id = $1
+        GROUP BY w.id
+        ORDER BY w.created_at DESC
     `;
     const params = [userId];
 

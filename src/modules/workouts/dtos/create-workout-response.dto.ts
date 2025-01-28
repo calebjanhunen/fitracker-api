@@ -43,6 +43,10 @@ export class UserStatsAfterWorkoutDto {
   @ApiProperty({ type: Number, required: true })
   @AutoMap()
   daysWithWorkoutsThisWeek: number;
+
+  @ApiProperty({ type: Boolean, required: true })
+  @AutoMap()
+  hasWeeklyGoalAlreadyBeenAchieved: boolean;
 }
 
 export class CreateWorkoutResponseDto {
