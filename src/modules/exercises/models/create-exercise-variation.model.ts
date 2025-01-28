@@ -5,7 +5,7 @@ export class CreateExerciseVariationModel {
   public name: string;
 
   @AutoMap()
-  public attachmentId?: number;
+  public cableAttachmentId?: number;
 
   @AutoMap()
   public notes?: string;

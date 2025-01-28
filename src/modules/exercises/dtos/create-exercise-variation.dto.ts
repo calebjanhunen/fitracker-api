@@ -13,7 +13,7 @@ export class CreateExerciseVariationDto {
   @IsOptional()
   @AutoMap()
   @ApiProperty({ type: Number })
-  public attachmentId?: number;
+  public cableAttachmentId?: number;
 
   @IsString()
   @IsOptional()
