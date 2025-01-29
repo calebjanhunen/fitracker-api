@@ -10,10 +10,10 @@ import {
 @Injectable()
 export class ExerciseVariationRepository extends BaseRepository {
   private readonly COLUMNS_AND_JOINS = `
-    ev.id,
+      ev.id,
       ev.name,
       ev.notes,
-      ca.name
+      ca.name as cable_attachment
     FROM public.exercise_variation ev
     LEFT JOIN public.cable_attachment ca ON ca.id = ev.cable_attachment_id
   `;
@@ -65,7 +65,7 @@ export class ExerciseVariationRepository extends BaseRepository {
     const query = `
         SELECT
             ${this.COLUMNS_AND_JOINS}
-        WHERE ev.id = $1
+        WHERE ev.id = $1 AND
             ev.user_id = $2;
     `;
     const params = [id, userId];

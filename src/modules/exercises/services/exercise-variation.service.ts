@@ -12,6 +12,7 @@ import { ExerciseService } from './exercise.service';
 
 @Injectable()
 export class ExerciseVariationService {
+  CABLE = 'cable';
   constructor(
     private readonly exerciseVariationRepo: ExerciseVariationRepository,
     private readonly cableAttachmentRepo: CableAttachmentRepository,
@@ -23,7 +24,16 @@ export class ExerciseVariationService {
     userId: string,
     model: CreateExerciseVariationModel,
   ) {
-    await this.exerciseService.ensureExerciseExists(exerciseId, userId);
+    const exercise = await this.exerciseService.findById(exerciseId, userId);
+    if (!exercise) {
+      throw new ResourceNotFoundException('Exercise not found');
+    }
+
+    if (exercise.equipment !== this.CABLE && model.cableAttachmentId) {
+      throw new Error(
+        'Exercise must use the cable in order for the variation to have a cable attachment',
+      );
+    }
 
     if (model.cableAttachmentId) {
       const cableAttachment = await this.cableAttachmentRepo.getAttachmentById(

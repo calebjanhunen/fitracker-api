@@ -8,6 +8,7 @@ import {
   CreateExerciseVariationDto,
   EquipmentDto,
   ExerciseDetailsDto,
+  ExerciseVariationDto,
   ExerciseWorkoutHistoryDto,
   LookupItemDto,
 } from './dtos';
@@ -16,6 +17,7 @@ import {
   CreateExerciseVariationModel,
   EquipmentModel,
   ExerciseDetailsModel,
+  ExerciseVariationModel,
   ExerciseWorkoutHistoryModel,
   LookupItem,
 } from './models';
@@ -47,6 +49,7 @@ export class ExerciseProfile extends AutomapperProfile {
         CreateExerciseVariationDto,
         CreateExerciseVariationModel,
       );
+      createMap(mapper, ExerciseVariationModel, ExerciseVariationDto);
     };
   }
 }

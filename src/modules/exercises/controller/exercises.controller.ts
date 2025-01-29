@@ -21,9 +21,11 @@ import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions';
 import {
+  CreateExerciseVariationDto,
   ExerciseDetailsDto,
   ExerciseRequestDto,
   ExerciseResponseDto,
+  ExerciseVariationDto,
   ExerciseWithWorkoutDetailsDto,
   LookupItemDto,
 } from '../dtos';
@@ -32,11 +34,17 @@ import {
   ExerciseNotFoundException,
 } from '../internal-errors';
 import {
+  CreateExerciseVariationModel,
   ExerciseDetailsModel,
+  ExerciseVariationModel,
   InsertExerciseModel,
   LookupItem,
 } from '../models';
-import { CableAttachmentService, ExerciseService } from '../services';
+import {
+  CableAttachmentService,
+  ExerciseService,
+  ExerciseVariationService,
+} from '../services';
 
 @Controller('api/exercises')
 @UseGuards(JwtAuthGuard)
@@ -44,9 +52,10 @@ import { CableAttachmentService, ExerciseService } from '../services';
 @ApiBearerAuth('access-token')
 export default class ExercisesController {
   constructor(
-    private exerciseService: ExerciseService,
     @InjectMapper() private mapper: Mapper,
+    private exerciseService: ExerciseService,
     private readonly cableAttachmentService: CableAttachmentService,
+    private readonly exerciseVariationService: ExerciseVariationService,
   ) {}
 
   @Post()
@@ -70,6 +79,32 @@ export default class ExercisesController {
     } catch (e) {
       throw new ConflictException(e.message);
     }
+  }
+
+  @Post('/:exerciseId/exerciseVariation')
+  public async createExerciseVariation(
+    @CurrentUser() userId: string,
+    @Param('exerciseId') exerciseId: string,
+    @Body() dto: CreateExerciseVariationDto,
+  ): Promise<ExerciseVariationDto> {
+    const model = this.mapper.map(
+      dto,
+      CreateExerciseVariationDto,
+      CreateExerciseVariationModel,
+    );
+
+    const response =
+      await this.exerciseVariationService.createExerciseVariation(
+        exerciseId,
+        userId,
+        model,
+      );
+
+    return this.mapper.map(
+      response,
+      ExerciseVariationModel,
+      ExerciseVariationDto,
+    );
   }
 
   @Get()
