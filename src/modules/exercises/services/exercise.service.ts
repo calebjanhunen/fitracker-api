@@ -15,6 +15,7 @@ import {
   RecentSetsForExerciseModel,
 } from '../models';
 import { ExerciseDetailsModel } from '../models/exercise-details.model';
+import { ExerciseVariationRepository } from '../repository/exercise-variation.repository';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class ExerciseService {
     private readonly bodyPartService: BodyPartService,
     private readonly equipmentService: EquipmentService,
     private readonly exerciseRepo: ExerciseRepository,
+    private readonly exerciseVariationRepo: ExerciseVariationRepository,
     private readonly logger: LoggerService,
   ) {
     this.logger.setContext(ExerciseService.name);
@@ -220,7 +222,17 @@ export class ExerciseService {
       userId,
     );
 
-    return new ExerciseDetailsModel(exercise, workoutHistory);
+    const exerciseVariations =
+      await this.exerciseVariationRepo.getExerciseVariationsByExerciseId(
+        exercise.id,
+        userId,
+      );
+
+    return new ExerciseDetailsModel(
+      exercise,
+      workoutHistory,
+      exerciseVariations,
+    );
   }
 
   /**
