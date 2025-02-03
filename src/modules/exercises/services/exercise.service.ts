@@ -80,6 +80,16 @@ export class ExerciseService {
     return exercise;
   }
 
+  public async ensureExerciseExists(
+    exerciseId: string,
+    userId: string,
+  ): Promise<void> {
+    const exercise = await this.exerciseRepo.findById(exerciseId, userId);
+    if (!exercise) {
+      throw new ExerciseNotFoundException(exerciseId);
+    }
+  }
+
   /**
    * Validates if the exercises (ids) passed in exist in the database
    * @param {string[]} ids - An array of strings representing the IDs of the exercises to validate.

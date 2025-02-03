@@ -11,9 +11,5 @@ export class ExerciseVariationModel {
   public notes?: string;
 
   @AutoMap()
-  cableAttachment?: string;
-
-  public exerciseId: string;
-
-  public user_id: string;
+  public cableAttachment?: string;
 }

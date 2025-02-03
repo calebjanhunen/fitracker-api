@@ -19,19 +19,32 @@ import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
-import { ExerciseDetailsDto } from '../dtos/exercise-details.dto';
-import { ExerciseRequestDto } from '../dtos/exercise-request.dto';
-import { ExerciseResponseDto } from '../dtos/exercise-response.dto';
-import { ExerciseWithWorkoutDetailsDto } from '../dtos/exericse-with-workout-details.dto';
-import { LookupItemDto } from '../dtos/lookup-item.dto';
-import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
-import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
-import { LookupItem } from '../models';
-import { ExerciseDetailsModel } from '../models/exercise-details.model';
-import { InsertExerciseModel } from '../models/insert-exercise.model';
-import { CableAttachmentService } from '../services/cable-attachment.service';
-import { ExerciseService } from '../services/exercise.service';
+import { ResourceNotFoundException } from 'src/common/internal-exceptions';
+import {
+  CreateExerciseVariationDto,
+  ExerciseDetailsDto,
+  ExerciseRequestDto,
+  ExerciseResponseDto,
+  ExerciseVariationDto,
+  ExerciseWithWorkoutDetailsDto,
+  LookupItemDto,
+} from '../dtos';
+import {
+  ExerciseIsNotCustomException,
+  ExerciseNotFoundException,
+} from '../internal-errors';
+import {
+  CreateExerciseVariationModel,
+  ExerciseDetailsModel,
+  ExerciseVariationModel,
+  InsertExerciseModel,
+  LookupItem,
+} from '../models';
+import {
+  CableAttachmentService,
+  ExerciseService,
+  ExerciseVariationService,
+} from '../services';
 
 @Controller('api/exercises')
 @UseGuards(JwtAuthGuard)
@@ -39,9 +52,10 @@ import { ExerciseService } from '../services/exercise.service';
 @ApiBearerAuth('access-token')
 export default class ExercisesController {
   constructor(
-    private exerciseService: ExerciseService,
     @InjectMapper() private mapper: Mapper,
+    private exerciseService: ExerciseService,
     private readonly cableAttachmentService: CableAttachmentService,
+    private readonly exerciseVariationService: ExerciseVariationService,
   ) {}
 
   @Post()
@@ -65,6 +79,32 @@ export default class ExercisesController {
     } catch (e) {
       throw new ConflictException(e.message);
     }
+  }
+
+  @Post('/:exerciseId/exerciseVariation')
+  public async createExerciseVariation(
+    @CurrentUser() userId: string,
+    @Param('exerciseId') exerciseId: string,
+    @Body() dto: CreateExerciseVariationDto,
+  ): Promise<ExerciseVariationDto> {
+    const model = this.mapper.map(
+      dto,
+      CreateExerciseVariationDto,
+      CreateExerciseVariationModel,
+    );
+
+    const response =
+      await this.exerciseVariationService.createExerciseVariation(
+        exerciseId,
+        userId,
+        model,
+      );
+
+    return this.mapper.map(
+      response,
+      ExerciseVariationModel,
+      ExerciseVariationDto,
+    );
   }
 
   @Get()
