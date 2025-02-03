@@ -59,7 +59,13 @@ export class ExerciseService {
    * @throws {ExerciseNotFoundException}
    */
   public async findAll(userId: string): Promise<ExerciseModel[]> {
-    return this.exerciseRepo.findAll(userId);
+    const exercises = await this.exerciseRepo.findAll(userId);
+
+    return exercises.map((exercise) => ({
+      ...exercise,
+      bodyPart: capitalizeFirstLetter(exercise.bodyPart),
+      equipment: capitalizeFirstLetter(exercise.equipment),
+    }));
   }
 
   public async findById(
