@@ -29,4 +29,29 @@ export class CableAttachmentRepository {
       throw new DatabaseException(e.message);
     }
   }
+
+  public async getAttachmentById(id: number): Promise<LookupItem | null> {
+    const queryName = 'getAttachmentById';
+    const query = `
+        SELECT
+          id,
+          name
+        FROM public.cable_attachment
+        WHERE id = $1
+    `;
+    const params = [id];
+
+    try {
+      const { queryResult } = await this.db.queryV2<LookupItem>(query, params);
+
+      if (!queryResult.length) {
+        return null;
+      }
+
+      return queryResult[0];
+    } catch (e) {
+      this.logger.error(e, `Query ${queryName} failed: `, { queryName });
+      throw new DatabaseException(e.message);
+    }
+  }
 }

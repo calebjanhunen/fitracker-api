@@ -1,18 +1,26 @@
 import { createMap, forMember, mapFrom, Mapper } from '@automapper/core';
 import { AutomapperProfile, InjectMapper } from '@automapper/nestjs';
 import { Injectable } from '@nestjs/common';
-import { WorkoutSetResponseDto } from '../workouts/dtos/workout-response.dto';
+import { WorkoutSetResponseDto } from '../workouts/dtos';
 import { WorkoutSetModel } from '../workouts/models';
-import { BodyPartDto } from './dtos/body-part.dto';
-import { EquipmentDto } from './dtos/equipment.dto';
-import { ExerciseDetailsDto } from './dtos/exercise-details.dto';
-import { ExerciseWorkoutHistoryDto } from './dtos/exercise-workout-history.dto';
-import { LookupItemDto } from './dtos/lookup-item.dto';
-import { LookupItem } from './models';
-import { BodyPartModel } from './models/body-part.model';
-import { EquipmentModel } from './models/equipment.model';
-import { ExerciseDetailsModel } from './models/exercise-details.model';
-import { ExerciseWorkoutHistoryModel } from './models/exercise-workout-history.model';
+import {
+  BodyPartDto,
+  CreateExerciseVariationDto,
+  EquipmentDto,
+  ExerciseDetailsDto,
+  ExerciseVariationDto,
+  ExerciseWorkoutHistoryDto,
+  LookupItemDto,
+} from './dtos';
+import {
+  BodyPartModel,
+  CreateExerciseVariationModel,
+  EquipmentModel,
+  ExerciseDetailsModel,
+  ExerciseVariationModel,
+  ExerciseWorkoutHistoryModel,
+  LookupItem,
+} from './models';
 
 @Injectable()
 export class ExerciseProfile extends AutomapperProfile {
@@ -36,6 +44,12 @@ export class ExerciseProfile extends AutomapperProfile {
       createMap(mapper, EquipmentModel, EquipmentDto);
       createMap(mapper, BodyPartModel, BodyPartDto);
       createMap(mapper, LookupItem, LookupItemDto);
+      createMap(
+        mapper,
+        CreateExerciseVariationDto,
+        CreateExerciseVariationModel,
+      );
+      createMap(mapper, ExerciseVariationModel, ExerciseVariationDto);
     };
   }
 }
