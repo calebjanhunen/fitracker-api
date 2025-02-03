@@ -17,6 +17,7 @@ export class ExerciseVariationRepository extends BaseRepository {
     FROM public.exercise_variation ev
     LEFT JOIN public.cable_attachment ca ON ca.id = ev.cable_attachment_id
   `;
+
   constructor(
     private readonly db: DbService,
     logger: LoggerService,
@@ -93,16 +94,35 @@ export class ExerciseVariationRepository extends BaseRepository {
     const queryName = 'getExerciseVariationsByIds';
     const query = `
         SELECT
-            ev.id,
-            ev.name,
-            ev.notes,
-            ca.name
-        FROM public.exercise_variation ev
-        LEFT JOIN public.cable_attachment ca ON ca.id = ev.cable_attachment_id
+            ${this.COLUMNS_AND_JOINS}
         WHERE ev.id = ANY($1) AND
             ev.user_id = $2;
     `;
     const params = [exerciseVariationIds, userId];
+
+    try {
+      const { queryResult } = await this.db.queryV2<ExerciseVariationModel>(
+        query,
+        params,
+      );
+      return queryResult;
+    } catch (e) {
+      throw this.handleError(e, queryName);
+    }
+  }
+
+  public async getExerciseVariationsByExerciseId(
+    exerciseId: string,
+    userId: string,
+  ): Promise<ExerciseVariationModel[]> {
+    const queryName = 'getExerciseVariationsByExerciseId';
+    const query = `
+        SELECT
+            ${this.COLUMNS_AND_JOINS}
+        WHERE ev.exercise_id = $1 AND
+            ev.user_id = $2;
+    `;
+    const params = [exerciseId, userId];
 
     try {
       const { queryResult } = await this.db.queryV2<ExerciseVariationModel>(
