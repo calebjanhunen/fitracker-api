@@ -5,6 +5,7 @@ import { LoggerService } from 'src/common/logger/logger.service';
 import { capitalizeFirstLetter } from 'src/common/utils/capitalize-first-letter.util';
 import { BodyPartService } from 'src/modules/exercises/services/body-part.service';
 import { EquipmentService } from 'src/modules/exercises/services/equipment.service';
+import { ExerciseType } from '../enums/exercise-type.enum';
 import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not-custom.exception';
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import {
@@ -15,6 +16,7 @@ import {
   RecentSetsForExerciseModel,
 } from '../models';
 import { ExerciseDetailsModel } from '../models/exercise-details.model';
+import { ExerciseVariationRepository } from '../repository/exercise-variation.repository';
 import { ExerciseRepository } from '../repository/exercise.repository';
 
 @Injectable()
@@ -23,6 +25,7 @@ export class ExerciseService {
     private readonly bodyPartService: BodyPartService,
     private readonly equipmentService: EquipmentService,
     private readonly exerciseRepo: ExerciseRepository,
+    private readonly exerciseVariationRepo: ExerciseVariationRepository,
     private readonly logger: LoggerService,
   ) {
     this.logger.setContext(ExerciseService.name);
@@ -59,7 +62,26 @@ export class ExerciseService {
    * @throws {ExerciseNotFoundException}
    */
   public async findAll(userId: string): Promise<ExerciseModel[]> {
-    return this.exerciseRepo.findAll(userId);
+    let exercises = await this.exerciseRepo.findAll(userId);
+    exercises = exercises.map((exercise) => ({
+      ...exercise,
+      bodyPart: capitalizeFirstLetter(exercise.bodyPart),
+      equipment: capitalizeFirstLetter(exercise.equipment),
+      exerciseType: ExerciseType.EXERCISE,
+    }));
+
+    let exerciseVariations =
+      await this.exerciseVariationRepo.getExerciseVariations(userId);
+    exerciseVariations = exerciseVariations.map((ev) => ({
+      ...ev,
+      bodyPart: capitalizeFirstLetter(ev.bodyPart),
+      equipment: capitalizeFirstLetter(ev.equipment),
+      exerciseType: ExerciseType.VARIATION,
+    }));
+
+    return exercises
+      .concat(exerciseVariations)
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   public async findById(
@@ -200,6 +222,18 @@ export class ExerciseService {
   public async getExerciseDetails(
     exerciseId: string,
     userId: string,
+    isVariation: boolean,
+  ): Promise<ExerciseDetailsModel> {
+    if (isVariation) {
+      return await this.getExerciseVariationDetails(exerciseId, userId);
+    } else {
+      return await this.getBaseExerciseDetails(exerciseId, userId);
+    }
+  }
+
+  private async getBaseExerciseDetails(
+    exerciseId: string,
+    userId: string,
   ): Promise<ExerciseDetailsModel> {
     const exercise = await this.exerciseRepo.findById(exerciseId, userId);
     if (!exercise) {
@@ -214,7 +248,44 @@ export class ExerciseService {
       userId,
     );
 
-    return new ExerciseDetailsModel(exercise, workoutHistory);
+    const exerciseVariations =
+      await this.exerciseVariationRepo.getExerciseVariationsByExerciseId(
+        exercise.id,
+        userId,
+      );
+
+    return new ExerciseDetailsModel(
+      exercise,
+      workoutHistory,
+      exerciseVariations,
+    );
+  }
+
+  private async getExerciseVariationDetails(
+    exerciseVariationId: string,
+    userId: string,
+  ): Promise<ExerciseDetailsModel> {
+    const exerciseVariation =
+      await this.exerciseVariationRepo.getExerciseVariationByIdV2(
+        exerciseVariationId,
+        userId,
+      );
+    if (!exerciseVariation) {
+      this.logger.warn(
+        `User ${userId} tried accessing exercise variation ${exerciseVariationId} which does not exist.`,
+      );
+      throw new ExerciseNotFoundException(exerciseVariationId, true);
+    }
+
+    exerciseVariation.exerciseType = ExerciseType.VARIATION;
+
+    const workoutHistory =
+      await this.exerciseVariationRepo.getExerciseVariationWorkoutHistory(
+        exerciseVariationId,
+        userId,
+      );
+
+    return new ExerciseDetailsModel(exerciseVariation, workoutHistory, []);
   }
 
   /**

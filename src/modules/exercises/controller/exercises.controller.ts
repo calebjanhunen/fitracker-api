@@ -13,6 +13,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -154,11 +155,13 @@ export default class ExercisesController {
   public async getExerciseDetails(
     @CurrentUser() userId: string,
     @Param('exerciseId') exerciseId: string,
+    @Query('isVariation') isVariation: boolean,
   ): Promise<ExerciseDetailsDto> {
     try {
       const exercise = await this.exerciseService.getExerciseDetails(
         exerciseId,
         userId,
+        isVariation,
       );
       return this.mapper.map(
         exercise,

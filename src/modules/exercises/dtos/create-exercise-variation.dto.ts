@@ -1,6 +1,12 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString, Max } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateExerciseVariationDto {
   @IsString()
@@ -19,6 +25,6 @@ export class CreateExerciseVariationDto {
   @IsOptional()
   @AutoMap()
   @ApiProperty({ type: String })
-  @Max(255)
+  @MaxLength(255)
   public notes?: string;
 }
