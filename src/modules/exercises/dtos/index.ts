@@ -8,3 +8,4 @@ export * from './exercise-variation.dto';
 export * from './exercise-workout-history.dto';
 export * from './exericse-with-workout-details.dto';
 export * from './lookup-item.dto';
+export * from './update-exercise-variation.dto';

@@ -13,6 +13,9 @@ export class ExerciseDetailsModel {
   public name: string;
 
   @AutoMap()
+  public notes?: string;
+
+  @AutoMap()
   public bodyPart: string;
 
   @AutoMap()
@@ -51,5 +54,6 @@ export class ExerciseDetailsModel {
     this.parentExerciseId = exercise.parentExerciseId;
     this.parentExerciseName = exercise.parentExerciseName;
     this.exerciseType = exercise.exerciseType;
+    this.notes = exercise.notes;
   }
 }

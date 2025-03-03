@@ -14,6 +14,10 @@ export class ExerciseDetailsDto {
   public name: string;
 
   @AutoMap()
+  @ApiProperty({ type: 'string', required: false })
+  public notes?: string;
+
+  @AutoMap()
   @ApiProperty()
   public bodyPart: string;
 

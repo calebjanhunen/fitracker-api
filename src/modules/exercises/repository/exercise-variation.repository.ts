@@ -7,6 +7,7 @@ import {
   ExerciseModel,
   ExerciseVariationModel,
   ExerciseWorkoutHistoryModel,
+  UpdateExerciseVariationModel,
 } from '../models';
 
 @Injectable()
@@ -94,11 +95,12 @@ export class ExerciseVariationRepository extends BaseRepository {
     exerciseVariationId: string,
     userId: string,
   ): Promise<ExerciseModel | null> {
-    const queryName = 'getExerciseVariationDetails';
+    const queryName = 'getExerciseVariationByIdV2';
     const query = `
       SELECT
         ev.id,
         ev.name,
+        ev.notes,
         bp.name as body_part,
         eq.name as equipment,
         true as is_custom,
@@ -244,6 +246,34 @@ export class ExerciseVariationRepository extends BaseRepository {
         params,
       );
       return queryResult;
+    } catch (e) {
+      throw this.handleError(e, queryName);
+    }
+  }
+
+  public async updateExerciseVariation(
+    exerciseVariationId: string,
+    exerciseVariation: UpdateExerciseVariationModel,
+    userId: string,
+  ): Promise<void> {
+    const queryName = 'updateExerciseVariation';
+    const query = `
+      UPDATE public.exercise_variation
+      SET
+        name = $1,
+        notes = $2
+      WHERE id = $3 AND
+        user_id = $4;
+    `;
+    const params = [
+      exerciseVariation.name,
+      exerciseVariation.notes,
+      exerciseVariationId,
+      userId,
+    ];
+
+    try {
+      await this.db.queryV2(query, params);
     } catch (e) {
       throw this.handleError(e, queryName);
     }

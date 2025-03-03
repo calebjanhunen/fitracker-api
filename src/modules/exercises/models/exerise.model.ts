@@ -9,6 +9,9 @@ export class ExerciseModel {
   name: string;
 
   @AutoMap()
+  public notes?: string;
+
+  @AutoMap()
   bodyPart: string;
 
   @AutoMap()

@@ -243,6 +243,8 @@ export class ExerciseService {
       throw new ExerciseNotFoundException(exerciseId);
     }
 
+    exercise.exerciseType = ExerciseType.EXERCISE;
+
     const workoutHistory = await this.exerciseRepo.getExerciseWorkoutHistory(
       exerciseId,
       userId,
