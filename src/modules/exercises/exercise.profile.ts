@@ -8,18 +8,22 @@ import {
   CreateExerciseVariationDto,
   EquipmentDto,
   ExerciseDetailsDto,
+  ExerciseResponseDto,
   ExerciseVariationDto,
   ExerciseWorkoutHistoryDto,
   LookupItemDto,
+  UpdateExerciseVariationDto,
 } from './dtos';
 import {
   BodyPartModel,
   CreateExerciseVariationModel,
   EquipmentModel,
   ExerciseDetailsModel,
+  ExerciseModel,
   ExerciseVariationModel,
   ExerciseWorkoutHistoryModel,
   LookupItem,
+  UpdateExerciseVariationModel,
 } from './models';
 
 @Injectable()
@@ -50,6 +54,12 @@ export class ExerciseProfile extends AutomapperProfile {
         CreateExerciseVariationModel,
       );
       createMap(mapper, ExerciseVariationModel, ExerciseVariationDto);
+      createMap(
+        mapper,
+        UpdateExerciseVariationDto,
+        UpdateExerciseVariationModel,
+      );
+      createMap(mapper, ExerciseModel, ExerciseResponseDto);
     };
   }
 }

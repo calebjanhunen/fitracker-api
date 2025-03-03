@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions';
 import {
   CreateExerciseVariationModel,
+  ExerciseModel,
   ExerciseVariationModel,
+  UpdateExerciseVariationModel,
 } from '../models';
 import {
   CableAttachmentRepository,
@@ -66,5 +68,31 @@ export class ExerciseVariationService {
       exerciseVariationIds,
       userId,
     );
+  }
+
+  public async updateExerciseVariation(
+    exerciseVariationId: string,
+    exerciseVariation: UpdateExerciseVariationModel,
+    userId: string,
+  ): Promise<ExerciseModel> {
+    const exerciseVariationToUpdate =
+      await this.exerciseVariationRepo.getExerciseVariationById(
+        exerciseVariationId,
+        userId,
+      );
+    if (!exerciseVariationToUpdate) {
+      throw new ResourceNotFoundException('Exercise variation not found');
+    }
+
+    await this.exerciseVariationRepo.updateExerciseVariation(
+      exerciseVariationId,
+      exerciseVariation,
+      userId,
+    );
+
+    return (await this.exerciseVariationRepo.getExerciseVariationByIdV2(
+      exerciseVariationId,
+      userId,
+    ))!;
   }
 }

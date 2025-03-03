@@ -9,6 +9,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -29,6 +30,7 @@ import {
   ExerciseVariationDto,
   ExerciseWithWorkoutDetailsDto,
   LookupItemDto,
+  UpdateExerciseVariationDto,
 } from '../dtos';
 import {
   ExerciseIsNotCustomException,
@@ -37,9 +39,11 @@ import {
 import {
   CreateExerciseVariationModel,
   ExerciseDetailsModel,
+  ExerciseModel,
   ExerciseVariationModel,
   InsertExerciseModel,
   LookupItem,
+  UpdateExerciseVariationModel,
 } from '../models';
 import {
   CableAttachmentService,
@@ -223,6 +227,40 @@ export default class ExercisesController {
         throw new ForbiddenException(e.message);
 
       throw new ConflictException(e.message);
+    }
+  }
+
+  @Put(':id/variation')
+  @ApiResponse({ status: HttpStatus.OK, type: ExerciseResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR })
+  public async updateExerciseVaration(
+    @CurrentUser() userId: string,
+    @Param('id') exerciseVariationId: string,
+    @Body() updateExerciseDto: UpdateExerciseVariationDto,
+  ): Promise<ExerciseResponseDto> {
+    const model = this.mapper.map(
+      updateExerciseDto,
+      UpdateExerciseVariationDto,
+      UpdateExerciseVariationModel,
+    );
+    try {
+      const updatedExerciseVariation =
+        await this.exerciseVariationService.updateExerciseVariation(
+          exerciseVariationId,
+          model,
+          userId,
+        );
+      return this.mapper.map(
+        updatedExerciseVariation,
+        ExerciseModel,
+        ExerciseResponseDto,
+      );
+    } catch (e) {
+      if (e instanceof ResourceNotFoundException)
+        throw new NotFoundException(e.message);
+
+      throw new InternalServerErrorException(e.message);
     }
   }
 
