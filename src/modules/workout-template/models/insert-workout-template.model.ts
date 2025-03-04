@@ -10,8 +10,13 @@ export class InsertWorkoutTemplateModel {
 export class InsertWorkoutTemplateExerciseModel {
   @AutoMap()
   exerciseId: string;
+
+  @AutoMap()
+  isVariation?: boolean;
+
   @AutoMap()
   order: number;
+
   @AutoMap(() => InsertWorkoutTemplateSetModel)
   sets: InsertWorkoutTemplateSetModel[];
 }

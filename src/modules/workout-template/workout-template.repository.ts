@@ -17,9 +17,10 @@ export class WorkoutTemplateRepository {
         wt.name,
         wt.created_at,
         json_agg(json_build_object(
-          'exercise_id', e.id,
-        	'exercise_name', e.name,
+          'exercise_id', COALESCE(e.id, ev.id),
+          'exercise_name', COALESCE(e.name, ev.name),
           'order', wte.order,
+          'exercise_type', CASE WHEN e.name IS NOT NULL THEN 'exercise' ELSE 'variation' END,
         	'sets', (
         		SELECT json_agg(json_build_object(
                 	'id', wts.id,
@@ -31,10 +32,12 @@ export class WorkoutTemplateRepository {
         ) ORDER BY wte.order) as exercises
       FROM
         workout_template as wt
-      LEFT JOIN
-	      workout_template_exercise as wte ON wte.workout_template_id = wt.id
-      LEFT JOIN
-	      exercise as e ON e.id = wte.exercise_id
+      LEFT JOIN workout_template_exercise as wte
+        ON wte.workout_template_id = wt.id
+      LEFT JOIN exercise e
+        ON e.id = wte.exercise_id
+      LEFT JOIN exercise_variation ev
+        ON ev.id = wte.exercise_variation_id
   `;
   constructor(
     private db: DbService,
@@ -207,18 +210,27 @@ export class WorkoutTemplateRepository {
     workoutTemplateId: string,
     exercise: InsertWorkoutTemplateExerciseModel,
   ): Promise<string> {
-    const workoutExerciseInsertQuery = `
-          INSERT INTO workout_template_exercise (workout_template_id, exercise_id, "order")
-          VALUES ($1, $2, $3)
-          RETURNING id;
-        `;
+    let query;
+    if (exercise.isVariation) {
+      query = `
+        INSERT INTO workout_template_exercise (workout_template_id, exercise_variation_id, "order")
+        VALUES ($1, $2, $3)
+        RETURNING id;
+      `;
+    } else {
+      query = `
+        INSERT INTO workout_template_exercise (workout_template_id, exercise_id, "order")
+        VALUES ($1, $2, $3)
+        RETURNING id;
+      `;
+    }
     const workoutExerciseInsertParams = [
       workoutTemplateId,
       exercise.exerciseId,
       exercise.order,
     ];
     const insertWorkoutExerciseResult = await client.query<{ id: string }>(
-      workoutExerciseInsertQuery,
+      query,
       workoutExerciseInsertParams,
     );
     return insertWorkoutExerciseResult.rows[0].id;
