@@ -1,4 +1,5 @@
 import { AutoMap } from '@automapper/classes';
+import { ExerciseType } from 'src/modules/exercises/enums/exercise-type.enum';
 
 export class WorkoutTemplateModel {
   @AutoMap()
@@ -14,10 +15,16 @@ export class WorkoutTemplateModel {
 export class WorkoutTemplateExerciseModel {
   @AutoMap()
   exerciseId: string;
+
   @AutoMap()
   exerciseName: string;
+
   @AutoMap()
   order: number;
+
+  @AutoMap()
+  public exerciseType: ExerciseType;
+
   @AutoMap(() => WorkoutTemplateSetModel)
   sets: WorkoutTemplateSetModel[];
 }

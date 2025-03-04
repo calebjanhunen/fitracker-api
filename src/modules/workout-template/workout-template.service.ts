@@ -2,8 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InvalidOrderException } from 'src/common/internal-exceptions/invalid-order.exception';
 import { ResourceNotFoundException } from 'src/common/internal-exceptions/resource-not-found.exception';
 import { LoggerService } from 'src/common/logger/logger.service';
+import { ExerciseVariationService } from '../exercises/services';
 import { ExerciseService } from '../exercises/services/exercise.service';
-import { InsertWorkoutTemplateModel, WorkoutTemplateModel } from './models';
+import {
+  InsertWorkoutTemplateExerciseModel,
+  InsertWorkoutTemplateModel,
+  WorkoutTemplateModel,
+} from './models';
 import { WorkoutTemplateRepository } from './workout-template.repository';
 
 @Injectable()
@@ -11,6 +16,7 @@ export class WorkoutTemplateService {
   constructor(
     private workoutTemplateRepo: WorkoutTemplateRepository,
     private exerciseService: ExerciseService,
+    private exerciseVariationService: ExerciseVariationService,
     private logger: LoggerService,
   ) {
     this.logger.setContext(WorkoutTemplateService.name);
@@ -20,8 +26,7 @@ export class WorkoutTemplateService {
     workoutTemplate: InsertWorkoutTemplateModel,
     userId: string,
   ): Promise<WorkoutTemplateModel> {
-    const exerciseIds = workoutTemplate.exercises.map((e) => e.exerciseId);
-    await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+    await this.validateExercisesExist(workoutTemplate.exercises, userId);
     this.validateOrderForExercisesAndSets(workoutTemplate);
 
     try {
@@ -65,6 +70,33 @@ export class WorkoutTemplateService {
       workoutTemplateId,
       userId,
     );
+  }
+
+  private async validateExercisesExist(
+    exercises: InsertWorkoutTemplateExerciseModel[],
+    userId: string,
+  ): Promise<void> {
+    const exerciseIds = [];
+    const exerciseVariationIds = [];
+    for (const exercise of exercises) {
+      if (exercise.isVariation) {
+        exerciseVariationIds.push(exercise.exerciseId);
+      } else {
+        exerciseIds.push(exercise.exerciseId);
+      }
+    }
+    await this.exerciseService.validateExercisesExist(exerciseIds, userId);
+
+    const exerciseVariations =
+      await this.exerciseVariationService.getExerciseVariationsByIds(
+        exerciseVariationIds,
+        userId,
+      );
+    if (exerciseVariations.length !== exerciseVariationIds.length) {
+      throw new ResourceNotFoundException(
+        'One or more exercise variations do not exist',
+      );
+    }
   }
 
   /**

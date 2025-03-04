@@ -1,5 +1,6 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
+import { ExerciseType } from 'src/modules/exercises/enums/exercise-type.enum';
 
 export class WorkoutTemplateSetResponseDto {
   @AutoMap()
@@ -14,12 +15,19 @@ export class WorkoutTemplateExerciseResponseDto {
   @AutoMap()
   @ApiProperty()
   exerciseId: string;
+
   @AutoMap()
   @ApiProperty()
   exerciseName: string;
+
   @AutoMap()
   @ApiProperty()
   order: number;
+
+  @ApiProperty({ enum: ExerciseType, required: true })
+  @AutoMap()
+  public exerciseType: ExerciseType;
+
   @AutoMap(() => WorkoutTemplateSetResponseDto)
   @ApiProperty({ type: WorkoutTemplateSetResponseDto, isArray: true })
   sets: WorkoutTemplateSetResponseDto[];
