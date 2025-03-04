@@ -28,7 +28,6 @@ import {
   ExerciseRequestDto,
   ExerciseResponseDto,
   ExerciseVariationDto,
-  ExerciseWithWorkoutDetailsDto,
   LookupItemDto,
   UpdateExerciseVariationDto,
 } from '../dtos';
@@ -139,28 +138,6 @@ export default class ExercisesController {
         exercises,
         ExerciseModel,
         ExerciseResponseDto,
-      );
-    } catch (e) {
-      throw new ConflictException(e.message);
-    }
-  }
-
-  @Get('/workout-details')
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ExerciseWithWorkoutDetailsDto,
-    isArray: true,
-  })
-  @ApiResponse({ status: HttpStatus.CONFLICT })
-  public async getExercisesWithWorkoutDetails(
-    @CurrentUser() userId: string,
-  ): Promise<ExerciseWithWorkoutDetailsDto[]> {
-    try {
-      const exercisesWithWorkout =
-        await this.exerciseService.getExerciseWithWorkoutDetails(userId);
-      return plainToInstance(
-        ExerciseWithWorkoutDetailsDto,
-        exercisesWithWorkout,
       );
     } catch (e) {
       throw new ConflictException(e.message);

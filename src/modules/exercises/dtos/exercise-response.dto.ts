@@ -1,7 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
 import { ExerciseType } from '../enums/exercise-type.enum';
-import { RecentSetDto } from './exericse-with-workout-details.dto';
+import { RecentSetDto } from './recent-workout-set.dto';
 
 export class ExerciseResponseDto {
   @ApiProperty()

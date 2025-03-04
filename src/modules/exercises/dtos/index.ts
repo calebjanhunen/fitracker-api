@@ -6,6 +6,6 @@ export * from './exercise-request.dto';
 export * from './exercise-response.dto';
 export * from './exercise-variation.dto';
 export * from './exercise-workout-history.dto';
-export * from './exericse-with-workout-details.dto';
 export * from './lookup-item.dto';
+export * from './recent-workout-set.dto';
 export * from './update-exercise-variation.dto';

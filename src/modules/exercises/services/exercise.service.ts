@@ -10,7 +10,6 @@ import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import {
   ExerciseModel,
-  ExerciseWithWorkoutDetailsModel,
   InsertExerciseModel,
   NumTimesUsedForExerciseModel,
   RecentSetModel,
@@ -209,42 +208,6 @@ export class ExerciseService {
       bodyPart: capitalizeFirstLetter(updatedExercise.bodyPart),
       equipment: capitalizeFirstLetter(updatedExercise.equipment),
     };
-  }
-
-  /**
-   * Gets all exercises along with workout details about each one.
-   *
-   * @param {string} userId
-   * @returns {ExerciseWithWorkoutDetails[]}
-   */
-  public async getExerciseWithWorkoutDetails(
-    userId: string,
-  ): Promise<ExerciseWithWorkoutDetailsModel[]> {
-    const allExercises = await this.exerciseRepo.findAll(userId);
-    const exercisesWithRecentSets =
-      await this.exerciseRepo.getMostRecentWorkoutSetsForAllExercises(userId);
-    const exerciseWithNumTimesUsed =
-      await this.exerciseRepo.getNumTimesEachExerciseUsed(userId);
-
-    // convert recent sets array to map for quick lookup
-    const recentSetsMap = new Map<string, RecentSetsForExerciseModel>();
-    exercisesWithRecentSets.forEach((e) => recentSetsMap.set(e.id, e));
-
-    //convert num times used array to map for quick lookup
-    const numTimesUsedMap = new Map<string, NumTimesUsedForExerciseModel>();
-    exerciseWithNumTimesUsed.forEach((e) => numTimesUsedMap.set(e.id, e));
-
-    return allExercises.map((e) => {
-      const numTimesUsed = numTimesUsedMap.get(e.id)?.numTimesUsed;
-      return {
-        id: e.id,
-        name: e.name,
-        bodyPart: capitalizeFirstLetter(e.bodyPart),
-        equipment: capitalizeFirstLetter(e.equipment),
-        numTimesUsed: numTimesUsed ? Number(numTimesUsed) : 0,
-        recentSets: recentSetsMap.get(e.id)?.recentSets ?? [],
-      };
-    });
   }
 
   public async getExerciseDetails(
