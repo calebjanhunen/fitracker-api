@@ -10,9 +10,9 @@ import { ExerciseIsNotCustomException } from '../internal-errors/exercise-is-not
 import { ExerciseNotFoundException } from '../internal-errors/exercise-not-found.exception';
 import {
   ExerciseModel,
-  ExerciseWithWorkoutDetailsModel,
   InsertExerciseModel,
   NumTimesUsedForExerciseModel,
+  RecentSetModel,
   RecentSetsForExerciseModel,
 } from '../models';
 import { ExerciseDetailsModel } from '../models/exercise-details.model';
@@ -61,23 +61,50 @@ export class ExerciseService {
    *
    * @throws {ExerciseNotFoundException}
    */
-  public async findAll(userId: string): Promise<ExerciseModel[]> {
+  public async findAll(
+    userId: string,
+    isForWorkout: boolean,
+  ): Promise<ExerciseModel[]> {
     let exercises = await this.exerciseRepo.findAll(userId);
-    exercises = exercises.map((exercise) => ({
-      ...exercise,
-      bodyPart: capitalizeFirstLetter(exercise.bodyPart),
-      equipment: capitalizeFirstLetter(exercise.equipment),
-      exerciseType: ExerciseType.EXERCISE,
-    }));
 
     let exerciseVariations =
       await this.exerciseVariationRepo.getExerciseVariations(userId);
-    exerciseVariations = exerciseVariations.map((ev) => ({
-      ...ev,
-      bodyPart: capitalizeFirstLetter(ev.bodyPart),
-      equipment: capitalizeFirstLetter(ev.equipment),
-      exerciseType: ExerciseType.VARIATION,
-    }));
+
+    let numTimesExercisesUsed: NumTimesUsedForExerciseModel[] = [];
+    let mostRecentExerciseWorkoutSets: RecentSetsForExerciseModel[] = [];
+    let numTimesVariationsUsed: NumTimesUsedForExerciseModel[] = [];
+    let mostRecentVariationWorkoutSets: RecentSetsForExerciseModel[] = [];
+    if (isForWorkout) {
+      [
+        numTimesExercisesUsed,
+        numTimesVariationsUsed,
+        mostRecentExerciseWorkoutSets,
+        mostRecentVariationWorkoutSets,
+      ] = await Promise.all([
+        this.exerciseRepo.getNumTimesEachExerciseUsed(userId),
+        this.exerciseVariationRepo.getNumTimesEachVariationUsed(userId),
+        this.exerciseRepo.getMostRecentWorkoutSetsForAllExercises(userId),
+        this.exerciseVariationRepo.getMostRecentWorkoutSetsForAllVariations(
+          userId,
+        ),
+      ]);
+    }
+
+    exercises = this.hydrateExerciseModels(
+      exercises,
+      numTimesExercisesUsed,
+      mostRecentExerciseWorkoutSets,
+      ExerciseType.EXERCISE,
+      isForWorkout,
+    );
+
+    exerciseVariations = this.hydrateExerciseModels(
+      exerciseVariations,
+      numTimesVariationsUsed,
+      mostRecentVariationWorkoutSets,
+      ExerciseType.VARIATION,
+      isForWorkout,
+    );
 
     return exercises
       .concat(exerciseVariations)
@@ -183,42 +210,6 @@ export class ExerciseService {
     };
   }
 
-  /**
-   * Gets all exercises along with workout details about each one.
-   *
-   * @param {string} userId
-   * @returns {ExerciseWithWorkoutDetails[]}
-   */
-  public async getExerciseWithWorkoutDetails(
-    userId: string,
-  ): Promise<ExerciseWithWorkoutDetailsModel[]> {
-    const allExercises = await this.exerciseRepo.findAll(userId);
-    const exercisesWithRecentSets =
-      await this.exerciseRepo.getRecentSetsForExercises(userId);
-    const exerciseWithNumTimesUsed =
-      await this.exerciseRepo.getNumTimesEachExerciseUsed(userId);
-
-    // convert recent sets array to map for quick lookup
-    const recentSetsMap = new Map<string, RecentSetsForExerciseModel>();
-    exercisesWithRecentSets.forEach((e) => recentSetsMap.set(e.id, e));
-
-    //convert num times used array to map for quick lookup
-    const numTimesUsedMap = new Map<string, NumTimesUsedForExerciseModel>();
-    exerciseWithNumTimesUsed.forEach((e) => numTimesUsedMap.set(e.id, e));
-
-    return allExercises.map((e) => {
-      const numTimesUsed = numTimesUsedMap.get(e.id)?.numTimesUsed;
-      return {
-        id: e.id,
-        name: e.name,
-        bodyPart: capitalizeFirstLetter(e.bodyPart),
-        equipment: capitalizeFirstLetter(e.equipment),
-        numTimesUsed: numTimesUsed ? Number(numTimesUsed) : 0,
-        recentSets: recentSetsMap.get(e.id)?.recentSets ?? [],
-      };
-    });
-  }
-
   public async getExerciseDetails(
     exerciseId: string,
     userId: string,
@@ -314,5 +305,48 @@ export class ExerciseService {
         `Equipment with id ${equipmentId} not found.`,
       );
     }
+  }
+
+  private hydrateExerciseModels(
+    exercises: ExerciseModel[],
+    numTimesExercisesUsed: NumTimesUsedForExerciseModel[],
+    mostRecentWorkoutSetsForExercises: RecentSetsForExerciseModel[],
+    exerciseType: ExerciseType,
+    isForWorkout: boolean,
+  ): ExerciseModel[] {
+    return exercises.map((exercise) => {
+      const numTimesUsed =
+        numTimesExercisesUsed.find((e) => e.id === exercise.id)?.numTimesUsed ??
+        0;
+
+      const mostRecentWorkoutSets =
+        mostRecentWorkoutSetsForExercises.find((e) => e.id === exercise.id)
+          ?.recentSets ?? [];
+
+      return this.hydrateExerciseModel(
+        exercise,
+        numTimesUsed,
+        mostRecentWorkoutSets,
+        exerciseType,
+        isForWorkout,
+      );
+    });
+  }
+
+  private hydrateExerciseModel(
+    exercise: ExerciseModel,
+    numTimesExercisesUsed: number,
+    mostRecentWorkoutSets: RecentSetModel[],
+    exerciseType: ExerciseType,
+    isForWorkout: boolean,
+  ): ExerciseModel {
+    return {
+      ...exercise,
+      bodyPart: capitalizeFirstLetter(exercise.bodyPart),
+      equipment: capitalizeFirstLetter(exercise.equipment),
+      numTimesUsed: isForWorkout ? Number(numTimesExercisesUsed) : undefined,
+      mostRecentWorkoutSets: isForWorkout ? mostRecentWorkoutSets : undefined,
+      exerciseType: exerciseType,
+    };
   }
 }

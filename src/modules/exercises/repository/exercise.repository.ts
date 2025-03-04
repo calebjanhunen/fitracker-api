@@ -307,10 +307,10 @@ export class ExerciseRepository {
    * @param {string} userId
    * @returns {RecentSetsForExerciseModel[]}
    */
-  public async getRecentSetsForExercises(
+  public async getMostRecentWorkoutSetsForAllExercises(
     userId: string,
   ): Promise<RecentSetsForExerciseModel[]> {
-    const queryName = 'GetRecentSetsForExercises';
+    const queryName = 'getMostRecentWorkoutSetsForAllExercises';
 
     const query = `
       WITH recent_workouts AS (
