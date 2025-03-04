@@ -17,7 +17,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { CurrentUser } from 'src/common/decorators';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
@@ -113,6 +113,13 @@ export default class ExercisesController {
   }
 
   @Get()
+  @ApiQuery({
+    name: 'isForWorkout',
+    type: Boolean,
+    description:
+      'If true - returns numTimesExerciseUsed and mostRecentWorkoutSets',
+    required: false,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     type: ExerciseResponseDto,
@@ -121,10 +128,18 @@ export default class ExercisesController {
   @ApiResponse({ status: HttpStatus.CONFLICT })
   public async getAllExercises(
     @CurrentUser() userId: string,
+    @Query('isForWorkout') isForWorkout?: boolean,
   ): Promise<ExerciseResponseDto[]> {
     try {
-      const exercises = await this.exerciseService.findAll(userId);
-      return plainToInstance(ExerciseResponseDto, exercises);
+      const exercises = await this.exerciseService.findAll(
+        userId,
+        isForWorkout ?? false,
+      );
+      return this.mapper.mapArray(
+        exercises,
+        ExerciseModel,
+        ExerciseResponseDto,
+      );
     } catch (e) {
       throw new ConflictException(e.message);
     }

@@ -12,6 +12,7 @@ import {
   ExerciseVariationDto,
   ExerciseWorkoutHistoryDto,
   LookupItemDto,
+  RecentSetDto,
   UpdateExerciseVariationDto,
 } from './dtos';
 import {
@@ -23,6 +24,7 @@ import {
   ExerciseVariationModel,
   ExerciseWorkoutHistoryModel,
   LookupItem,
+  RecentSetModel,
   UpdateExerciseVariationModel,
 } from './models';
 
@@ -60,6 +62,7 @@ export class ExerciseProfile extends AutomapperProfile {
         UpdateExerciseVariationModel,
       );
       createMap(mapper, ExerciseModel, ExerciseResponseDto);
+      createMap(mapper, RecentSetModel, RecentSetDto);
     };
   }
 }

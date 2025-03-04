@@ -1,6 +1,7 @@
 import { AutoMap } from '@automapper/classes';
 import { ApiProperty } from '@nestjs/swagger';
 import { ExerciseType } from '../enums/exercise-type.enum';
+import { RecentSetDto } from './exericse-with-workout-details.dto';
 
 export class ExerciseResponseDto {
   @ApiProperty()
@@ -30,4 +31,12 @@ export class ExerciseResponseDto {
   @ApiProperty({ type: 'string', required: false })
   @AutoMap()
   public parentExerciseId?: string;
+
+  @ApiProperty({ type: 'integer', required: false })
+  @AutoMap()
+  public numTimesUsed?: number;
+
+  @ApiProperty({ type: RecentSetDto, required: false, isArray: true })
+  @AutoMap(() => RecentSetDto)
+  public mostRecentWorkoutSets?: RecentSetDto[];
 }
